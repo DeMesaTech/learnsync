@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eraya's Form</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Registration Form</h1>
+    <p class="subtitle">Please fillout all fields before submitting</p>
+
+    <form id="registrationForm" onsubmit="return validateForm()">
+      <!-- Full Name -->
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="e.g. Juan Dela Cruz" required>
+      <small id="fullnameError" class="error" aria-live="polite"></small>
+
+      <!-- Email -->
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="e.g. juandela.cruz@gmail.com" required>
+      <small id="emailError" class="error" aria-live="polite"></small>
+
+      <!-- Mobile -->
+      <label for="mobile">Mobile Number</label>
+      <input type="text" id="mobile" placeholder="09xxxxxxxxx" required>
+      <small id="mobileError" class="error" aria-live="polite"></small>
+
+      <!-- Password -->
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter strong password" required>
+      <small id="passwordError" class="error" aria-live="polite"></small>
+
+      <!-- Confirm Password -->
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Re-enter password" onpaste="return false;" required>
+      <small id="confirmPasswordError" class="error" aria-live="polite"></small>
+
+      <button type="submit" id="submitBtn" disabled>Register</button>
+    </form>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

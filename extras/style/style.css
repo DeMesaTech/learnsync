@@ -1,0 +1,369 @@
+.mainS {
+  background-color: #90997f;
+  width: 100%;
+  min-width: 412px;
+  min-height: 917px;
+  position: relative;
+}
+
+.mainS .ellipse {
+  position: absolute;
+  top: 107px;
+  left: 158px;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.mainS .text-wrapper {
+  position: absolute;
+  top: 234px;
+  left: calc(50.00% - 61px);
+  font-family: "Katibeh-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 32px;
+  letter-spacing: 0;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.mainS .rectangle {
+  position: absolute;
+  top: 319px;
+  left: 15px;
+  width: 382px;
+  height: 511px;
+}
+
+.mainS .div {
+  position: absolute;
+  top: 350px;
+  left: 56px;
+  font-family: "Poppins-Bold", Helvetica;
+  font-weight: 700;
+  color: #000000;
+  font-size: 32px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .text-wrapper-2 {
+  position: absolute;
+  top: 618px;
+  left: 253px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #090618;
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .group {
+  position: absolute;
+  top: 420px;
+  left: 53px;
+  width: 304px;
+  height: 50px;
+}
+
+.mainS .img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 302px;
+  height: 50px;
+}
+
+.mainS .keyboard-arrow-down {
+  position: absolute;
+  top: 13px;
+  left: 265px;
+  width: 24px;
+  height: 24px;
+  aspect-ratio: 1;
+}
+
+.mainS .text-wrapper-3 {
+  position: absolute;
+  top: 13px;
+  left: 15px;
+  width: 98px;
+  font-family: "Poppins-Medium", Helvetica;
+  font-weight: 500;
+  color: #464646;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .group-2 {
+  position: absolute;
+  top: 562px;
+  left: 53px;
+  width: 304px;
+  height: 50px;
+}
+
+.mainS .text-wrapper-4 {
+  position: absolute;
+  top: 14px;
+  left: 15px;
+  width: 73px;
+  font-family: "Poppins-Medium", Helvetica;
+  font-weight: 500;
+  color: #000000;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .group-3 {
+  position: absolute;
+  top: 491px;
+  left: 53px;
+  width: 304px;
+  height: 50px;
+}
+
+.mainS .text-wrapper-5 {
+  position: absolute;
+  top: 13px;
+  left: 16px;
+  width: 73px;
+  font-family: "Poppins-Medium", Helvetica;
+  font-weight: 500;
+  color: #000000;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .rectangle-2 {
+  position: absolute;
+  top: 665px;
+  left: 53px;
+  width: 302px;
+  height: 50px;
+}
+
+.mainS .text-wrapper-6 {
+  position: absolute;
+  top: 672px;
+  left: 166px;
+  font-family: "Poppins-Bold", Helvetica;
+  font-weight: 700;
+  color: #090618;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.mainS .building-blocks {
+  display: flex;
+  width: 412px;
+  height: 52px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px 24px;
+  position: absolute;
+  top: -6px;
+  left: calc(50.00% - 206px);
+}
+
+.mainS .time {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  font-family: "Roboto-Medium", Helvetica;
+  font-weight: 500;
+  color: #1d1b20;
+  font-size: 14px;
+  letter-spacing: 0.14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.mainS .right-icons {
+  position: relative;
+  width: 46px;
+  height: 17px;
+}
+
+.mainS .camera-cutout {
+  position: absolute;
+  top: 18px;
+  left: calc(50.00% - 12px);
+  width: 24px;
+  height: 24px;
+}
+
+.mainS .group-4 {
+  position: absolute;
+  top: 618px;
+  left: 48px;
+  width: 115px;
+  height: 18px;
+  display: flex;
+  gap: 4px;
+}
+
+.mainS .rectangle-3 {
+  width: 18px;
+  height: 16px;
+}
+
+.mainS .text-wrapper-7 {
+  width: 91px;
+  height: 18px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #090618;
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+/* Original CSS code should be injected above this comment. */
+
+.mainS {
+  display: block;
+  overflow-x: auto;
+}
+
+.mainS .rectangle {
+  display: block;
+  border: 0;
+  background: transparent;
+}
+
+.mainS .group,
+.mainS .group-2,
+.mainS .group-3 {
+  overflow: hidden;
+}
+
+.mainS .group select,
+.mainS .group-2 input,
+.mainS .group-3 input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: transparent;
+  caret-color: #000000;
+  padding: 0 44px 0 15px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.mainS .group select {
+  padding-right: 46px;
+}
+
+.mainS .group select option {
+  color: #000000;
+}
+
+.mainS .group-2 input,
+.mainS .group-3 input {
+  padding-right: 15px;
+}
+
+.mainS .group select:focus,
+.mainS .group-2 input:focus,
+.mainS .group-3 input:focus {
+  color: #000000;
+}
+
+.mainS .group select:not(:placeholder-shown),
+.mainS .group-2 input:not(:placeholder-shown),
+.mainS .group-3 input:not(:placeholder-shown),
+.mainS .group select:valid,
+.mainS .group-2 input:not(:focus):not(:placeholder-shown),
+.mainS .group-3 input:not(:focus):not(:placeholder-shown) {
+  color: transparent;
+}
+
+.mainS .group select::-ms-expand {
+  display: none;
+}
+
+.mainS .group-2 input::-ms-reveal,
+.mainS .group-2 input::-ms-clear {
+  display: none;
+}
+
+.mainS .keyboard-arrow-down {
+  pointer-events: none;
+}
+
+.mainS .group-4 {
+  align-items: center;
+  position: absolute;
+}
+
+.mainS .group-4 .rectangle-3 {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  pointer-events: none;
+}
+
+.mainS .group-4 input[type="checkbox"] {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 18px;
+  height: 16px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mainS .group-4 .text-wrapper-7 {
+  margin-left: 22px;
+  display: block;
+}
+
+.mainS .text-wrapper-2 {
+  text-decoration: none;
+}
+
+.mainS .text-wrapper-2:focus-visible,
+.mainS .group select:focus-visible,
+.mainS .group-2 input:focus-visible,
+.mainS .group-3 input:focus-visible,
+.mainS
+  .group-4
+  input[type="checkbox"]:focus-visible
+  + .text-wrapper-7,
+.mainS .rectangle-2:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+.mainS .rectangle-2 {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mainS .text-wrapper-6 {
+  pointer-events: none;
+}
+
+.mainS form {
+  margin: 0;
+}
+
+.mainS h1,
+.mainS h2 {
+  margin: 0;
+}
