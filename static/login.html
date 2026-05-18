@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LearnSync Login</title>
+
+    <script src="/static/js/alpine_cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/login.css">
+</head>
+
+<body class="h-screen flex items-center justify-center bg-gradient-to-b from-cyan-400 to-cyan-500 font-poppins text-slate-800">
+    <main class="container" x-data="{ page: 'signup' }">
+        <!-- LOGIN -->
+        <section class="account" aria-labelledby="login-heading" x-show="page === 'login'">
+            <h2 class="div" id="login-heading">LogIn</h2>
+            <!-- MAIN FORM -->
+            <form id="loginForm">
+                <!-- ROLE -->
+                <label class="text-wrapper-3" for="loginRole">Select Role</label>
+                <select id="loginRole" name="loginRole" aria-label="Select Role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+                
+                <!-- Email -->
+                <label for="loginEmail">Email Address</label>
+                <input type="email" id="loginEmail" placeholder="e.g. juandela.cruz@gmail.com" required>
+                <small id="loginEmailError" class="error" aria-live="polite"></small>
+
+                <!-- Password -->
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter strong password" required>
+                <small id="loginPasswordError" class="error" aria-live="polite"></small>
+
+                <button type="submit" id="loginBtn" class="auth-btn">LogIn</button>
+            </form>
+            <p>or</p>
+            <button type="button" id="showSignupBtn" class="auth-btn" @click="page = 'signup'">Create Account</button>
+        </section>
+
+        <!-- SIGN UP -->
+        <section class="account" aria-labelledby="signup-heading" x-show="page === 'signup'">
+            <h2 class="div" id="signup-heading">Sign Up</h2>
+            <!-- MAIN FORM -->
+            <form id="signupForm">
+                <!-- ROLE -->
+                <label class="text-wrapper-3" for="signupRole">Select Role</label>
+                <select id="signupRole" name="signupRole" aria-label="Select Role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                </select>
+                
+                <!-- Email -->
+                <label for="signupEmail">Email Address</label>
+                <input type="email" id="signupEmail" placeholder="e.g. juandela.cruz@gmail.com" required>
+                <small id="signupEmailError" class="error" aria-live="polite"></small>
+                <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <!-- First Name -->
+                    <label for="signupFirstName">First Name</label>
+                    <input type="text" id="signupFirstName" placeholder="Enter your first name" required>
+                    <small id="signupFirstNameError" class="error" aria-live="polite"></small>
+                </div>
+                <div>
+                    <!-- Middle Name -->
+                    <label for="signupMiddleName">Middle Name</label>
+                    <input type="text" id="signupMiddleName" placeholder="Enter your middle name" required>
+                    <small id="signupMiddleNameError" class="error" aria-live="polite"></small>
+                </div>    
+                <div>
+                    <!-- Last Name -->
+                    <label for="signupLastName">Last Name</label>
+                    <input type="text" id="signupLastName" placeholder="Enter your last name" required>
+                    <small id="signupLastNameError" class="error" aria-live="polite"></small>
+                </div>
+                <div>
+                    <!-- ID Number -->
+                    <label for="signupIDnumber">ID number</label>
+                    <input type="text" id="signupIDnumber" pattern="[A-Z][a-z]-\d{2}-\d-\d{3}" placeholder="Aq-12-3-456" required>
+                    <small id="signupIDnumberError" class="error" aria-live="polite"></small>
+                </div>
+                </div>
+
+                <!-- Password -->
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" placeholder="Enter strong password" required>
+                <small id="signupPasswordError" class="error" aria-live="polite"></small>
+
+                <!-- Confirm Password -->
+                <label for="signupConfirmPassword">Confirm Password</label>
+                <input type="password" id="signupConfirmPassword" placeholder="Re-enter password" onpaste="return false;" required>
+                <small id="signupConfirmPasswordError" class="error" aria-live="polite"></small>
+
+                <button type="submit" id="signupSubmitBtn" class="auth-btn">Create Account</button>
+            </form>
+            <p>or</p>
+            <button type="button" id="showLoginBtn" class="auth-btn" @click="page = 'login'">LogIn</button>
+        </section>
+    </main>
+</body>
+
+<script src="/static/js/login.js"></script>
+<script src="/static/js/Signup.js"></script>
+</html>
