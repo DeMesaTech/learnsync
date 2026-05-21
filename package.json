@@ -17,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/DeMesaTech/learnsync/issues"
   },
-  "homepage": "https://github.com/DeMesaTech/learnsync#readme"
+  "homepage": "https://github.com/DeMesaTech/learnsync#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0"
+  }
 }

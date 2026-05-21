@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 * {
   margin: 0;
@@ -6,13 +6,35 @@
   box-sizing: border-box;
 }
 
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  color: #1f2d2d;
+  background: linear-gradient(180deg, #22d3ee 0%, #06b6d4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} 
+
+main.container {
+  width: min(420px, 100%);
+  padding: 20px;
+}
 
 .account {
   background: #2d8f92;
   padding: 35px 30px;
   border-radius: 15px;
-  width: 400px;
+  width: 500px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.15);
+}
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 h1 {
@@ -34,6 +56,7 @@ label {
 
 input, select {
   width: 100%;
+  height: 40px;
   padding: 10px;
   margin-top: 5px;
   border: 1px solid #a9dcd5;
@@ -93,6 +116,10 @@ select {
   padding-right: 40px;
 }
 
+p {
+  display: flex;
+  justify-content: center;
+}
 
 .auth-btn,
 button {
