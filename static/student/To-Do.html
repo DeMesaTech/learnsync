@@ -8,62 +8,49 @@
 
     <!--<link rel="stylesheet" href="/static/css/style.css"> -->
     <script src="/static/js/alpine_cdn.min.js" defer></script>
+    <link rel="stylesheet" href="/static/css/sidebar.css">
     <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
-<style>
-    section {
-        height: 200px;
-    }
-    .sidebar-icon {
-        width: 30px;
-        height: 30px;
-    }
-    .sidebar-logo {
-        display: flex;
-        justify-content: left;
-        padding-left: 10px;
-    }
-    .sidebar-btn-active{
-    --tw-bg-opacity: 1;
-    background-color: rgb(51 65 85 / var(--tw-bg-opacity, 1));
-    }
-    a.sidebar-btn-active .sidebar-icon {
-        color:white;
-    }
-    a.sidebar-btn-active span {
-        color:white;
-        margin-left: 20px;
-    }
-    .sidebar-btn span {
-        margin-left: 20px;
-    }
-    
-</style>
 
 <body class="min-h-screen bg-gradient-to-b from-cyan-800 to-sky-600 text-slate-900 font-sans text-sm">
-<!-- PAGE WRAPPER (push below header) -->
+    <!-- PAGE WRAPPER (push below header) -->
     <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
         <!-- HEADER -->
         <header
-            class="flex items-center  my-auto gap-4 px-6 py-4 bg-slate-800 text-white shadow-lg h-20 fixed top-0 left-0 right-0 z-50">
-            
-            <!-- MOBILE TOGGLE -->
-            <button @click="open = !open" class="md:hidden bg-slate-700 p-2 rounded-lg">
-                ☰
+            class="fixed top-0 left-0 right-0 z-50 flex h-20 items-center gap-4 bg-slate-800 px-5 py-4 text-white shadow-lg md:px-8">
+            <button @click="open = !open" class="rounded-lg bg-slate-700 p-2 transition hover:bg-slate-600 md:hidden"
+                aria-label="Open menu">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
             </button>
-            <img src="/static/img/gmvcc.png" alt="LearnSync logo" class="h-12 w-auto rounded" />
-            <div class="flex gap-8 items-center">
-                <h1 class="text-xl font-semibold tracking-tight">
-                    <span class="md:hidden">GMVCC</span>
-                    <span class="hidden md:inline">Governor Mariano E. Villafuerte Community College</span>
-                </h1>
-            </div>
-            <div class="ml-auto flex items-center gap-4" alt="Profile">
-                <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+            <img src="/static/img/gmvcc.png" alt="GMVCC logo" class="h-12 w-auto rounded" />
+            <h1 class="min-w-0 flex-1 truncate text-lg font-semibold tracking-tight md:text-xl">
+                <span class="md:hidden">GMVCC</span>
+                <span class="hidden md:inline">Governor Mariano E. Villafuerte Community College</span>
+            </h1>
+
+            <!-- Notification Icon -->
+            <button class="grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/10"
+                alt="Notification">
+                <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11
+                        a6.002 6.002 0 0 0-4-5.659V4
+                        a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159
+                        c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1
+                        a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg>
+            </button>
+            <!-- Profile Button -->
+            <button class="grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/10"
+                aria-label="Profile">
+                <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
                 </svg>
-            
+            </button>
         </header>
 
         <!-- MOBILE OVERLAY -->
@@ -71,23 +58,24 @@
         </div>
 
         <!-- SIDEBAR -->
-        <nav class="fixed md:static top-0 left-0 h-screen w-70 border-r border-slate-400 p-4
-            transform transition-transform duration-300 z-50 md:z-auto"
-            :class="open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" style="background-color: rgb(101 170 204);">
+        <nav class="fixed top-20 left-0 h-[calc(100vh-5rem)] w-72 overflow-hidden border-r border-slate-400 p-4
+            transform transition-transform duration-300 z-50 md:self-start"
+            :class="open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+            style="background-color: rgb(101 170 204);">
             <ul class="space-y-1">
 
                 <div class="sidebar-logo d-none border-b-2 border-slate-400 mb-4 pb-4">
-                <div class="sidebar-logo-icon">
-                    <svg class="w-[40px] h-[40px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
-                    </svg>
+                    <div class="sidebar-logo-icon">
+                        <svg class="w-[40px] h-[40px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+                        </svg>
+                    </div>
+                    <div class="lh-sm flex flex-col">
+                        <strong>LearnSync</strong>
+                        <span>GMVCC LMS</span>
+                    </div>
                 </div>
-                <div class="lh-sm flex flex-col">
-                    <strong>LearnSync</strong>
-                    <span>GMVCC LMS</span>
-                </div>
-            </div>
                 <!-- AI Assistant -->
                 <li><a href="#AI" @click="open=false"
                         class="sidebar-btn font-semibold flex items-center rounded-[8px] px-4 py-1 text-slate-800 hover:bg-slate-700 hover:text-white transition">
@@ -121,7 +109,7 @@
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
-                        </svg>      
+                        </svg>
                         <span class="ml-3">Account Information</span>
                     </a></li>
                 <!-- About -->
@@ -139,7 +127,7 @@
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
-                        </svg>  
+                        </svg>
                         <span class="ml-3">Report Bug</span>
                     </a></li>
                 <!-- Logout -->
@@ -157,38 +145,46 @@
             </ul>
         </nav>
 
-        <article class="grid grid-cols-1 gap-4 p-8 h-min flex-1">
-            <h2 class="text-3xl text-white font-bold tracking-tight p-[10px] h-min">My Classes</h2>
-            <main class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-[10px] h-min">
-                <section class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">Subject 1</h2>
-                    <p class="text-slate-700 leading-7">Use the navigation menu to access your AI assistant, class
-                        details, tasks, account information, and support tools.</p>
-                </section>
-                <section class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">Subject 2</h2>
-                    <p class="text-slate-700 leading-7">Use the navigation menu to access your AI assistant, class
-                        details, tasks, account information, and support tools.</p>
-                </section>
-                <section class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">Subject 3</h2>
-                    <p class="text-slate-700 leading-7">Use the navigation menu to access your AI assistant, class
-                        details, tasks, account information, and support tools.</p>
-                </section>
-                <section class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">Subject 4</h2>
-                    <p class="text-slate-700 leading-7">Use the navigation menu to access your AI assistant, class
-                        details, tasks, account information, and support tools.</p>
-                </section>
-                <section class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">Subject 5</h2>
-                    <p class="text-slate-700 leading-7">Use the navigation menu to access your AI assistant, class
-                        details, tasks, account information, and support tools.</p>
-                </section>
+        <!-- Main Content -->
+        <article class="grid grid-cols-1 gap-6 p-8 h-min flex-1 md:ml-72">
+            <h2 class="text-3xl text-white font-bold tracking-tight">To Do</h2>
 
-            </main>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Upcoming Assignments -->
+                <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Upcoming Assignments</h3>
+                    <div class="space-y-3">
+                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-amber-500">
+                            <p class="font-bold">Capstone: Chapter 1 Draft</p>
+                            <p class="text-sm text-slate-600">Due: Oct 25, 2026 • 11:59 PM</p>
+                        </div>
+                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-red-500">
+                            <p class="font-bold">Web Dev: Final Project Proposal</p>
+                            <p class="text-sm text-slate-600">Due: Oct 20, 2026 • 05:00 PM</p>
+                        </div>
+                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-cyan-500">
+                            <p class="font-bold">Database: Normalization Exercise</p>
+                            <p class="text-sm text-slate-600">Due: Oct 30, 2026 • 11:59 PM</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completed -->
+                <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Completed</h3>
+                    <div class="space-y-3 opacity-70">
+                        <div class="p-4 bg-white/30 rounded-xl line-through">
+                            <p class="font-bold text-slate-500">System Analysis: Use Case Diagram</p>
+                            <p class="text-sm text-slate-500">Submitted: Oct 10, 2026</p>
+                        </div>
+                        <div class="p-4 bg-white/30 rounded-xl line-through">
+                            <p class="font-bold text-slate-500">Research: Introduction Review</p>
+                            <p class="text-sm text-slate-500">Submitted: Oct 05, 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </article>
-
     </div>
 </body>
 
