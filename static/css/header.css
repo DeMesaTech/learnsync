@@ -1,0 +1,96 @@
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 5rem;
+    padding: 1rem 1.25rem;
+    color: white;
+    background-color: rgb(30 41 59);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.header-menu-btn {
+    padding: 0.5rem;
+    color: white;
+    background-color: rgb(51 65 85);
+    border: 0;
+    border-radius: 0.5rem;
+    transition: background-color 150ms ease;
+}
+
+.header-menu-btn:hover {
+    background-color: rgb(71 85 105);
+}
+
+.header-menu-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.header-logo {
+    width: auto;
+    height: 3rem;
+    border-radius: 0.25rem;
+}
+
+.header-title {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-title-long {
+    display: none;
+}
+
+.header-icon-btn {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    color: white;
+    background: transparent;
+    border: 0;
+    border-radius: 9999px;
+    transition: background-color 150ms ease;
+}
+
+.header-icon-btn:hover {
+    background-color: rgb(255 255 255 / 0.1);
+}
+
+.header-action-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+@media (min-width: 768px) {
+    .app-header {
+        padding-right: 2rem;
+        padding-left: 2rem;
+    }
+
+    .header-menu-btn,
+    .header-title-short {
+        display: none !important;
+    }
+
+    .header-title {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+
+    .header-title-long {
+        display: inline;
+    }
+}

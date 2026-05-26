@@ -1,23 +1,99 @@
-    .sidebar-icon {
-        width: 30px;
-        height: 30px;
+.mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background-color: rgb(0 0 0 / 0.4);
+}
+
+.sidebar {
+    position: fixed;
+    top: 5rem;
+    left: 0;
+    z-index: 50;
+    width: 18rem;
+    height: calc(100vh - 5rem);
+    padding: 1rem;
+    overflow: hidden;
+    background-color: rgb(101 170 204);
+    border-right: 1px solid rgb(148 163 184);
+    transition: transform 300ms ease;
+}
+
+.sidebar-open {
+    transform: translateX(0);
+}
+
+.sidebar-closed {
+    transform: translateX(-100%);
+}
+
+.sidebar-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sidebar-list > * + * {
+    margin-top: 0.25rem;
+}
+
+.sidebar-logo {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+    padding: 0 0 1rem 0.625rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid rgb(148 163 184);
+}
+
+.sidebar-brand-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.sidebar-btn,
+.sidebar-btn-active {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 1rem;
+    color: rgb(30 41 59);
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: color 150ms ease, background-color 150ms ease;
+}
+
+.sidebar-btn:hover,
+.sidebar-btn-active:hover,
+.sidebar-btn-active {
+    color: white;
+    background-color: rgb(51 65 85);
+}
+
+.sidebar-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+}
+
+.sidebar-btn span,
+.sidebar-btn-active span {
+    margin-left: 20px;
+}
+
+@media (min-width: 768px) {
+    .mobile-overlay {
+        display: none !important;
     }
-    .sidebar-logo {
-        display: flex;
-        justify-content: left;
-        padding-left: 10px;
+
+    .sidebar,
+    .sidebar-closed {
+        transform: translateX(0);
     }
-    .sidebar-btn-active{
-    --tw-bg-opacity: 1;
-    background-color: rgb(51 65 85 / var(--tw-bg-opacity, 1));
-    }
-    a.sidebar-btn-active .sidebar-icon {
-        color:white;
-    }
-    a.sidebar-btn-active span {
-        color:white;
-        margin-left: 20px;
-    }
-    .sidebar-btn span {
-        margin-left: 20px;
-    }
+}
