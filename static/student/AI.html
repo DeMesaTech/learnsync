@@ -4,211 +4,166 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LearnSync Login</title>
+    <title>LearnSync | AI Assistant</title>
 
-    <!--<link rel="stylesheet" href="/static/css/style.css"> -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
-    <link rel="stylesheet" href="../css/header.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
     <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 
-<body class="min-h-screen bg-gradient-to-b from-cyan-800 to-sky-600 text-slate-900 font-sans text-sm">
-    <!-- PAGE WRAPPER (push below header) -->
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
-        <!-- HEADER -->
-        <header class="app-header">
-            <button @click="open = !open" class="header-menu-btn"
-                aria-label="Open menu">
-                <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
-                </svg>
-            </button>
-
-            <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title">
-                <span class="header-title-short">GMVCC</span>
-                <span class="header-title-long">Governor Mariano E. Villafuerte Community College</span>
-            </h1>
-
-            <!-- Notification Icon -->
-            <button class="header-icon-btn"
-                alt="Notification">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11
-                        a6.002 6.002 0 0 0-4-5.659V4
-                        a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159
-                        c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1
-                        a3 3 0 1 1-6 0v-1m6 0H9" />
-                </svg>
-            </button>
-            <!-- Profile Button -->
-            <button class="header-icon-btn"
-                aria-label="Profile">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
-                </svg>
-            </button>
-        </header>
-
-        <!-- MOBILE OVERLAY -->
-        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay">
-        </div>
-
-        <!-- SIDEBAR -->
-        <nav class="sidebar"
-            :class="open ? 'sidebar-open' : 'sidebar-closed'">
-            <ul class="sidebar-list">
-
-                <div class="sidebar-logo">
-                    <div class="sidebar-logo-icon">
-                        <svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+<body class="h-screen overflow-hidden bg-slate-100 text-slate-900 font-sans text-sm">
+    <main class="flex h-screen" x-data="{ historyOpen: false }">
+        <aside class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 md:static md:translate-x-0 md:shadow-none"
+            :class="historyOpen ? 'translate-x-0' : '-translate-x-full'">
+            <div class="flex h-full flex-col">
+                <div class="flex h-16 items-center gap-3 border-b border-slate-200 px-4">
+                    <a href="dashboard.html" class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                        aria-label="Back to dashboard">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19 8 12l7-7" />
                         </svg>
-                    </div>
-                    <div class="sidebar-brand-text">
-                        <strong>LearnSync</strong>
-                        <span>GMVCC LMS</span>
-                    </div>
-                </div>
-                <!-- AI Assistant -->
-                <li><a href="AI.html" @click="open=false"
-                        class="sidebar-btn-active">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" />
-                        </svg>
-                        <span>AI Assistant</span>
-                    </a></li>
-                <!-- My Class -->
-                <li><a href="dashboard.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" />
-                        </svg>
-                        <span>My Class</span>
-                    </a></li>
-                <!-- To Do -->
-                <li><a href="To-Do.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
-                        </svg>
-                        <span>To Do</span>
-                    </a></li>
-                <!-- Account Information -->
-                <li><a href="Account.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
-                        </svg>
-                        <span>Account Information</span>
-                    </a></li>
-                <!-- About -->
-                <li><a href="about.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
-                        </svg>
-                        <span>About</span>
-                    </a></li>
-                <!-- Report Bug -->
-                <li><a href="report-bug.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
-                        </svg>
-                        <span>Report Bug</span>
-                    </a></li>
-                <!-- Logout -->
-                <li>
-                    <a href="../login.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
-                        </svg>
-                        <span>Logout</span>
                     </a>
-                </li><!-- TODO: Remove this and place in profile icon LATER -->
-
-            </ul>
-        </nav>
-
-        <!-- Main Content -->
-        <article class="grid grid-cols-1 gap-6 p-1 h-max flex-1 md:ml-72">
-            <h2 class="text-3xl text-white font-bold tracking-tight">AI Assistant</h2>
-
-            <div class="rounded-3xl bg-white/70 p-2 shadow-xl backdrop-blur-sm min-h-[70vh] flex flex-col">
-                <div class="flex-1 overflow-y-auto mb-6 space-y-4" id="chatArea">
-                    <!-- AI Message -->
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-cyan-600 text-white grid place-items-center shrink-0">AI
-                        </div>
-                        <div class="bg-cyan-100 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
-                            <p class="text-slate-800">Hello! I'm your AI learning assistant. How can I help you with
-                                your studies today? You can ask me about assignments, lessons, or even summarize
-                                documents for you.</p>
-                        </div>
-                    </div>
-                    <!-- User Message Example -->
-                    <div class="flex items-start gap-3 justify-end">
-                        <div class="bg-sky-200 rounded-2xl rounded-tr-none p-4 max-w-[80%]">
-                            <p class="text-slate-800">Can you help me understand this topic?</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-slate-700 text-white grid place-items-center shrink-0">You</div>
-                    </div>
-                    <div class="bg-cyan-100 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
-                        <p class="text-slate-800">Hello! I'm your AI learning assistant. How can I help you with
-                            your studies today? You can ask me about assignments, lessons, or even summarize
-                            documents for you.</p>
-                    </div>
-                    <div class="flex items-start gap-3 justify-end">
-                        <div class="bg-sky-200 rounded-2xl rounded-tr-none p-4 max-w-[80%]">
-                            <p class="text-slate-800">Can you help me understand this topic?</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-slate-700 text-white grid place-items-center shrink-0">You</div>
-                    </div>
-                    <div class="bg-cyan-100 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
-                        <p class="text-slate-800">Hello! I'm your AI learning assistant. How can I help you with
-                            your studies today? You can ask me about assignments, lessons, or even summarize
-                            documents for you.</p>
-                    </div>
-                    <div class="flex items-start gap-3 justify-end">
-                        <div class="bg-sky-200 rounded-2xl rounded-tr-none p-4 max-w-[80%]">
-                            <p class="text-slate-800">Can you help me understand this topic?</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-slate-700 text-white grid place-items-center shrink-0">You</div>
-                    </div>
-                    <div class="bg-cyan-100 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
-                        <p class="text-slate-800">Hello! I'm your AI learning assistant. How can I help you with
-                            your studies today? You can ask me about assignments, lessons, or even summarize
-                            documents for you.</p>
+                    <div class="min-w-0">
+                        <h1 class="truncate text-base font-bold text-slate-900">LearnSync AI</h1>
+                        <p class="truncate text-xs text-slate-500">Study assistant</p>
                     </div>
                 </div>
 
-                <!-- Input Area -->
-                <div class="relative">
-                    <textarea placeholder="Type your message or question here..."
-                        class="w-full p-4 pr-12 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none h-24"></textarea>
-                    <button class="absolute right-3 bottom-3 text-cyan-600 hover:text-cyan-800">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <div class="border-b border-slate-200 p-4">
+                    <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 py-3 font-semibold text-white transition hover:bg-cyan-800">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14" />
                         </svg>
+                        New Chat
+                    </button>
+                </div>
+
+                <nav class="flex-1 overflow-y-auto p-3" aria-label="Chat history">
+                    <p class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Recent</p>
+                    <a href="#" class="block rounded-xl bg-cyan-50 px-3 py-3 text-slate-900 ring-1 ring-cyan-100">
+                        <span class="block truncate font-semibold">Capstone topic summary</span>
+                        <span class="mt-1 block truncate text-xs text-slate-500">Key terms and review questions</span>
+                    </a>
+                    <a href="#" class="mt-2 block rounded-xl px-3 py-3 text-slate-700 transition hover:bg-slate-100">
+                        <span class="block truncate font-semibold">Database normalization</span>
+                        <span class="mt-1 block truncate text-xs text-slate-500">1NF, 2NF, and 3NF examples</span>
+                    </a>
+                    <a href="#" class="mt-2 block rounded-xl px-3 py-3 text-slate-700 transition hover:bg-slate-100">
+                        <span class="block truncate font-semibold">Web development quiz</span>
+                        <span class="mt-1 block truncate text-xs text-slate-500">Practice questions</span>
+                    </a>
+                    <a href="#" class="mt-2 block rounded-xl px-3 py-3 text-slate-700 transition hover:bg-slate-100">
+                        <span class="block truncate font-semibold">Research outline</span>
+                        <span class="mt-1 block truncate text-xs text-slate-500">Chapter 1 structure</span>
+                    </a>
+                </nav>
+
+                <div class="border-t border-slate-200 p-4">
+                    <button class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-slate-600 transition hover:bg-slate-100">
+                        <span class="grid h-9 w-9 place-items-center rounded-full bg-slate-200 font-bold text-slate-700">JD</span>
+                        <span class="min-w-0">
+                            <span class="block truncate font-semibold text-slate-800">Juan Dela Cruz</span>
+                            <span class="block truncate text-xs text-slate-500">Student</span>
+                        </span>
                     </button>
                 </div>
             </div>
-        </article>
-    </div>
+        </aside>
+
+        <div x-show="historyOpen" x-transition.opacity @click="historyOpen = false"
+            class="fixed inset-0 z-30 bg-slate-900/40 md:hidden"></div>
+
+        <section class="flex min-w-0 flex-1 flex-col">
+            <header class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4">
+                <button @click="historyOpen = true" class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 md:hidden"
+                    aria-label="Open chat history">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                    </svg>
+                </button>
+                <a href="dashboard.html" class="hidden h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:grid"
+                    aria-label="Back to dashboard">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19 8 12l7-7" />
+                    </svg>
+                </a>
+                <div class="min-w-0">
+                    <h2 class="truncate text-base font-bold text-slate-900">AI Assistant</h2>
+                    <p class="truncate text-xs text-slate-500">Online and ready to help</p>
+                </div>
+                <button class="ml-auto hidden rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:block">
+                    Clear Chat
+                </button>
+            </header>
+
+            <div class="flex-1 overflow-y-auto px-4 py-6">
+                <div class="mx-auto flex max-w-4xl flex-col gap-5">
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="flex items-start gap-4">
+                            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 font-bold text-white">AI</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">How can I help you study today?</h3>
+                                <p class="mt-1 leading-6 text-slate-600">Ask for summaries, explanations, quiz questions, project ideas, or help organizing your tasks.</p>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                            <button class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Summarize my lesson notes
+                            </button>
+                            <button class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Make a quiz for this topic
+                            </button>
+                            <button class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Explain a difficult concept
+                            </button>
+                            <button class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Help plan my assignment
+                            </button>
+                        </div>
+                    </section>
+
+                    <div class="flex items-end gap-3">
+                        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">AI</div>
+                        <div class="max-w-[82%] rounded-2xl rounded-bl bg-white p-4 leading-7 text-slate-700 shadow-sm ring-1 ring-slate-200 sm:max-w-[75%]">
+                            Hello! Send me a topic, assignment, or notes, and I can help you understand it step by step.
+                        </div>
+                    </div>
+
+                    <div class="flex items-end justify-end gap-3">
+                        <div class="max-w-[82%] rounded-2xl rounded-br bg-cyan-700 p-4 leading-7 text-white shadow-sm sm:max-w-[75%]">
+                            Can you help me summarize my capstone topic and list important terms?
+                        </div>
+                        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-700 text-xs font-bold text-white">You</div>
+                    </div>
+
+                    <div class="flex items-end gap-3">
+                        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">AI</div>
+                        <div class="max-w-[82%] rounded-2xl rounded-bl bg-white p-4 leading-7 text-slate-700 shadow-sm ring-1 ring-slate-200 sm:max-w-[75%]">
+                            Yes. Share your topic title or abstract, and I can give you a concise summary, keywords, possible research questions, and review notes.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="shrink-0 border-t border-slate-200 bg-white p-4">
+                <form class="mx-auto flex max-w-4xl items-end gap-3" @submit.prevent>
+                    <button class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+                        type="button" aria-label="Attach file">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.82l8.48-8.49" />
+                        </svg>
+                    </button>
+                    <textarea class="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15"
+                        rows="1" placeholder="Message LearnSync AI..." aria-label="Message"></textarea>
+                    <button class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 text-white transition hover:bg-cyan-800"
+                        type="submit" aria-label="Send message">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2Zm0 0v-8" />
+                        </svg>
+                    </button>
+                </form>
+            </footer>
+        </section>
+    </main>
 </body>
 
 </html>

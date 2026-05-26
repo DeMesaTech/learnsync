@@ -7,11 +7,11 @@
 
 .sidebar {
     position: fixed;
-    top: 5rem;
+    top: 0;
     left: 0;
     z-index: 50;
-    width: 18rem;
-    height: calc(100vh - 5rem);
+    width: 16rem;
+    height: 100vh;
     padding: 1rem;
     overflow: hidden;
     background-color: rgb(101 170 204);
@@ -61,6 +61,7 @@
 .sidebar-btn-active {
     display: flex;
     align-items: center;
+    height: 2.3rem;
     padding: 0.25rem 1rem;
     color: rgb(30 41 59);
     font-weight: 600;
@@ -77,14 +78,14 @@
 }
 
 .sidebar-icon {
-    width: 30px;
-    height: 30px;
+    width: 1.25rem;
+    height: 1.25rem;
     flex: 0 0 auto;
 }
 
 .sidebar-btn span,
 .sidebar-btn-active span {
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 @media (min-width: 768px) {
