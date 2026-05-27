@@ -8,6 +8,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/theme.css">
 
 </head>
 
@@ -48,7 +49,6 @@
                                     <option value="" disabled selected>Select Role</option>
                                     <option value="student">Student</option>
                                     <option value="teacher">Teacher</option>
-                                    <option value="admin">Admin</option>
                                 </select>
                             </div>
                             <div class="space-y-2">
@@ -73,7 +73,7 @@
                         <form id="signupForm" @submit.prevent="submitSignup" class="space-y-4">
                             <div class="space-y-2">
                                 <label for="signupRole" class="block text-xs font-medium text-slate-300">Select Role</label>
-                                <select id="signupRole" x-model="signup.role" aria-label="Select Role" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 pr-10 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 appearance-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 20 20%22 fill=%22none%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M6 7l4 4 4-4%22 stroke=%22%23f8fafc%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25em;">
+                                <select id="signupRole" x-model="signup.role" @change="validateSignupAll()" aria-label="Select Role" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 pr-10 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 appearance-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 20 20%22 fill=%22none%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M6 7l4 4 4-4%22 stroke=%22%23f8fafc%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25em;">
                                     <option value="" disabled selected>Select Role</option>
                                     <option value="student">Student</option>
                                     <option value="teacher">Teacher</option>
@@ -179,7 +179,10 @@
 
                 submitLogin() {
                     if (this.login.role && this.login.email && this.login.password) {
-                        // Navigate to dashboard
+                        if (this.login.role === 'teacher') {
+                            window.location.href = './teacher/dashboard.html';
+                            return;
+                        }
                         window.location.href = './student/dashboard.html';
                     }
                 },
@@ -339,6 +342,7 @@
 
                 validateSignupAll() { 
                     const isValid =
+                        this.signup.role.trim() &&
                         this.validateSignupEmail() &&
                         this.validateSignupFirstName() &&
                         this.validateSignupMiddleName() &&
@@ -354,8 +358,9 @@
                 submitSignup() {
                     if (this.validateSignupAll()) {
                         alert('Registration Successful!');
-                        // Optionally redirect or reset form
-                        // window.location.href = '/dashboard.html';
+                        window.location.href = this.signup.role === 'teacher'
+                            ? './teacher/dashboard.html'
+                            : './student/dashboard.html';
                     }
                 }
             }

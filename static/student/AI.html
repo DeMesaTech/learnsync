@@ -8,9 +8,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/lms.css">
 </head>
 
-<body class="h-screen overflow-hidden bg-slate-100 text-slate-900 font-sans text-sm">
+<body class="ai-shell h-screen overflow-hidden text-slate-900 font-sans text-sm">
     <main class="flex h-screen" x-data="{ historyOpen: false }">
         <aside class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 md:static md:translate-x-0 md:shadow-none"
             :class="historyOpen ? 'translate-x-0' : '-translate-x-full'">

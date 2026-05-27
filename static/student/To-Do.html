@@ -4,204 +4,206 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LearnSync Login</title>
-
-    <!--<link rel="stylesheet" href="/static/css/style.css"> -->
+    <title>LearnSync | To Do</title>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    <link rel="stylesheet" href="../css/lms.css">
 </head>
 
-<body class="min-h-screen bg-gradient-to-b from-cyan-800 to-sky-600 text-slate-900 font-sans text-sm">
-    <!-- PAGE WRAPPER (push below header) -->
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
-        <!-- HEADER -->
+<body class="lms-shell student-shell min-h-screen text-slate-900 font-sans text-sm">
+    <div class="pt-20 flex min-h-screen" x-data="todoApp()">
         <header class="app-header">
-            <button @click="open = !open" class="header-menu-btn"
-                aria-label="Open menu">
+            <button @click="open = !open" class="header-menu-btn" aria-label="Open menu">
                 <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
                 </svg>
             </button>
-
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title">
-                <span class="header-title-short">GMVCC</span>
-                <span class="header-title-long">Governor Mariano E. Villafuerte Community College</span>
-            </h1>
-
-            <!-- Notification Icon -->
-            <button class="header-icon-btn"
-                alt="Notification">
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <button class="header-icon-btn" aria-label="Notifications">
                 <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11
-                        a6.002 6.002 0 0 0-4-5.659V4
-                        a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159
-                        c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1
-                        a3 3 0 1 1-6 0v-1m6 0H9" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
                 </svg>
             </button>
-            <!-- Profile Button -->
-            <button class="header-icon-btn"
-                aria-label="Profile">
+            <button class="header-icon-btn" aria-label="Profile">
                 <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
                 </svg>
             </button>
         </header>
 
-        <!-- MOBILE OVERLAY -->
-        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay">
-        </div>
+        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
 
-        <!-- SIDEBAR -->
-        <nav class="sidebar"
-            :class="open ? 'sidebar-open' : 'sidebar-closed'">
+        <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
             <ul class="sidebar-list">
-
                 <div class="sidebar-logo">
                     <div class="sidebar-logo-icon">
                         <svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
                         </svg>
                     </div>
-                    <div class="sidebar-brand-text">
-                        <strong>LearnSync</strong>
-                        <span>GMVCC LMS</span>
-                    </div>
+                    <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Student LMS</span></div>
                 </div>
-                <!-- AI Assistant -->
-                <li><a href="AI.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" />
-                        </svg>
-                        <span>AI Assistant</span>
-                    </a></li>
-                <!-- My Class -->
-                <li><a href="dashboard.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" />
-                        </svg>
-                        <span>My Class</span>
-                    </a></li>
-                <!-- To Do -->
-                <li><a href="To-Do.html" @click="open=false"
-                        class="sidebar-btn-active">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
-                        </svg>
-                        <span>To Do</span>
-                    </a></li>
-                <!-- Account Information -->
-                <li><a href="Account.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
-                        </svg>
-                        <span>Account Information</span>
-                    </a></li>
-                <!-- About -->
-                <li><a href="about.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
-                        </svg>
-                        <span>About</span>
-                    </a></li>
-                <!-- Report Bug -->
-                <li><a href="report-bug.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
-                        </svg>
-                        <span>Report Bug</span>
-                    </a></li>
-                <!-- Logout -->
-                <li>
-                    <a href="../login.html" @click="open=false"
-                        class="sidebar-btn">
-                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
-                        </svg>
-                        <span>Logout</span>
-                    </a>
-                </li><!-- TODO: Remove this and place in profile icon LATER -->
-
+                <li><a href="AI.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" /></svg><span>AI Assistant</span></a></li>
+                <li><a href="dashboard.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" /></svg><span>My Classes</span></a></li>
+                <li><a href="To-Do.html" @click="open=false" class="sidebar-btn-active"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg><span>To Do</span></a></li>
+                <li><a href="Account.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" /></svg><span>Account</span></a></li>
+                <li><a href="about.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" /></svg><span>About</span></a></li>
+                <li><a href="report-bug.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" /></svg><span>Report Bug</span></a></li>
+                <li><a href="../login.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
             </ul>
         </nav>
 
-        <!-- Main Content -->
-        <article class="grid grid-cols-1 gap-6 p-8 h-min flex-1 md:ml-72">
-            <h2 class="text-3xl text-white font-bold tracking-tight">To Do</h2>
+        <main class="lms-page">
+            <section class="lms-hero">
+                <div>
+                    <h2 class="lms-title">To Do</h2>
+                    <p class="lms-subtitle">Activities, quizzes, and compiled modules are separated from class browsing. Filter by class and sort by upload or due date.</p>
+                </div>
+            </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Upcoming Activities -->
-                <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h3 class="text-xl font-bold text-slate-900 mb-4">Upcoming Activities</h3>
-                    <div class="space-y-3">
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-amber-500">
-                            <p class="font-bold">Capstone: Chapter 1 Draft</p>
-                            <p class="text-sm text-slate-600">Due: Oct 25, 2026 • 11:59 PM</p>
-                        </div>
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-red-500">
-                            <p class="font-bold">Web Dev: Final Project Proposal</p>
-                            <p class="text-sm text-slate-600">Due: Oct 20, 2026 • 05:00 PM</p>
-                        </div>
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-cyan-500">
-                            <p class="font-bold">Database: Normalization Exercise</p>
-                            <p class="text-sm text-slate-600">Due: Oct 30, 2026 • 11:59 PM</p>
-                        </div>
-                    </div>
-                </div>
+            <section class="lms-tabs" aria-label="Task tabs">
+                <button class="lms-tab" :class="tab === 'activities' ? 'lms-tab-active' : ''" type="button" @click="tab = 'activities'">Activities</button>
+                <button class="lms-tab" :class="tab === 'quizzes' ? 'lms-tab-active' : ''" type="button" @click="tab = 'quizzes'">Quizzes</button>
+                <button class="lms-tab" :class="tab === 'modules' ? 'lms-tab-active' : ''" type="button" @click="tab = 'modules'">Compiled</button>
+            </section>
 
-                <!-- Completed -->
-                <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h3 class="text-xl font-bold text-slate-900 mb-4">Completed</h3>
-                    <div class="space-y-3 opacity-70">
-                        <div class="p-4 bg-white/30 rounded-xl line-through">
-                            <p class="font-bold text-slate-500">System Analysis: Use Case Diagram</p>
-                            <p class="text-sm text-slate-500">Submitted: Oct 10, 2026</p>
-                        </div>
-                        <div class="p-4 bg-white/30 rounded-xl line-through">
-                            <p class="font-bold text-slate-500">Research: Introduction Review</p>
-                            <p class="text-sm text-slate-500">Submitted: Oct 05, 2026</p>
-                        </div>
-                    </div>
+            <section class="lms-toolbar">
+                <select class="lms-select" x-model="classFilter" aria-label="Filter by class">
+                    <option value="all">All classes</option>
+                    <template x-for="className in classes" :key="className">
+                        <option :value="className" x-text="className"></option>
+                    </template>
+                </select>
+                <select class="lms-select" x-model="sortOrder" aria-label="Sort order">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                </select>
+            </section>
+
+            <section class="lms-panel" x-show="tab === 'activities'">
+                <div class="lms-task-top">
+                    <h3>Activities</h3>
+                    <span class="lms-badge" x-text="filteredActivities().length + ' items'"></span>
                 </div>
-                <!-- Quizzes -->
-                <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm">
-                    <h3 class="text-xl font-bold text-slate-900 mb-4">Quizzes</h3>
-                    <div class="space-y-3">
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-amber-500">
-                            <p class="font-bold">Capstone: Chapter 1 Draft</p>
-                            <p class="text-sm text-slate-600">Due: Oct 25, 2026 • 11:59 PM</p>
-                        </div>
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-red-500">
-                            <p class="font-bold">Web Dev: Final Project Proposal</p>
-                            <p class="text-sm text-slate-600">Due: Oct 20, 2026 • 05:00 PM</p>
-                        </div>
-                        <div class="p-4 bg-white/50 rounded-xl border-l-4 border-cyan-500">
-                            <p class="font-bold">Database: Normalization Exercise</p>
-                            <p class="text-sm text-slate-600">Due: Oct 30, 2026 • 11:59 PM</p>
-                        </div>
-                    </div>
+                <div class="lms-list">
+                    <template x-for="activity in filteredActivities()" :key="activity.title">
+                        <article class="lms-task-card" :class="activity.priority">
+                            <div class="lms-task-top">
+                                <p class="lms-task-title" x-text="activity.title"></p>
+                                <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
+                            </div>
+                            <p class="m-0" x-text="activity.description"></p>
+                            <span class="lms-meta" x-text="activity.className"></span>
+                        </article>
+                    </template>
+                    <p class="lms-empty" x-show="filteredActivities().length === 0">No activities for this class.</p>
                 </div>
-            </div>
-        </article>
+            </section>
+
+            <section class="lms-panel" x-show="tab === 'quizzes'">
+                <div class="lms-task-top">
+                    <h3>Quizzes</h3>
+                    <span class="lms-badge" x-text="filteredQuizzes().length + ' items'"></span>
+                </div>
+                <div class="lms-list">
+                    <template x-for="quiz in filteredQuizzes()" :key="quiz.title">
+                        <article class="lms-task-card" :class="quiz.priority">
+                            <div class="lms-task-top">
+                                <p class="lms-task-title" x-text="quiz.title"></p>
+                                <span class="lms-badge" x-text="quiz.mode"></span>
+                            </div>
+                            <p class="m-0" x-text="quiz.description"></p>
+                            <span class="lms-meta" x-text="quiz.className + ' | Due ' + formatDate(quiz.date)"></span>
+                        </article>
+                    </template>
+                    <p class="lms-empty" x-show="filteredQuizzes().length === 0">No quizzes for this class.</p>
+                </div>
+            </section>
+
+            <section class="lms-panel" x-show="tab === 'modules'">
+                <div class="lms-task-top">
+                    <h3>Compiled Modules</h3>
+                    <span class="lms-badge" x-text="filteredModules().length + ' files'"></span>
+                </div>
+                <div class="lms-list">
+                    <template x-for="module in filteredModules()" :key="module.title">
+                        <article class="lms-task-card">
+                            <div class="lms-task-top">
+                                <p class="lms-task-title" x-text="module.title"></p>
+                                <span class="lms-badge good" x-text="formatDate(module.date)"></span>
+                            </div>
+                            <p class="m-0" x-text="module.description"></p>
+                            <span class="lms-meta" x-text="module.className + ' | Uploaded by ' + module.teacher"></span>
+                        </article>
+                    </template>
+                    <p class="lms-empty" x-show="filteredModules().length === 0">No compiled modules for this class.</p>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <script>
+        function todoApp() {
+            return {
+                open: false,
+                tab: 'activities',
+                classFilter: 'all',
+                sortOrder: 'newest',
+                classes: [
+                    'Capstone Research Project 1',
+                    'System Analysis & Design',
+                    'Web Development',
+                    'Database Management 2'
+                ],
+                activities: [
+                    { title: 'Chapter 1 Draft', className: 'Capstone Research Project 1', date: '2026-10-25', priority: 'is-soon', description: 'Upload your draft file before the deadline.' },
+                    { title: 'Final Project Proposal', className: 'Web Development', date: '2026-10-20', priority: 'is-urgent', description: 'Submit project scope, user roles, and initial wireframes.' },
+                    { title: 'Normalization Exercise', className: 'Database Management 2', date: '2026-10-30', priority: '', description: 'Answer the worksheet and attach your ERD revision.' }
+                ],
+                quizzes: [
+                    { title: 'Research Ethics Quiz', className: 'Capstone Research Project 1', date: '2026-10-28', mode: 'Online', priority: 'is-soon', description: 'Covers consent, citation, and plagiarism rules.' },
+                    { title: 'HTML/CSS Fundamentals', className: 'Web Development', date: '2026-10-23', mode: 'Online', priority: 'is-urgent', description: 'Timed quiz with multiple choice and short answers.' },
+                    { title: 'ERD Relationships Check', className: 'System Analysis & Design', date: '2026-11-02', mode: 'Practice', priority: '', description: 'Review cardinality, primary keys, and foreign keys.' }
+                ],
+                modules: [
+                    { title: 'Chapter 1 Research Guide', className: 'Capstone Research Project 1', date: '2026-10-18', teacher: 'Prof. Gilda Taupa', description: 'Compiled notes for title, objectives, scope, and significance.' },
+                    { title: 'ERD and Database Normalization', className: 'System Analysis & Design', date: '2026-10-15', teacher: 'Engr. Santos', description: 'Combined slides and examples for relationship mapping.' },
+                    { title: 'Responsive UI Layouts', className: 'Web Development', date: '2026-10-22', teacher: 'Ms. Dela Cruz', description: 'Compiled module for grids, spacing, and mobile tabs.' },
+                    { title: 'SQL Constraints and Keys', className: 'Database Management 2', date: '2026-10-12', teacher: 'Mr. Reyes', description: 'Reference file for PK, FK, unique, and check constraints.' }
+                ],
+                inClass(item) {
+                    return this.classFilter === 'all' || item.className === this.classFilter;
+                },
+                sorted(items) {
+                    return items
+                        .filter((item) => this.inClass(item))
+                        .sort((a, b) => this.sortOrder === 'newest'
+                            ? new Date(b.date) - new Date(a.date)
+                            : new Date(a.date) - new Date(b.date));
+                },
+                filteredActivities() {
+                    return this.sorted(this.activities);
+                },
+                filteredQuizzes() {
+                    return this.sorted(this.quizzes);
+                },
+                filteredModules() {
+                    return this.sorted(this.modules);
+                },
+                formatDate(value) {
+                    return new Date(value + 'T00:00:00').toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>

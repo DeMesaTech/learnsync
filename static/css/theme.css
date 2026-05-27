@@ -1,0 +1,245 @@
+:root {
+    --gmvcc-blue-50: #eef7fc;
+    --gmvcc-blue-100: #d8edf8;
+    --gmvcc-blue-200: #b8dff3;
+    --gmvcc-blue-500: #3f91c9;
+    --gmvcc-blue-600: #247eb8;
+    --gmvcc-blue-700: #126da3;
+    --gmvcc-blue-800: #0f5d8b;
+    --gmvcc-blue-900: #0c466b;
+    --gmvcc-navy: #0b2f4a;
+    --gmvcc-text: #16324a;
+    --gmvcc-muted: #64748b;
+    --gmvcc-line: #c9dce9;
+    --gmvcc-panel: rgb(255 255 255 / 0.94);
+    --gmvcc-panel-soft: rgb(238 247 252 / 0.88);
+    --gmvcc-shadow: 0 18px 45px rgb(12 70 107 / 0.16);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+body.student-shell,
+body.login-shell,
+body.ai-shell {
+    min-height: 100vh;
+    color: var(--gmvcc-text);
+    background:
+        linear-gradient(180deg, rgb(63 145 201 / 0.94), rgb(15 93 139 / 0.98));
+}
+
+body.student-shell {
+    font-size: 0.95rem;
+}
+
+.student-shell > div {
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(12 70 107 / 0.12));
+}
+
+.student-shell article {
+    width: 100%;
+    align-content: start;
+    padding: clamp(1rem, 2.3vw, 2rem) !important;
+}
+
+.student-shell article > h2,
+.student-shell main h2:first-child {
+    margin: 0;
+    color: white !important;
+    font-size: clamp(1.65rem, 3vw, 2.35rem) !important;
+    line-height: 1.12 !important;
+    font-weight: 800 !important;
+    text-shadow: 0 3px 14px rgb(12 70 107 / 0.28);
+}
+
+.student-shell h3 {
+    color: var(--gmvcc-navy) !important;
+}
+
+.student-shell p,
+.student-shell label,
+.student-shell li,
+.student-shell a,
+.student-shell input,
+.student-shell select,
+.student-shell textarea {
+    letter-spacing: 0;
+}
+
+.student-shell [class*="rounded-3xl"],
+.student-shell [class*="rounded-2xl"],
+.student-shell [class*="rounded-xl"],
+.student-shell [class*="rounded-[18px]"],
+.student-shell [class*="rounded-[10px]"] {
+    border-radius: 8px !important;
+}
+
+.student-shell [class*="bg-white/70"],
+.student-shell [class*="bg-white/50"],
+.student-shell [class*="bg-slate-50"],
+.student-shell [class*="bg-sky-100"] {
+    background-color: var(--gmvcc-panel) !important;
+}
+
+.student-shell [class*="shadow-xl"],
+.student-shell [class*="shadow-lg"] {
+    box-shadow: var(--gmvcc-shadow) !important;
+}
+
+.student-shell section,
+.student-shell article > div,
+.student-shell form {
+    max-width: 100%;
+}
+
+.student-shell input,
+.student-shell select,
+.student-shell textarea {
+    border-color: var(--gmvcc-line) !important;
+    background-color: white !important;
+    color: var(--gmvcc-text) !important;
+}
+
+.student-shell input:focus,
+.student-shell select:focus,
+.student-shell textarea:focus {
+    border-color: var(--gmvcc-blue-600) !important;
+    box-shadow: 0 0 0 4px rgb(36 126 184 / 0.16) !important;
+}
+
+.student-shell button,
+.student-shell a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.student-shell button[class*="bg-cyan"],
+.student-shell [type="submit"] {
+    background-color: var(--gmvcc-blue-700) !important;
+    color: white !important;
+}
+
+.student-shell button[class*="bg-cyan"]:hover,
+.student-shell [type="submit"]:hover {
+    background-color: var(--gmvcc-blue-800) !important;
+}
+
+.student-shell .border-amber-500 {
+    border-color: #f2b84b !important;
+}
+
+.student-shell .border-red-500,
+.student-shell .bg-red-700 {
+    border-color: #d95656 !important;
+    background-color: #c44747 !important;
+}
+
+.student-shell .border-cyan-500 {
+    border-color: var(--gmvcc-blue-600) !important;
+}
+
+.student-shell .line-through {
+    opacity: 0.74;
+}
+
+.student-shell .grid {
+    min-width: 0;
+}
+
+body.ai-shell {
+    background:
+        linear-gradient(180deg, var(--gmvcc-blue-50), #f8fbfd 42%, #edf6fb);
+}
+
+.ai-shell aside,
+.ai-shell header,
+.ai-shell footer,
+.ai-shell section[class*="bg-white"],
+.ai-shell [class*="bg-white"] {
+    border-color: var(--gmvcc-line) !important;
+}
+
+.ai-shell .bg-cyan-700 {
+    background-color: var(--gmvcc-blue-700) !important;
+}
+
+.ai-shell .hover\:bg-cyan-800:hover {
+    background-color: var(--gmvcc-blue-800) !important;
+}
+
+.ai-shell .text-slate-900 {
+    color: var(--gmvcc-navy) !important;
+}
+
+body.login-shell {
+    background:
+        linear-gradient(135deg, rgb(63 145 201 / 0.96), rgb(18 109 163 / 0.96) 46%, rgb(12 70 107 / 0.98)),
+        url("../color_ref.jpg") center / cover fixed;
+}
+
+.login-shell main {
+    padding: clamp(1rem, 4vw, 3rem) !important;
+}
+
+.login-shell main > div {
+    border-radius: 14px !important;
+    background: rgb(8 41 64 / 0.94) !important;
+    box-shadow: 0 28px 80px rgb(0 23 40 / 0.34) !important;
+}
+
+.login-shell [class*="bg-gradient-to-br"] {
+    background:
+        linear-gradient(180deg, rgb(238 247 252 / 0.94), rgb(216 237 248 / 0.88)),
+        url("../color_ref.jpg") center / cover !important;
+    color: var(--gmvcc-navy) !important;
+}
+
+.login-shell [class*="bg-gradient-to-br"] .text-white,
+.login-shell [class*="bg-gradient-to-br"] .text-slate-200,
+.login-shell [class*="bg-gradient-to-br"] .text-white\/70 {
+    color: var(--gmvcc-navy) !important;
+}
+
+.login-shell [class*="bg-gradient-to-br"] [class*="bg-white/10"] {
+    background: rgb(255 255 255 / 0.72) !important;
+    color: var(--gmvcc-text) !important;
+}
+
+.login-shell input,
+.login-shell select {
+    border-radius: 8px !important;
+}
+
+.login-shell button {
+    border-radius: 8px !important;
+}
+
+@media (min-width: 768px) {
+    .student-shell article {
+        margin-left: 16rem !important;
+        padding: clamp(1.5rem, 2.4vw, 2.5rem) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .student-shell article {
+        padding-top: 1.25rem !important;
+    }
+
+    .student-shell .md\:ml-72 {
+        margin-left: 0 !important;
+    }
+
+    .student-shell [class*="p-8"] {
+        padding: 1rem !important;
+    }
+
+    .student-shell [class*="gap-8"] {
+        gap: 1rem !important;
+    }
+}

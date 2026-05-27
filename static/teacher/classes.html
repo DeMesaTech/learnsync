@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LearnSync | Teacher Classes</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/lms.css">
+</head>
+
+<body class="lms-shell teacher-accent font-sans text-sm">
+    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+        <header class="app-header"><button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button><img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" /><h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1></header>
+        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
+        <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
+            <ul class="sidebar-list">
+                <div class="sidebar-logo"><div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" /></svg></div><div class="sidebar-brand-text"><strong>LearnSync</strong><span>Teacher LMS</span></div></div>
+                <li><a class="sidebar-btn" href="dashboard.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" /></svg><span>Dashboard</span></a></li>
+                <li><a class="sidebar-btn-active" href="classes.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" /></svg><span>Classes</span></a></li>
+                <li><a class="sidebar-btn" href="grading.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M7 16V8m5 8V5m5 11v-6" /></svg><span>Grading</span></a></li>
+                <li><a class="sidebar-btn" href="../login.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
+            </ul>
+        </nav>
+
+        <main class="lms-page">
+            <section class="lms-hero">
+                <div><h2 class="lms-title">Classes and Content</h2><p class="lms-subtitle">Teacher records from the ERD: class, section, enrollment, module, module content, activity, quiz, question, and student answer.</p></div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="#new-class">New Class</a><a class="lms-btn" href="#modules">Upload Module</a></div>
+            </section>
+
+            <section id="new-class" class="lms-grid lms-grid-2">
+                <div class="lms-panel">
+                    <h3>Create Class</h3>
+                    <div class="lms-grid mt-4">
+                        <input class="lms-input" placeholder="Subject">
+                        <input class="lms-input" placeholder="Section ID">
+                        <input class="lms-input" placeholder="Employee ID">
+                        <button class="lms-btn" type="button">Save Class</button>
+                    </div>
+                </div>
+                <div class="lms-panel">
+                    <h3>Enroll Student</h3>
+                    <div class="lms-grid mt-4">
+                        <select class="lms-select"><option>Capstone Research Project 1 - 3B</option><option>Web Development - 3B</option></select>
+                        <input class="lms-input" placeholder="Student ID">
+                        <button class="lms-btn" type="button">Add Enrollment</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="modules" class="lms-grid lms-grid-3 mt-4">
+                <div class="lms-panel"><h3>Module Upload</h3><div class="lms-grid mt-4"><input class="lms-input" placeholder="Module title"><input class="lms-input" placeholder="File path"><button class="lms-btn" type="button">Publish Module</button></div></div>
+                <div class="lms-panel"><h3>Activity Setup</h3><div class="lms-grid mt-4"><input class="lms-input" placeholder="Activity title"><input class="lms-input" placeholder="Description"><input class="lms-input" type="date"><button class="lms-btn" type="button">Create Activity</button></div></div>
+                <div class="lms-panel"><h3>Quiz Builder</h3><div class="lms-grid mt-4"><input class="lms-input" placeholder="Quiz title"><input class="lms-input" placeholder="Question text"><input class="lms-input" placeholder="Correct answer"><button class="lms-btn" type="button">Add Question</button></div></div>
+            </section>
+
+            <section class="lms-table-card mt-4">
+                <div class="lms-table-head"><h3>Active Classes</h3><span class="lms-badge">4 records</span></div>
+                <div class="lms-table-wrap">
+                    <table class="lms-table">
+                        <thead><tr><th>Class ID</th><th>Subject</th><th>Section</th><th>Students</th><th>Modules</th><th>Activities</th><th>Quizzes</th></tr></thead>
+                        <tbody>
+                            <tr><td>CLS-001</td><td>Capstone Research Project 1</td><td>3B</td><td>32</td><td>5</td><td>4</td><td>2</td></tr>
+                            <tr><td>CLS-002</td><td>System Analysis & Design</td><td>3B</td><td>32</td><td>3</td><td>3</td><td>2</td></tr>
+                            <tr><td>CLS-003</td><td>Web Development</td><td>3B</td><td>34</td><td>4</td><td>5</td><td>1</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -12,10 +12,13 @@
     z-index: 50;
     width: 16rem;
     height: 100vh;
-    padding: 1rem;
+    padding: 1rem 0.875rem;
     overflow: hidden;
-    background-color: rgb(101 170 204);
-    border-right: 1px solid rgb(148 163 184);
+    color: white;
+    background:
+        linear-gradient(180deg, rgb(12 70 107 / 0.96), rgb(18 109 163 / 0.96));
+    border-right: 1px solid rgb(255 255 255 / 0.18);
+    box-shadow: 12px 0 30px rgb(12 70 107 / 0.14);
     transition: transform 300ms ease;
 }
 
@@ -39,16 +42,27 @@
 
 .sidebar-logo {
     display: flex;
+    align-items: center;
     gap: 0.75rem;
     justify-content: flex-start;
-    padding: 0 0 1rem 0.625rem;
+    padding: 0.25rem 0.5rem 1rem;
     margin-bottom: 1rem;
-    border-bottom: 2px solid rgb(148 163 184);
+    border-bottom: 1px solid rgb(255 255 255 / 0.22);
+}
+
+.sidebar-logo-icon {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    color: #0f5d8b;
+    background: rgb(255 255 255 / 0.92);
+    border-radius: 8px;
 }
 
 .sidebar-brand-icon {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 1.65rem;
+    height: 1.65rem;
 }
 
 .sidebar-brand-text {
@@ -57,29 +71,44 @@
     line-height: 1.25;
 }
 
+.sidebar-brand-text strong {
+    color: white;
+    font-size: 1rem;
+}
+
+.sidebar-brand-text span {
+    color: rgb(238 247 252 / 0.78);
+    font-size: 0.8rem;
+}
+
 .sidebar-btn,
 .sidebar-btn-active {
     display: flex;
     align-items: center;
-    height: 2.3rem;
-    padding: 0.25rem 1rem;
-    color: rgb(30 41 59);
+    min-height: 2.75rem;
+    padding: 0.55rem 0.875rem;
+    color: rgb(238 247 252 / 0.84);
     font-weight: 600;
     text-decoration: none;
     border-radius: 8px;
-    transition: color 150ms ease, background-color 150ms ease;
+    transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
 }
 
 .sidebar-btn:hover,
-.sidebar-btn-active:hover,
-.sidebar-btn-active {
+.sidebar-btn-active:hover {
     color: white;
-    background-color: rgb(51 65 85);
+    background-color: rgb(255 255 255 / 0.12);
+}
+
+.sidebar-btn-active {
+    color: #0b2f4a;
+    background-color: rgb(255 255 255 / 0.92);
+    box-shadow: 0 10px 24px rgb(0 32 56 / 0.18);
 }
 
 .sidebar-icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.2rem;
+    height: 1.2rem;
     flex: 0 0 auto;
 }
 
