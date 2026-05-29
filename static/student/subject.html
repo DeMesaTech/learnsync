@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false, openStudentItem(type, slug) { if (type === 'activity') window.location.href = `activity-submission.html?activity=${slug}`; if (type === 'quiz') window.location.href = `quiz-take.html?quiz=${slug}`; } }">
+    <div class="pt-20 flex min-h-screen" x-data="subjectApp()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
@@ -52,49 +52,140 @@
                 <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section>
 
-            <section class="lms-grid lms-grid-3">
-                <div class="lms-panel">
-                    <h3>Modules</h3>
+            <section class="lms-panel">
+                <div class="lms-task-top">
+                    <h3>Announcements</h3>
+                    <button class="lms-icon-btn" type="button" @click="announcementsOpen = !announcementsOpen" :aria-expanded="announcementsOpen.toString()" aria-label="Toggle announcements">
+                        <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="announcementsOpen ? 'rotate-180' : ''">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="lms-list" x-show="!announcementsOpen" x-transition>
+                    <span class="lms-badge" x-text="announcements.length + ' posts'"></span>
+                    <template x-for="announcement in announcements" :key="announcement.title">
+                        <button class="lms-row lms-announcement-button" type="button" @click="openAnnouncement(announcement)">
+                            <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.subject"></span>
+                            <strong x-text="announcement.title"></strong>
+                            <span class="lms-meta" x-text="announcement.meta"></span>
+                        </button>
+                    </template>
+                </div>
+            </section>
+            <section class="lms-panel mt-4">
+                <section class="lms-tabs mt-4" aria-label="Subject tabs">
+                    <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button" @click="activeTab = 'modules'">Modules</button>
+                    <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button" @click="activeTab = 'activities'">Activities</button>
+                    <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button" @click="activeTab = 'quizzes'">Quizzes</button>
+                </section>
+    
+                <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
+                    <div class="lms-task-top">
+                        <h3>Modules</h3>
+                        <span class="lms-badge">2 files</span>
+                    </div>
                     <ul class="lms-list">
                         <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true" @keydown.space.prevent="true"><strong>Research Problem and Objectives</strong><p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p></li>
                         <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true" @keydown.space.prevent="true"><strong>Review of Related Literature</strong><p class="m-0">Reference notes and class discussion file.</p></li>
                     </ul>
-                </div>
-                <div class="lms-panel">
-                    <h3>Activities</h3>
+                </section>
+    
+                <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
+                    <div class="lms-task-top">
+                        <h3>Activities</h3>
+                        <span class="lms-badge">2 items</span>
+                    </div>
                     <ul class="lms-list">
                         <li role="button" tabindex="0" @click="openStudentItem('activity', 'chapter-1-draft')" @keydown.enter.prevent="openStudentItem('activity', 'chapter-1-draft')" @keydown.space.prevent="openStudentItem('activity', 'chapter-1-draft')"><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1 Draft</strong><p class="m-0">Submit a file path record and wait for teacher score.</p></li>
                         <li role="button" tabindex="0" @click="openStudentItem('activity', 'problem-statement-worksheet')" @keydown.enter.prevent="openStudentItem('activity', 'problem-statement-worksheet')" @keydown.space.prevent="openStudentItem('activity', 'problem-statement-worksheet')"><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement Worksheet</strong><p class="m-0">Submitted Oct 10, 2026.</p></li>
                     </ul>
-                </div>
-                <div class="lms-panel">
-                    <h3>Quizzes</h3>
+                </section>
+    
+                <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
+                    <div class="lms-task-top">
+                        <h3>Quizzes</h3>
+                        <span class="lms-badge">2 items</span>
+                    </div>
                     <ul class="lms-list">
                         <li role="button" tabindex="0" @click="openStudentItem('quiz', 'research-ethics-quiz')" @keydown.enter.prevent="openStudentItem('quiz', 'research-ethics-quiz')" @keydown.space.prevent="openStudentItem('quiz', 'research-ethics-quiz')"><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong><p class="m-0">10 questions. Latest score: 18 / 20.</p></li>
                         <li role="button" tabindex="0" @click="openStudentItem('quiz', 'citation-format-drill')" @keydown.enter.prevent="openStudentItem('quiz', 'citation-format-drill')" @keydown.space.prevent="openStudentItem('quiz', 'citation-format-drill')"><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format Drill</strong><p class="m-0">Answers saved as student answer records.</p></li>
                     </ul>
-                </div>
+                </section>
             </section>
 
-            <section class="lms-grid lms-grid-2 mt-4">
-                <div class="lms-panel">
-                    <h3>Submission Status</h3>
-                    <div class="lms-list">
-                        <div class="lms-row"><span class="lms-badge good">Submitted</span><strong>Problem Statement Worksheet</strong><span class="lms-meta">Submitted Oct 10, 2026</span></div>
-                        <div class="lms-row"><span class="lms-badge warn">Pending</span><strong>Chapter 1 Draft</strong><span class="lms-meta">Due Oct 25, 2026</span></div>
-                    </div>
-                </div>
-                <div class="lms-panel">
-                    <h3>AI Study Context</h3>
-                    <p>Saved AI queries can connect to module content through query context records, helping students review exact lesson materials instead of generic notes.</p>
-                    <div class="lms-list">
-                        <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span class="lms-meta">Linked to Research Problem module</span></div>
-                        <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span class="lms-meta">Linked to Research Ethics module</span></div>
-                    </div>
+            <section class="lms-panel mt-4">
+                <h3>AI Study Context</h3>
+                <p>Saved AI queries can connect to module content through query context records, helping students review exact lesson materials instead of generic notes.</p>
+                <div class="lms-list">
+                    <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span class="lms-meta">Linked to Research Problem module</span></div>
+                    <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span class="lms-meta">Linked to Research Ethics module</span></div>
                 </div>
             </section>
         </main>
+
+        <div class="lms-modal-backdrop" x-cloak x-show="announcementModal" x-transition.opacity @click.self="announcementModal = null" @keydown.escape.window="announcementModal = null">
+            <section class="lms-modal" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+                <div class="lms-modal-head">
+                    <h3 id="announcement-title">Announcement</h3>
+                    <button class="lms-icon-btn" type="button" @click="announcementModal = null" aria-label="Close announcement"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" /></svg></button>
+                </div>
+                <div class="lms-list m-0" x-show="announcementModal">
+                    <article class="lms-row">
+                        <span class="lms-badge" :class="announcementModal?.badgeClass" x-text="announcementModal?.subject"></span>
+                        <strong x-text="announcementModal?.title"></strong>
+                        <p class="m-0" x-text="announcementModal?.details"></p>
+                        <span class="lms-meta" x-text="announcementModal?.meta"></span>
+                    </article>
+                </div>
+            </section>
+        </div>
     </div>
+    <script>
+        function subjectApp() {
+            const announcements = [
+                {
+                    subject: 'Capstone',
+                    badgeClass: 'warn',
+                    title: 'Bring printed Chapter 1 outline next meeting',
+                    meta: 'Posted Oct 18, 2026 by Prof. Gilda Taupa',
+                    details: 'Prepare a one-page outline with your title, background, problem statement, objectives, scope, and significance. Bring one printed copy for checking and keep a digital copy for your next Chapter 1 draft submission.'
+                },
+                {
+                    subject: 'Research Ethics',
+                    badgeClass: '',
+                    title: 'Ethics discussion guide is now available',
+                    meta: 'Posted Oct 17, 2026 by Prof. Gilda Taupa',
+                    details: 'Review the uploaded guide before taking the Research Ethics Quiz. Focus on informed consent, participant privacy, plagiarism, citation responsibility, and how to handle collected research data.'
+                },
+                {
+                    subject: 'Consultation',
+                    badgeClass: 'good',
+                    title: 'Group consultation schedule has been updated',
+                    meta: 'Posted Oct 16, 2026 by Prof. Gilda Taupa',
+                    details: 'Groups 1 to 4 will meet during the first hour, and Groups 5 to 8 will meet during the second hour. Bring your revised problem statement worksheet and questions about your proposed system.'
+                }
+            ];
+
+            return {
+                open: false,
+                activeTab: 'modules',
+                announcementsOpen: true,
+                announcements,
+                announcementModal: null,
+                openAnnouncement(announcement) {
+                    this.announcementModal = announcement;
+                },
+                openStudentItem(type, slug) {
+                    if (type === 'activity') {
+                        window.location.href = `activity-submission.html?activity=${slug}`;
+                    }
+                    if (type === 'quiz') {
+                        window.location.href = `quiz-take.html?quiz=${slug}`;
+                    }
+                }
+            };
+        }
+    </script>
 </body>
 
 </html>

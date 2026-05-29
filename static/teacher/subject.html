@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/lms.css">
 </head>
 
-<body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false, modal: null }">
+<body class="lms-shell teacher-accent font-sans text-sm">
+    <div class="pt-20 flex min-h-screen" x-data="teacherSubjectApp()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,13 +50,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" />
                         </svg><span>Dashboard</span></a></li>
-                <li><a class="sidebar-btn-active" href="classes.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                <li><a class="sidebar-btn-active" href="classes.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn" href="grading.html"><svg class="sidebar-icon" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                <li><a class="sidebar-btn" href="grading.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
                         </svg><span>Grading</span></a></li>
@@ -72,70 +72,178 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Capstone Research Project 1</h2>
-                    <p class="lms-subtitle">Section 3B. This subject page groups the student records used in the ERD:
-                        module, module content, activity submission, quiz answer, and AI study context.</p>
+                    <p class="lms-subtitle">Section 3B class workspace for announcements, modules, activities, quizzes,
+                        visibility, submissions, and class-level grading setup.</p>
                 </div>
                 <div class="lms-actions">
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classModule'">Add
-                        Module</button>
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Class
-                        Item</button>
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">Add
-                        Quiz</button>
-                    <button class="lms-btn" type="button" @click="modal = 'classActivity'">Add Activity</button>
+                    <a class="lms-btn lms-btn-secondary" href="grading.html">Manage Grades</a>
                 </div>
             </section>
 
-            <section class="lms-grid lms-grid-3">
-                <div class="lms-panel">
-                    <h3>Modules</h3>
-                    <ul class="lms-list">
-                        <li><a class="lms-clickable" href="#" @click.prevent><strong>Research Problem and Objectives</strong>
-                            <p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p></a>
-                        </li>
-                        <li><a class="lms-clickable" href="#" @click.prevent><strong>Review of Related Literature</strong>
-                            <p class="m-0">Reference notes and class discussion file.</p></a>
-                        </li>
-                    </ul>
+            <section class="lms-grid lms-grid-4 mb-4">
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
+                        </svg></span><strong>32</strong><span>Students</span><span class="lms-inline-actions">
+                            <button class="lms-btn lms-btn-small" type="button" @click="modal = 'enrollment'">Enroll</button>
+                            <a class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#attendance">Attendance</a>
+                        </span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
+                        </svg></span><strong>5</strong><span>Modules</span><button class="lms-btn lms-btn-small"
+                        type="button" @click="modal = 'classModule'">Add Module</button></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg></span><strong>4</strong><span>Activities</span><button class="lms-btn lms-btn-small"
+                        type="button" @click="modal = 'classActivity'">Add Activity</button></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
+                        </svg></span><strong>2</strong><span>Quizzes</span><button class="lms-btn lms-btn-small"
+                        type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
+            </section>
+
+            <section class="lms-toolbar">
+                <select class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
+                    <option value="all">All sections</option>
+                    <template x-for="section in sections" :key="section">
+                        <option :value="section" x-text="'Section ' + section"></option>
+                    </template>
+                </select>
+            </section>
+
+            <section class="lms-panel">
+                <div class="lms-task-top">
+                    <h3>Announcements</h3>
+                    <span class="lms-inline-actions">
+                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add
+                            Announcement</button>
+                        <button class="lms-icon-btn" type="button" @click="showAnnouncements = !showAnnouncements"
+                            :aria-expanded="showAnnouncements.toString()" aria-label="Toggle announcements">
+                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                :class="showAnnouncements ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
+                            </svg>
+                        </button>
+                    </span>
                 </div>
-                <div class="lms-panel">
-                    <h3>Activities</h3>
-                    <ul class="lms-list">
-                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1
-                                Draft</strong>
-                            <p class="m-0">Submit a file path record and wait for teacher score.</p></a>
-                        </li>
-                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
-                                Worksheet</strong>
-                            <p class="m-0">Submitted Oct 10, 2026.</p></a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="lms-panel">
-                    <h3>Quizzes</h3>
-                    <ul class="lms-list">
-                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics
-                                Quiz</strong>
-                            <p class="m-0">10 questions. Latest score: 18 / 20.</p></a>
-                        </li>
-                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
-                                Drill</strong>
-                            <p class="m-0">Answers saved as student answer records.</p></a>
-                        </li>
-                    </ul>
+                <div class="lms-list" x-show="showAnnouncements" x-transition>
+                    <template x-for="announcement in announcements" :key="announcement.title">
+                        <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
+                            <span class="lms-badge" :class="announcement.badgeClass"
+                                x-text="announcement.subject"></span>
+                            <strong x-text="announcement.title"></strong>
+                            <span class="lms-meta" x-text="announcement.meta"></span>
+                            <span class="lms-meta" x-text="announcement.visibility"></span>
+                            <span class="lms-inline-actions">
+                                <button class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                                    @click="openAnnouncementManagement(announcement)">Manage Announcement</button>
+                            </span>
+                        </article>
+                    </template>
                 </div>
             </section>
 
-            <section class="lms-grid lms-grid-2 mt-4">
-                <div class="lms-panel">
-                    <h3>Submission Status</h3>
-                    <div class="lms-list">
-                        <div class="lms-row"><span class="lms-badge good">Submitted</span><strong>Problem Statement
-                                Worksheet</strong><span class="lms-meta">Submitted Oct 10, 2026</span></div>
-                        <div class="lms-row"><span class="lms-badge warn">Pending</span><strong>Chapter 1
-                                Draft</strong><span class="lms-meta">Due Oct 25, 2026</span></div>
-                    </div>
+            <section class="lms-tabs mt-4" aria-label="Class workspace tabs">
+                <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'modules'">Modules</button>
+                <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'activities'">Activities</button>
+                <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'quizzes'">Quizzes</button>
+            </section>
+
+            <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
+                <div class="lms-task-top">
+                    <h3>Modules</h3><span class="lms-badge good">Multi-section visibility</span>
                 </div>
+                <ul class="lms-list">
+                    <li x-show="visibleFor(['3A', '3B'])">
+                        <article class="lms-clickable"><strong>Research Problem and Objectives</strong>
+                            <p class="m-0">PDF module uploaded Oct 2. Visible to Sections 3A and 3B.</p><span
+                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                    type="button"
+                                    @click="openManagement('module', 'Research Problem and Objectives')">Manage
+                                    Module</button></span>
+                        </article>
+                    </li>
+                    <li x-show="visibleFor(['3B'])">
+                        <article class="lms-clickable"><strong>Review of Related Literature</strong>
+                            <p class="m-0">Reference notes and class discussion file. Hidden until review is complete.
+                            </p><span class="lms-inline-actions mt-2"><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                                    @click="openManagement('module', 'Review of Related Literature')">Manage
+                                    Module</button></span>
+                        </article>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
+                <div class="lms-task-top">
+                    <h3>Activities</h3><span class="lms-inline-actions"><span class="lms-badge warn">1 due soon</span><a
+                            class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#activity-scores">Activity Scores</a></span>
+                </div>
+                <ul class="lms-list">
+                    <li x-show="visibleFor(['3A', '3B'])">
+                        <article class="lms-clickable"><span class="lms-badge warn">Due Oct 25</span><strong
+                                class="block mt-2">Chapter 1 Draft</strong>
+                            <p class="m-0">18 submitted | 14 pending | visible to Sections 3A and 3B.</p><span
+                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                    type="button" @click="openManagement('activity', 'Chapter 1 Draft')">Manage
+                                    Activity</button><button class="lms-btn lms-btn-small" type="button"
+                                    @click="openManagement('activity', 'Chapter 1 Draft')">Delete</button></span>
+                        </article>
+                    </li>
+                    <li x-show="visibleFor(['3B'])">
+                        <article class="lms-clickable"><span class="lms-badge good">Scored</span><strong
+                                class="block mt-2">Problem Statement Worksheet</strong>
+                            <p class="m-0">Average score: 91 / 100. Deadline Oct 10, 2026.</p><span
+                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                    type="button"
+                                    @click="openManagement('activity', 'Problem Statement Worksheet')">Manage
+                                    Activity</button><button class="lms-btn lms-btn-small" type="button"
+                                    @click="openManagement('activity', 'Problem Statement Worksheet')">Delete</button></span>
+                        </article>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
+                <div class="lms-task-top">
+                    <h3>Quizzes</h3><span class="lms-inline-actions"><span class="lms-badge">Mixed question types</span><a
+                            class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#quiz-scores">Quiz Scores</a></span>
+                </div>
+                <ul class="lms-list">
+                    <li x-show="visibleFor(['3B'])">
+                        <article class="lms-clickable"><span class="lms-badge">Online</span><strong
+                                class="block mt-2">Research Ethics Quiz</strong>
+                            <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026. Visible
+                                to Section 3B.</p><span class="lms-inline-actions mt-2"><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Manage Quiz</button><button
+                                    class="lms-btn lms-btn-small" type="button"
+                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Delete</button></span>
+                        </article>
+                    </li>
+                    <li x-show="visibleFor(['3A', '3B'])">
+                        <article class="lms-clickable"><span class="lms-badge">Practice</span><strong
+                                class="block mt-2">Citation Format Drill</strong>
+                            <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
+                            </p><span class="lms-inline-actions mt-2"><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                                    @click="openManagement('quiz', 'Citation Format Drill')">Manage Quiz</button><button
+                                    class="lms-btn lms-btn-small" type="button"
+                                    @click="openManagement('quiz', 'Citation Format Drill')">Delete</button></span>
+                        </article>
+                    </li>
+                </ul>
             </section>
         </main>
 
@@ -144,9 +252,14 @@
             <section class="lms-modal" role="dialog" aria-modal="true">
                 <div class="lms-modal-head">
                     <h3 x-show="modal === 'classModule'">Upload Module</h3>
-                    <h3 x-show="modal === 'classPost'">Create Class Item</h3>
+                    <h3 x-show="modal === 'classPost'">Create Announcement</h3>
                     <h3 x-show="modal === 'classQuiz'">Create AI Quiz</h3>
                     <h3 x-show="modal === 'classActivity'">Create Activity</h3>
+                    <h3 x-show="modal === 'enrollment'">Enroll Students</h3>
+                    <h3 x-show="modal === 'manageAnnouncement'">Manage Announcement</h3>
+                    <h3 x-show="modal === 'manageModule'">Manage Module</h3>
+                    <h3 x-show="modal === 'manageActivity'">Manage Activity</h3>
+                    <h3 x-show="modal === 'manageQuiz'">Manage Quiz</h3>
                     <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
                             class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -159,15 +272,29 @@
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Module title">
                             <input class="lms-input" placeholder="File path">
+                            <textarea class="lms-input" rows="3"
+                                placeholder="Module summary or lesson notes"></textarea>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
                             <button class="lms-btn" type="button">Publish Module</button>
                         </div>
                     </template>
 
                     <template x-if="modal === 'classPost'">
                         <div class="lms-grid">
-                            <input class="lms-input" placeholder="Class item title">
-                            <textarea class="lms-input" rows="4" placeholder="Announcement or class notes"></textarea>
-                            <button class="lms-btn" type="button">Post to Class</button>
+                            <input class="lms-input" placeholder="Announcement title">
+                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"></textarea>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
+                            <button class="lms-btn" type="button">Post Announcement</button>
                         </div>
                     </template>
 
@@ -179,14 +306,17 @@
                                 <option>Source module: Review of Related Literature</option>
                                 <option>Use all published modules</option>
                             </select>
-                            <select class="lms-select">
-                                <option>Question type: Multiple choice</option>
-                                <option>Question type: True or false</option>
-                                <option>Question type: Short answer</option>
-                                <option>Question type: Mixed question types</option>
-                            </select>
+                            <div class="lms-list">
+                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple
+                                        choice</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>True or
+                                        false</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Short answer</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Essay</span></label>
+                            </div>
                             <div class="lms-grid lms-grid-2">
-                                <input class="lms-input" type="number" min="1" max="100" placeholder="Number of questions">
+                                <input class="lms-input" type="number" min="1" max="100"
+                                    placeholder="Number of questions">
                                 <input class="lms-input" type="number" min="1" placeholder="Points per question">
                             </div>
                             <div class="lms-grid lms-grid-2">
@@ -202,6 +332,13 @@
                                 placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
                             <textarea class="lms-input" rows="3"
                                 placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
+                            <input class="lms-input" type="date" aria-label="Quiz deadline">
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
                             <button class="lms-btn" type="button">Generate Quiz Draft</button>
                         </div>
                     </template>
@@ -209,15 +346,204 @@
                     <template x-if="modal === 'classActivity'">
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Activity title">
-                            <input class="lms-input" placeholder="Description">
+                            <textarea class="lms-input" rows="4"
+                                placeholder="Instructions and submission requirements"></textarea>
                             <input class="lms-input" type="date">
+                            <input class="lms-input" type="number" min="1" placeholder="Total points">
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
                             <button class="lms-btn" type="button">Create Activity</button>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'enrollment'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0">Capstone Research Project 1 enrollment</p>
+                            <select class="lms-select" aria-label="Enrollment section">
+                                <option>Section 3B</option>
+                                <option>Section 3A</option>
+                                <option>Section 3C</option>
+                            </select>
+                            <textarea class="lms-input" rows="7"
+                                placeholder="Paste one student ID per line, or CSV rows: Student ID, Last Name, First Name"></textarea>
+                            <p class="lms-meta m-0">Students are added directly to this class. No subject selection is
+                                needed here.</p>
+                            <button class="lms-btn" type="button">Enroll Students</button>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'manageAnnouncement'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0" x-text="selectedAnnouncement.meta"></p>
+                            <input class="lms-input" placeholder="Announcement title" :value="selectedAnnouncement.title">
+                            <textarea class="lms-input" rows="5" placeholder="Revise announcement message"></textarea>
+                            <div class="lms-grid lms-grid-2">
+                                <select class="lms-select">
+                                    <option>Status: Published</option>
+                                    <option>Status: Draft</option>
+                                    <option>Status: Hidden</option>
+                                </select>
+                                <input class="lms-input" type="date" aria-label="Announcement publish date">
+                            </div>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
+                            <div class="lms-inline-actions">
+                                <button class="lms-btn" type="button">Save Announcement</button>
+                                <button class="lms-btn lms-btn-danger" type="button">Delete Announcement</button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'manageModule'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
+                            <input class="lms-input" placeholder="Module title" :value="selectedManagement.title">
+                            <input class="lms-input" placeholder="Replace file path or attachment">
+                            <textarea class="lms-input" rows="4"
+                                placeholder="Update module summary, lesson notes, or teacher remarks"></textarea>
+                            <div class="lms-grid lms-grid-2">
+                                <select class="lms-select">
+                                    <option>Status: Published</option>
+                                    <option>Status: Draft</option>
+                                    <option>Status: Hidden</option>
+                                </select>
+                                <input class="lms-input" type="date" aria-label="Module publish date">
+                            </div>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
+                            <div class="lms-inline-actions">
+                                <button class="lms-btn" type="button">Save Module</button>
+                                <button class="lms-btn lms-btn-danger" type="button">Delete Module</button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'manageActivity'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
+                            <input class="lms-input" placeholder="Activity title" :value="selectedManagement.title">
+                            <textarea class="lms-input" rows="4"
+                                placeholder="Revise instructions and submission requirements"></textarea>
+                            <div class="lms-grid lms-grid-2">
+                                <input class="lms-input" type="date" aria-label="Activity deadline">
+                                <input class="lms-input" type="number" min="1" placeholder="Total points">
+                            </div>
+                            <div class="lms-grid lms-grid-2">
+                                <select class="lms-select">
+                                    <option>Accepting submissions</option>
+                                    <option>Closed</option>
+                                    <option>Hidden from students</option>
+                                </select>
+                                <input class="lms-input" type="number" min="0" placeholder="Late penalty %">
+                            </div>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
+                            <div class="lms-inline-actions">
+                                <button class="lms-btn" type="button">Save Activity</button>
+                                <button class="lms-btn lms-btn-danger" type="button">Delete Activity</button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'manageQuiz'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
+                            <input class="lms-input" placeholder="Quiz title" :value="selectedManagement.title">
+                            <div class="lms-grid lms-grid-2">
+                                <input class="lms-input" type="date" aria-label="Quiz deadline">
+                                <input class="lms-input" type="number" min="1" placeholder="Time limit in minutes">
+                            </div>
+                            <div class="lms-grid lms-grid-2">
+                                <input class="lms-input" type="number" min="1" placeholder="Total questions">
+                                <input class="lms-input" type="number" min="1" placeholder="Total points">
+                            </div>
+                            <div class="lms-list">
+                                <span class="lms-meta">Question types</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple
+                                        choice</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>True or
+                                        false</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Short answer</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Essay</span></label>
+                            </div>
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3A</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Section 3B</span></label>
+                                <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
+                            </div>
+                            <div class="lms-inline-actions">
+                                <button class="lms-btn" type="button">Save Quiz</button>
+                                <button class="lms-btn lms-btn-secondary" type="button">Regenerate Draft</button>
+                                <button class="lms-btn lms-btn-danger" type="button">Delete Quiz</button>
+                            </div>
                         </div>
                     </template>
                 </div>
             </section>
         </div>
     </div>
+    <script>
+        function teacherSubjectApp() {
+            const announcements = [
+                {
+                    subject: 'Capstone',
+                    badgeClass: 'warn',
+                    title: 'Bring printed Chapter 1 outline next meeting',
+                    meta: 'Posted Oct 18, 2026 by Prof. Gilda Taupa',
+                    visibility: 'Visible to Sections 3A and 3B',
+                    sections: ['3A', '3B']
+                },
+                {
+                    subject: 'Consultation',
+                    badgeClass: 'good',
+                    title: 'Group consultation schedule has been updated',
+                    meta: 'Posted Oct 16, 2026 by Prof. Gilda Taupa',
+                    visibility: 'Visible to Section 3B',
+                    sections: ['3B']
+                }
+            ];
+
+            return {
+                open: false,
+                modal: null,
+                activeTab: 'modules',
+                showAnnouncements: true,
+                sectionFilter: 'all',
+                sections: ['3A', '3B', '3C'],
+                announcements,
+                selectedAnnouncement: announcements[0],
+                selectedManagement: { type: '', title: '' },
+                openAnnouncementManagement(announcement) {
+                    this.selectedAnnouncement = announcement;
+                    this.modal = 'manageAnnouncement';
+                },
+                openManagement(type, title) {
+                    this.selectedManagement = { type, title };
+                    this.modal = `manage${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+                },
+                visibleFor(sections) {
+                    return this.sectionFilter === 'all' || sections.includes(this.sectionFilter);
+                }
+            };
+        }
+    </script>
 </body>
 
 </html>

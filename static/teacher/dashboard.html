@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Teacher Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
@@ -82,10 +83,10 @@
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4">
-                <div class="lms-kpi"><strong>4</strong><span>Classes</span></div>
-                <div class="lms-kpi"><strong>128</strong><span>Students</span></div>
-                <div class="lms-kpi"><strong>18</strong><span>Submissions</span></div>
-                <div class="lms-kpi"><strong>6</strong><span>Quizzes</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" /></svg></span><strong>4</strong><span>Classes</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" /></svg></span><strong>128</strong><span>Students</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4h7l4 4v12H7V4Zm7 0v5h5M9 14h6M9 17h4" /></svg></span><strong>18</strong><span>Submissions</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></svg></span><strong>6</strong><span>Quizzes</span></div>
             </section>
 
             <section class="lms-grid lms-grid-3">
@@ -115,7 +116,6 @@
                                 <th>Class</th>
                                 <th>Activity</th>
                                 <th>Submitted</th>
-                                <th>Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,21 +124,18 @@
                                 <td>Capstone 3B</td>
                                 <td>Chapter 1 Draft</td>
                                 <td>Oct 24, 2026</td>
-                                <td><input class="lms-input" value="Pending"></td>
                             </tr>
                             <tr>
                                 <td>Maria Santos</td>
                                 <td>Capstone 3B</td>
                                 <td>Problem Statement</td>
                                 <td>Oct 10, 2026</td>
-                                <td><input class="lms-input" value="95"></td>
                             </tr>
                             <tr>
                                 <td>Carlo Reyes</td>
                                 <td>Web Dev 3B</td>
                                 <td>Project Proposal</td>
                                 <td>Oct 20, 2026</td>
-                                <td><input class="lms-input" value="88"></td>
                             </tr>
                         </tbody>
                     </table>

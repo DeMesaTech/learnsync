@@ -85,6 +85,15 @@ body.lms-shell {
     background: rgb(255 255 255 / 0.92);
 }
 
+.lms-btn-danger {
+    color: white;
+    background: var(--brand-red);
+}
+
+.lms-btn-danger:hover {
+    background: #9f3434;
+}
+
 .lms-grid {
     display: grid;
     gap: 1rem;
@@ -150,11 +159,33 @@ body.lms-shell {
 }
 
 .lms-kpi {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 0.85rem;
+    align-items: center;
     min-height: 6rem;
     padding: 1rem;
     border: 1px solid var(--brand-line);
     border-radius: 8px;
     background: white;
+}
+
+.lms-kpi-icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    grid-row: 1 / 3;
+    border-radius: 8px;
+    color: var(--brand-blue-dark);
+    background: var(--brand-blue-soft);
+}
+
+.lms-kpi-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .lms-kpi strong {
@@ -164,11 +195,29 @@ body.lms-shell {
     line-height: 1;
 }
 
-.lms-kpi span {
+.lms-kpi > span:not(.lms-kpi-icon) {
     display: block;
-    margin-top: 0.45rem;
     color: var(--brand-muted);
     font-weight: 700;
+}
+
+.lms-kpi .lms-btn {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 0.65rem;
+}
+
+.lms-btn-small {
+    min-height: 2rem;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.78rem;
+}
+
+.lms-inline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .lms-list {
@@ -228,6 +277,27 @@ body.lms-shell {
 .lms-row {
     display: grid;
     gap: 0.5rem;
+}
+
+.lms-announcement-button {
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.lms-announcement-button:hover,
+.lms-announcement-button:focus-visible {
+    border-color: var(--brand-blue);
+    box-shadow: 0 10px 24px rgb(12 70 107 / 0.12);
+    transform: translateY(-1px);
+}
+
+.lms-announcement-button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgb(23 111 168 / 0.14);
 }
 
 .lms-meta {
@@ -541,8 +611,9 @@ textarea.lms-input {
 }
 
 @media (max-width: 767px) {
+    .lms-grid-4,
     .lms-kpis {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .lms-page {

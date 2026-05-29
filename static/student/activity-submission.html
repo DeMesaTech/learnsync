@@ -46,9 +46,6 @@
                     <h2 class="lms-title" x-text="activity.title">Activity Submission</h2>
                     <p class="lms-subtitle" x-text="activity.className + ' | Due ' + formatDate(activity.date)"></p>
                 </div>
-                <div class="lms-actions">
-                    <a class="lms-btn lms-btn-secondary" href="To-Do.html">Back to Tasks</a>
-                </div>
             </section>
 
             <section class="lms-grid lms-grid-2">
@@ -57,7 +54,6 @@
                         <h3>Instructions</h3>
                         <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
                     </div>
-                    <p x-text="activity.description"></p>
                     <ol class="lms-instruction-list">
                         <template x-for="step in activity.instructions" :key="step">
                             <li x-text="step"></li>
@@ -102,7 +98,6 @@
                     title: 'Chapter 1 Draft',
                     className: 'Capstone Research Project 1',
                     date: '2026-10-25',
-                    description: 'Upload your draft file before the deadline.',
                     attachment: 'chapter-1-draft-instructions.pdf',
                     instructions: [
                         'Submit one PDF or DOCX file containing your title, background, objectives, scope, and significance.',
@@ -114,7 +109,6 @@
                     title: 'Final Project Proposal',
                     className: 'Web Development',
                     date: '2026-10-20',
-                    description: 'Submit project scope, user roles, and initial wireframes.',
                     attachment: 'web-project-proposal-guide.pdf',
                     instructions: [
                         'Attach one proposal document and one wireframe file.',
@@ -126,7 +120,6 @@
                     title: 'Normalization Exercise',
                     className: 'Database Management 2',
                     date: '2026-10-30',
-                    description: 'Answer the worksheet and attach your ERD revision.',
                     attachment: 'normalization-worksheet.docx',
                     instructions: [
                         'Normalize the sample table up to third normal form.',
@@ -138,7 +131,6 @@
                     title: 'Problem Statement Worksheet',
                     className: 'Capstone Research Project 1',
                     date: '2026-10-10',
-                    description: 'Submitted worksheet record for problem framing.',
                     attachment: 'problem-statement-template.docx',
                     instructions: [
                         'Review your submitted worksheet and teacher comments.',
