@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LearnSync | Subject Workspace</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/lms.css">
+</head>
+
+<body class="lms-shell student-shell font-sans text-sm">
+    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+        <header class="app-header">
+            <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg></button>
+            <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span
+                    class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <button class="header-icon-btn" aria-label="Notifications"><svg class="header-action-icon" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg></button>
+            <button class="header-icon-btn" aria-label="Profile"><svg class="header-action-icon" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg></button>
+        </header>
+        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
+        <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
+            <ul class="sidebar-list">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+                        </svg></div>
+                    <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Teacher LMS</span></div>
+                </div>
+                <li><a class="sidebar-btn" href="dashboard.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" />
+                        </svg><span>Dashboard</span></a></li>
+                <li><a class="sidebar-btn" href="classes.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
+                        </svg><span>Classes</span></a></li>
+                <li><a class="sidebar-btn-active" href="grading.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
+                        </svg><span>Grading</span></a></li>
+                <li><a class="sidebar-btn" href="../login.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
+                        </svg><span>Logout</span></a></li>
+            </ul>
+        </nav>
+
+        <main class="lms-page">
+            <section class="lms-hero">
+                <div>
+                    <h2 class="lms-title">Capstone Research Project 1</h2>
+                    <p class="lms-subtitle">Section 3B. This subject page groups the student records used in the ERD:
+                        module, module content, activity submission, quiz answer, and AI study context.</p>
+                </div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
+            </section>
+
+            <section class="lms-grid lms-grid-3">
+                <div class="lms-panel">
+                    <h3>Modules</h3>
+                    <ul class="lms-list">
+                        <li><strong>Research Problem and Objectives</strong>
+                            <p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p>
+                        </li>
+                        <li><strong>Review of Related Literature</strong>
+                            <p class="m-0">Reference notes and class discussion file.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="lms-panel">
+                    <h3>Activities</h3>
+                    <ul class="lms-list">
+                        <li><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1
+                                Draft</strong>
+                            <p class="m-0">Submit a file path record and wait for teacher score.</p>
+                        </li>
+                        <li><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
+                                Worksheet</strong>
+                            <p class="m-0">Submitted Oct 10, 2026.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="lms-panel">
+                    <h3>Quizzes</h3>
+                    <ul class="lms-list">
+                        <li><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics
+                                Quiz</strong>
+                            <p class="m-0">10 questions. Latest score: 18 / 20.</p>
+                        </li>
+                        <li><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
+                                Drill</strong>
+                            <p class="m-0">Answers saved as student answer records.</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="lms-grid lms-grid-2 mt-4">
+                <div class="lms-panel">
+                    <h3>Submission Status</h3>
+                    <div class="lms-list">
+                        <div class="lms-row"><span class="lms-badge good">Submitted</span><strong>Problem Statement
+                                Worksheet</strong><span class="lms-meta">Submitted Oct 10, 2026</span></div>
+                        <div class="lms-row"><span class="lms-badge warn">Pending</span><strong>Chapter 1
+                                Draft</strong><span class="lms-meta">Due Oct 25, 2026</span></div>
+                    </div>
+                </div>
+                <div class="lms-panel">
+                    <h3>AI Study Context</h3>
+                    <p>Saved AI queries can connect to module content through query context records, helping students
+                        review exact lesson materials instead of generic notes.</p>
+                    <div class="lms-list">
+                        <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span
+                                class="lms-meta">Linked to Research Problem module</span></div>
+                        <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span
+                                class="lms-meta">Linked to Research Ethics module</span></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

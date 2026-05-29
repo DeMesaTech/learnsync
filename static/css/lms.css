@@ -76,6 +76,10 @@ body.lms-shell {
     background: rgb(11 62 104 / 0.86);
 }
 
+.lms-btn[type="button"] {
+    cursor: pointer;
+}
+
 .lms-btn-secondary {
     color: var(--brand-blue-dark);
     background: rgb(255 255 255 / 0.92);
@@ -110,6 +114,13 @@ body.lms-shell {
     display: block;
     color: inherit;
     text-decoration: none;
+}
+
+.lms-card-button {
+    width: 100%;
+    border-color: rgb(255 255 255 / 0.72);
+    text-align: left;
+    cursor: pointer;
 }
 
 .lms-card:hover {
@@ -267,6 +278,11 @@ body.lms-shell {
     background: white;
 }
 
+textarea.lms-input {
+    min-height: 7rem;
+    resize: vertical;
+}
+
 .lms-input:focus,
 .lms-select:focus {
     outline: none;
@@ -344,6 +360,63 @@ body.lms-shell {
     color: var(--brand-muted);
     background: rgb(255 255 255 / 0.82);
     text-align: center;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.lms-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgb(5 22 36 / 0.58);
+}
+
+.lms-modal {
+    width: min(100%, 34rem);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1.25rem;
+    border: 1px solid rgb(255 255 255 / 0.72);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 24px 70px rgb(5 22 36 / 0.32);
+}
+
+.lms-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.lms-modal-head h3 {
+    margin: 0;
+    color: var(--brand-blue-dark);
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.lms-icon-btn {
+    display: inline-flex;
+    width: 2.4rem;
+    height: 2.4rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
+    color: var(--brand-blue-dark);
+    background: white;
+    cursor: pointer;
+}
+
+.lms-icon-btn:hover {
+    background: var(--brand-blue-soft);
 }
 
 .teacher-accent .sidebar {
