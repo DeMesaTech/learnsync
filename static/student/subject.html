@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+    <div class="pt-20 flex min-h-screen" x-data="{ open: false, openStudentItem(type, slug) { if (type === 'activity') window.location.href = `activity-submission.html?activity=${slug}`; if (type === 'quiz') window.location.href = `quiz-take.html?quiz=${slug}`; } }">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
@@ -56,22 +56,22 @@
                 <div class="lms-panel">
                     <h3>Modules</h3>
                     <ul class="lms-list">
-                        <li><strong>Research Problem and Objectives</strong><p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p></li>
-                        <li><strong>Review of Related Literature</strong><p class="m-0">Reference notes and class discussion file.</p></li>
+                        <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true" @keydown.space.prevent="true"><strong>Research Problem and Objectives</strong><p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p></li>
+                        <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true" @keydown.space.prevent="true"><strong>Review of Related Literature</strong><p class="m-0">Reference notes and class discussion file.</p></li>
                     </ul>
                 </div>
                 <div class="lms-panel">
                     <h3>Activities</h3>
                     <ul class="lms-list">
-                        <li><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1 Draft</strong><p class="m-0">Submit a file path record and wait for teacher score.</p></li>
-                        <li><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement Worksheet</strong><p class="m-0">Submitted Oct 10, 2026.</p></li>
+                        <li role="button" tabindex="0" @click="openStudentItem('activity', 'chapter-1-draft')" @keydown.enter.prevent="openStudentItem('activity', 'chapter-1-draft')" @keydown.space.prevent="openStudentItem('activity', 'chapter-1-draft')"><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1 Draft</strong><p class="m-0">Submit a file path record and wait for teacher score.</p></li>
+                        <li role="button" tabindex="0" @click="openStudentItem('activity', 'problem-statement-worksheet')" @keydown.enter.prevent="openStudentItem('activity', 'problem-statement-worksheet')" @keydown.space.prevent="openStudentItem('activity', 'problem-statement-worksheet')"><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement Worksheet</strong><p class="m-0">Submitted Oct 10, 2026.</p></li>
                     </ul>
                 </div>
                 <div class="lms-panel">
                     <h3>Quizzes</h3>
                     <ul class="lms-list">
-                        <li><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong><p class="m-0">10 questions. Latest score: 18 / 20.</p></li>
-                        <li><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format Drill</strong><p class="m-0">Answers saved as student answer records.</p></li>
+                        <li role="button" tabindex="0" @click="openStudentItem('quiz', 'research-ethics-quiz')" @keydown.enter.prevent="openStudentItem('quiz', 'research-ethics-quiz')" @keydown.space.prevent="openStudentItem('quiz', 'research-ethics-quiz')"><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong><p class="m-0">10 questions. Latest score: 18 / 20.</p></li>
+                        <li role="button" tabindex="0" @click="openStudentItem('quiz', 'citation-format-drill')" @keydown.enter.prevent="openStudentItem('quiz', 'citation-format-drill')" @keydown.space.prevent="openStudentItem('quiz', 'citation-format-drill')"><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format Drill</strong><p class="m-0">Answers saved as student answer records.</p></li>
                     </ul>
                 </div>
             </section>

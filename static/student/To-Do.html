@@ -91,7 +91,7 @@
                 </div>
                 <div class="lms-list">
                     <template x-for="activity in filteredActivities()" :key="activity.title">
-                        <article class="lms-task-card" :class="activity.priority">
+                        <article class="lms-task-card" :class="activity.priority" role="button" tabindex="0" @click="openTask('activity', activity)" @keydown.enter.prevent="openTask('activity', activity)" @keydown.space.prevent="openTask('activity', activity)">
                             <div class="lms-task-top">
                                 <p class="lms-task-title" x-text="activity.title"></p>
                                 <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
@@ -111,7 +111,7 @@
                 </div>
                 <div class="lms-list">
                     <template x-for="quiz in filteredQuizzes()" :key="quiz.title">
-                        <article class="lms-task-card" :class="quiz.priority">
+                        <article class="lms-task-card" :class="quiz.priority" role="button" tabindex="0" @click="openTask('quiz', quiz)" @keydown.enter.prevent="openTask('quiz', quiz)" @keydown.space.prevent="openTask('quiz', quiz)">
                             <div class="lms-task-top">
                                 <p class="lms-task-title" x-text="quiz.title"></p>
                                 <span class="lms-badge" x-text="quiz.mode"></span>
@@ -131,7 +131,7 @@
                 </div>
                 <div class="lms-list">
                     <template x-for="module in filteredModules()" :key="module.title">
-                        <article class="lms-task-card">
+                        <article class="lms-task-card" role="button" tabindex="0" @click="openTask('module', module)" @keydown.enter.prevent="openTask('module', module)" @keydown.space.prevent="openTask('module', module)">
                             <div class="lms-task-top">
                                 <p class="lms-task-title" x-text="module.title"></p>
                                 <span class="lms-badge good" x-text="formatDate(module.date)"></span>
@@ -160,14 +160,14 @@
                     'Database Management 2'
                 ],
                 activities: [
-                    { title: 'Chapter 1 Draft', className: 'Capstone Research Project 1', date: '2026-10-25', priority: 'is-soon', description: 'Upload your draft file before the deadline.' },
-                    { title: 'Final Project Proposal', className: 'Web Development', date: '2026-10-20', priority: 'is-urgent', description: 'Submit project scope, user roles, and initial wireframes.' },
-                    { title: 'Normalization Exercise', className: 'Database Management 2', date: '2026-10-30', priority: '', description: 'Answer the worksheet and attach your ERD revision.' }
+                    { slug: 'chapter-1-draft', title: 'Chapter 1 Draft', className: 'Capstone Research Project 1', date: '2026-10-25', priority: 'is-soon', description: 'Upload your draft file before the deadline.' },
+                    { slug: 'final-project-proposal', title: 'Final Project Proposal', className: 'Web Development', date: '2026-10-20', priority: 'is-urgent', description: 'Submit project scope, user roles, and initial wireframes.' },
+                    { slug: 'normalization-exercise', title: 'Normalization Exercise', className: 'Database Management 2', date: '2026-10-30', priority: '', description: 'Answer the worksheet and attach your ERD revision.' }
                 ],
                 quizzes: [
-                    { title: 'Research Ethics Quiz', className: 'Capstone Research Project 1', date: '2026-10-28', mode: 'Online', priority: 'is-soon', description: 'Covers consent, citation, and plagiarism rules.' },
-                    { title: 'HTML/CSS Fundamentals', className: 'Web Development', date: '2026-10-23', mode: 'Online', priority: 'is-urgent', description: 'Timed quiz with multiple choice and short answers.' },
-                    { title: 'ERD Relationships Check', className: 'System Analysis & Design', date: '2026-11-02', mode: 'Practice', priority: '', description: 'Review cardinality, primary keys, and foreign keys.' }
+                    { slug: 'research-ethics-quiz', title: 'Research Ethics Quiz', className: 'Capstone Research Project 1', date: '2026-10-28', mode: 'Online', priority: 'is-soon', description: 'Covers consent, citation, and plagiarism rules.' },
+                    { slug: 'html-css-fundamentals', title: 'HTML/CSS Fundamentals', className: 'Web Development', date: '2026-10-23', mode: 'Online', priority: 'is-urgent', description: 'Timed quiz with multiple choice and short answers.' },
+                    { slug: 'erd-relationships-check', title: 'ERD Relationships Check', className: 'System Analysis & Design', date: '2026-11-02', mode: 'Practice', priority: '', description: 'Review cardinality, primary keys, and foreign keys.' }
                 ],
                 modules: [
                     { title: 'Chapter 1 Research Guide', className: 'Capstone Research Project 1', date: '2026-10-18', teacher: 'Prof. Gilda Taupa', description: 'Compiled notes for title, objectives, scope, and significance.' },
@@ -200,6 +200,15 @@
                         day: 'numeric',
                         year: 'numeric'
                     });
+                },
+                openTask(type, item) {
+                    if (type === 'activity') {
+                        window.location.href = `activity-submission.html?activity=${item.slug}`;
+                        return;
+                    }
+                    if (type === 'quiz') {
+                        window.location.href = `quiz-take.html?quiz=${item.slug}`;
+                    }
                 }
             }
         }
