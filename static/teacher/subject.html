@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+    <div class="pt-20 flex min-h-screen" x-data="{ open: false, modal: null }">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,44 +75,52 @@
                     <p class="lms-subtitle">Section 3B. This subject page groups the student records used in the ERD:
                         module, module content, activity submission, quiz answer, and AI study context.</p>
                 </div>
-                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
+                <div class="lms-actions">
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classModule'">Add
+                        Module</button>
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Class
+                        Item</button>
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">Add
+                        Quiz</button>
+                    <button class="lms-btn" type="button" @click="modal = 'classActivity'">Add Activity</button>
+                </div>
             </section>
 
             <section class="lms-grid lms-grid-3">
                 <div class="lms-panel">
                     <h3>Modules</h3>
                     <ul class="lms-list">
-                        <li><strong>Research Problem and Objectives</strong>
-                            <p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p>
+                        <li><a class="lms-clickable" href="#" @click.prevent><strong>Research Problem and Objectives</strong>
+                            <p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p></a>
                         </li>
-                        <li><strong>Review of Related Literature</strong>
-                            <p class="m-0">Reference notes and class discussion file.</p>
+                        <li><a class="lms-clickable" href="#" @click.prevent><strong>Review of Related Literature</strong>
+                            <p class="m-0">Reference notes and class discussion file.</p></a>
                         </li>
                     </ul>
                 </div>
                 <div class="lms-panel">
                     <h3>Activities</h3>
                     <ul class="lms-list">
-                        <li><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1
+                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1
                                 Draft</strong>
-                            <p class="m-0">Submit a file path record and wait for teacher score.</p>
+                            <p class="m-0">Submit a file path record and wait for teacher score.</p></a>
                         </li>
-                        <li><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
+                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
                                 Worksheet</strong>
-                            <p class="m-0">Submitted Oct 10, 2026.</p>
+                            <p class="m-0">Submitted Oct 10, 2026.</p></a>
                         </li>
                     </ul>
                 </div>
                 <div class="lms-panel">
                     <h3>Quizzes</h3>
                     <ul class="lms-list">
-                        <li><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics
+                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge">Online</span><strong class="block mt-2">Research Ethics
                                 Quiz</strong>
-                            <p class="m-0">10 questions. Latest score: 18 / 20.</p>
+                            <p class="m-0">10 questions. Latest score: 18 / 20.</p></a>
                         </li>
-                        <li><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
+                        <li><a class="lms-clickable" href="#" @click.prevent><span class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
                                 Drill</strong>
-                            <p class="m-0">Answers saved as student answer records.</p>
+                            <p class="m-0">Answers saved as student answer records.</p></a>
                         </li>
                     </ul>
                 </div>
@@ -128,19 +136,87 @@
                                 Draft</strong><span class="lms-meta">Due Oct 25, 2026</span></div>
                     </div>
                 </div>
-                <div class="lms-panel">
-                    <h3>AI Study Context</h3>
-                    <p>Saved AI queries can connect to module content through query context records, helping students
-                        review exact lesson materials instead of generic notes.</p>
-                    <div class="lms-list">
-                        <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span
-                                class="lms-meta">Linked to Research Problem module</span></div>
-                        <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span
-                                class="lms-meta">Linked to Research Ethics module</span></div>
-                    </div>
-                </div>
             </section>
         </main>
+
+        <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
+            @keydown.escape.window="modal = null">
+            <section class="lms-modal" role="dialog" aria-modal="true">
+                <div class="lms-modal-head">
+                    <h3 x-show="modal === 'classModule'">Upload Module</h3>
+                    <h3 x-show="modal === 'classPost'">Create Class Item</h3>
+                    <h3 x-show="modal === 'classQuiz'">Create AI Quiz</h3>
+                    <h3 x-show="modal === 'classActivity'">Create Activity</h3>
+                    <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
+                            class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18 18 6M6 6l12 12" />
+                        </svg></button>
+                </div>
+
+                <div class="lms-grid">
+                    <template x-if="modal === 'classModule'">
+                        <div class="lms-grid">
+                            <input class="lms-input" placeholder="Module title">
+                            <input class="lms-input" placeholder="File path">
+                            <button class="lms-btn" type="button">Publish Module</button>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'classPost'">
+                        <div class="lms-grid">
+                            <input class="lms-input" placeholder="Class item title">
+                            <textarea class="lms-input" rows="4" placeholder="Announcement or class notes"></textarea>
+                            <button class="lms-btn" type="button">Post to Class</button>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'classQuiz'">
+                        <div class="lms-grid">
+                            <input class="lms-input" placeholder="Quiz title">
+                            <select class="lms-select">
+                                <option>Source module: Research Problem and Objectives</option>
+                                <option>Source module: Review of Related Literature</option>
+                                <option>Use all published modules</option>
+                            </select>
+                            <select class="lms-select">
+                                <option>Question type: Multiple choice</option>
+                                <option>Question type: True or false</option>
+                                <option>Question type: Short answer</option>
+                                <option>Question type: Mixed question types</option>
+                            </select>
+                            <div class="lms-grid lms-grid-2">
+                                <input class="lms-input" type="number" min="1" max="100" placeholder="Number of questions">
+                                <input class="lms-input" type="number" min="1" placeholder="Points per question">
+                            </div>
+                            <div class="lms-grid lms-grid-2">
+                                <select class="lms-select">
+                                    <option>Difficulty: Balanced</option>
+                                    <option>Difficulty: Easy</option>
+                                    <option>Difficulty: Intermediate</option>
+                                    <option>Difficulty: Advanced</option>
+                                </select>
+                                <input class="lms-input" type="number" min="1" placeholder="Time limit in minutes">
+                            </div>
+                            <textarea class="lms-input" rows="3"
+                                placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
+                            <textarea class="lms-input" rows="3"
+                                placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
+                            <button class="lms-btn" type="button">Generate Quiz Draft</button>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'classActivity'">
+                        <div class="lms-grid">
+                            <input class="lms-input" placeholder="Activity title">
+                            <input class="lms-input" placeholder="Description">
+                            <input class="lms-input" type="date">
+                            <button class="lms-btn" type="button">Create Activity</button>
+                        </div>
+                    </template>
+                </div>
+            </section>
+        </div>
     </div>
 </body>
 

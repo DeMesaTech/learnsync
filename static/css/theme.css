@@ -153,7 +153,7 @@ body.student-shell {
 
 body.ai-shell {
     background:
-        linear-gradient(180deg, var(--gmvcc-blue-50), #f8fbfd 42%, #edf6fb);
+        linear-gradient(180deg, rgb(63 145 201 / 0.94), rgb(15 93 139 / 0.98));
 }
 
 .ai-shell aside,
@@ -164,6 +164,24 @@ body.ai-shell {
     border-color: var(--gmvcc-line) !important;
 }
 
+.ai-shell aside,
+.ai-shell header,
+.ai-shell footer,
+.ai-shell .bg-white {
+    background-color: var(--gmvcc-panel) !important;
+}
+
+.ai-shell .bg-slate-50 {
+    background-color: rgb(238 247 252 / 0.88) !important;
+}
+
+.ai-shell .bg-cyan-50,
+.ai-shell .hover\:bg-cyan-50:hover,
+.ai-shell .hover\:bg-slate-100:hover,
+.ai-shell .hover\:bg-slate-50:hover {
+    background-color: var(--gmvcc-blue-50) !important;
+}
+
 .ai-shell .bg-cyan-700 {
     background-color: var(--gmvcc-blue-700) !important;
 }
@@ -172,8 +190,46 @@ body.ai-shell {
     background-color: var(--gmvcc-blue-800) !important;
 }
 
+.ai-shell .bg-slate-700 {
+    background-color: var(--gmvcc-navy) !important;
+}
+
+.ai-shell .bg-slate-200 {
+    background-color: var(--gmvcc-blue-100) !important;
+}
+
+.ai-shell .border-slate-200,
+.ai-shell .border-slate-300,
+.ai-shell .hover\:border-cyan-200:hover {
+    border-color: var(--gmvcc-line) !important;
+}
+
+.ai-shell .ring-cyan-100,
+.ai-shell .ring-slate-200 {
+    --tw-ring-color: var(--gmvcc-line) !important;
+}
+
+.ai-shell .focus\:border-cyan-600:focus {
+    border-color: var(--gmvcc-blue-600) !important;
+}
+
+.ai-shell .focus\:ring-cyan-600\/15:focus {
+    --tw-ring-color: rgb(36 126 184 / 0.16) !important;
+}
+
 .ai-shell .text-slate-900 {
     color: var(--gmvcc-navy) !important;
+}
+
+.ai-shell .text-slate-800,
+.ai-shell .text-slate-700 {
+    color: var(--gmvcc-text) !important;
+}
+
+.ai-shell .text-slate-600,
+.ai-shell .text-slate-500,
+.ai-shell .text-slate-400 {
+    color: var(--gmvcc-muted) !important;
 }
 
 body.login-shell {
@@ -217,13 +273,6 @@ body.login-shell {
 
 .login-shell button {
     border-radius: 8px !important;
-}
-
-@media (min-width: 768px) {
-    .student-shell article {
-        margin-left: 16rem !important;
-        padding: clamp(1.5rem, 2.4vw, 2.5rem) !important;
-    }
 }
 
 @media (max-width: 767px) {

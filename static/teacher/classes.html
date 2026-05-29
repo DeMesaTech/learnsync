@@ -106,13 +106,7 @@
                             x-text="`Section ${selectedClass.section} | ${selectedClass.teacher} | ${selectedClass.id}`">Section
                             3B | Prof. Gilda Taupa | CLS-001</span>
                     </div>
-                    <div class="lms-actions">
-                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classModule'">Add
-                            Module</button>
-                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Class
-                            Item</button>
-                        <button class="lms-btn" type="button" @click="modal = 'classActivity'">Add Activity</button>
-                    </div>
+                    <a class="lms-btn lms-btn-secondary" href="subject.html">Open Workspace</a>
                 </div>
 
                 <div class="p-4">
@@ -216,9 +210,8 @@
                 <div class="lms-modal-head">
                     <h3 x-show="modal === 'class'">Create Class</h3>
                     <h3 x-show="modal === 'enrollment'">Enroll Student</h3>
-                    <h3 x-show="modal === 'module' || modal === 'classModule'">Upload Module</h3>
-                    <h3 x-show="modal === 'activity' || modal === 'classActivity'">Create Activity</h3>
-                    <h3 x-show="modal === 'classPost'">Create Class Item</h3>
+                    <h3 x-show="modal === 'module'">Upload Module</h3>
+                    <h3 x-show="modal === 'activity'">Create Activity</h3>
                     <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
                             class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -294,30 +287,6 @@
                         </div>
                     </template>
 
-                    <template x-if="modal === 'classModule'">
-                        <div class="lms-grid">
-                            <input class="lms-input" placeholder="Module title">
-                            <input class="lms-input" placeholder="File path">
-                            <button class="lms-btn" type="button">Publish Module</button>
-                        </div>
-                    </template>
-
-                    <template x-if="modal === 'classPost'">
-                        <div class="lms-grid">
-                            <input class="lms-input" placeholder="Class item title">
-                            <textarea class="lms-input" rows="4" placeholder="Announcement or class notes"></textarea>
-                            <button class="lms-btn" type="button">Post to Class</button>
-                        </div>
-                    </template>
-
-                    <template x-if="modal === 'classActivity'">
-                        <div class="lms-grid">
-                            <input class="lms-input" placeholder="Activity title">
-                            <input class="lms-input" placeholder="Description">
-                            <input class="lms-input" type="date">
-                            <button class="lms-btn" type="button">Create Activity</button>
-                        </div>
-                    </template>
                 </div>
             </section>
         </div>
