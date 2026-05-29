@@ -123,7 +123,8 @@
                             :aria-expanded="showAnnouncements.toString()" aria-label="Toggle announcements">
                             <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 :class="showAnnouncements ? 'rotate-180' : ''">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="m6 9 6 6 6-6" />
                             </svg>
                         </button>
                     </span>
@@ -191,8 +192,7 @@
                             <p class="m-0">18 submitted | 14 pending | visible to Sections 3A and 3B.</p><span
                                 class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
                                     type="button" @click="openManagement('activity', 'Chapter 1 Draft')">Manage
-                                    Activity</button><button class="lms-btn lms-btn-small" type="button"
-                                    @click="openManagement('activity', 'Chapter 1 Draft')">Delete</button></span>
+                                    Activity</button></span>
                         </article>
                     </li>
                     <li x-show="visibleFor(['3B'])">
@@ -202,8 +202,7 @@
                                 class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
                                     type="button"
                                     @click="openManagement('activity', 'Problem Statement Worksheet')">Manage
-                                    Activity</button><button class="lms-btn lms-btn-small" type="button"
-                                    @click="openManagement('activity', 'Problem Statement Worksheet')">Delete</button></span>
+                                    Activity</button></span>
                         </article>
                     </li>
                 </ul>
@@ -220,9 +219,7 @@
                             <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026. Visible
                                 to Section 3B.</p><span class="lms-inline-actions mt-2"><button
                                     class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Manage Quiz</button><button
-                                    class="lms-btn lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Delete</button></span>
+                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Manage Quiz</button></span>
                         </article>
                     </li>
                     <li x-show="visibleFor(['3A', '3B'])">
@@ -231,9 +228,7 @@
                             <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
                             </p><span class="lms-inline-actions mt-2"><button
                                     class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Citation Format Drill')">Manage Quiz</button><button
-                                    class="lms-btn lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Citation Format Drill')">Delete</button></span>
+                                    @click="openManagement('quiz', 'Citation Format Drill')">Manage Quiz</button></span>
                         </article>
                     </li>
                 </ul>
@@ -372,7 +367,8 @@
                     <template x-if="modal === 'manageAnnouncement'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedAnnouncement.meta"></p>
-                            <input class="lms-input" placeholder="Announcement title" :value="selectedAnnouncement.title">
+                            <input class="lms-input" placeholder="Announcement title"
+                                :value="selectedAnnouncement.title">
                             <textarea class="lms-input" rows="5" placeholder="Revise announcement message"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
