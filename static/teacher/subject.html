@@ -75,9 +75,6 @@
                     <p class="lms-subtitle">Section 3B class workspace for announcements, modules, activities, quizzes,
                         visibility, submissions, and class-level grading setup.</p>
                 </div>
-                <div class="lms-actions">
-                    <a class="lms-btn lms-btn-secondary" href="grading.html">Manage Grades</a>
-                </div>
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4">
@@ -85,10 +82,8 @@
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
-                        </svg></span><strong>32</strong><span>Students</span><span class="lms-inline-actions">
-                            <button class="lms-btn lms-btn-small" type="button" @click="modal = 'enrollment'">Enroll</button>
-                            <a class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#attendance">Attendance</a>
-                        </span></div>
+                        </svg></span><strong>32</strong><span>Students</span><button class="lms-btn lms-btn-small"
+                        type="button" @click="modal = 'enrollment'">Enroll</button></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -187,8 +182,7 @@
 
             <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
                 <div class="lms-task-top">
-                    <h3>Activities</h3><span class="lms-inline-actions"><span class="lms-badge warn">1 due soon</span><a
-                            class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#activity-scores">Activity Scores</a></span>
+                    <h3>Activities</h3><span class="lms-badge warn">1 due soon</span>
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3A', '3B'])">
@@ -217,8 +211,7 @@
 
             <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
                 <div class="lms-task-top">
-                    <h3>Quizzes</h3><span class="lms-inline-actions"><span class="lms-badge">Mixed question types</span><a
-                            class="lms-btn lms-btn-secondary lms-btn-small" href="grading.html#quiz-scores">Quiz Scores</a></span>
+                    <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3B'])">
