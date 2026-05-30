@@ -35,8 +35,9 @@
                 </div>
                 <li><a href="AI.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" /></svg><span>AI Assistant</span></a></li>
                 <li><a href="dashboard.html" @click="open=false" class="sidebar-btn-active"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" /></svg><span>My Classes</span></a></li>
+                <li><a href="final-grades.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3 3v-6m-6 9h12M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" /></svg><span>Final Grades</span></a></li>
                 <li><a href="To-Do.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg><span>To Do</span></a></li>
-                <li><a href="Account.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" /></svg><span>Account</span></a></li>
+                <li><a href="Account.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" /></svg><span>Account Information</span></a></li>
                 <li><a href="about.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" /></svg><span>About</span></a></li>
                 <li><a href="report-bug.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" /></svg><span>Report Bug</span></a></li>
                 <li><a href="../login.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
@@ -52,6 +53,7 @@
                 <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section>
 
+            
             <section class="lms-panel">
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
@@ -112,7 +114,7 @@
                     </ul>
                 </section>
             </section>
-
+            
             <section class="lms-panel mt-4">
                 <h3>AI Study Context</h3>
                 <p>Saved AI queries can connect to module content through query context records, helping students review exact lesson materials instead of generic notes.</p>
@@ -121,6 +123,36 @@
                     <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span class="lms-meta">Linked to Research Ethics module</span></div>
                 </div>
             </section>
+
+            <section class="lms-panel mt-4">
+                <div class="lms-task-top">
+                    <div>
+                        <h3>Final Grade</h3>
+                        <span class="lms-meta">Your current grade for this subject</span>
+                    </div>
+                    <span class="lms-badge" :class="finalGrade.grade === null ? 'warn' : (finalGrade.grade >= 75 ? 'good' : 'bad')" x-text="finalGrade.grade === null ? 'Pending' : 'Finalized'"></span>
+                </div>
+                <div class="lms-grid lms-grid-4 gap-4">
+                    <div class="lms-card">
+                        <strong x-text="finalGrade.grade === null ? 'Not available' : finalGrade.grade.toFixed(2)"></strong>
+                        <span>Course Grade</span>
+                    </div>
+                    <div class="lms-card">
+                        <strong x-text="finalGrade.midterm === null ? 'N/A' : finalGrade.midterm.toFixed(2)"></strong>
+                        <span>Midterm Grade</span>
+                    </div>
+                    <div class="lms-card">
+                        <strong x-text="finalGrade.finalExam === null ? 'N/A' : finalGrade.finalExam.toFixed(2)"></strong>
+                        <span>Final Exam</span>
+                    </div>
+                    <div class="lms-card">
+                        <strong x-text="finalGrade.remark"></strong>
+                        <span>Remark</span>
+                    </div>
+                </div>
+                <p class="mt-2" x-text="finalGrade.note"></p>
+            </section>
+
         </main>
 
         <div class="lms-modal-backdrop" x-cloak x-show="announcementModal" x-transition.opacity @click.self="announcementModal = null" @keydown.escape.window="announcementModal = null">
@@ -182,6 +214,13 @@
                     if (type === 'quiz') {
                         window.location.href = `quiz-take.html?quiz=${slug}`;
                     }
+                },
+                finalGrade: {
+                    grade: 91.86,
+                    midterm: 88.50,
+                    finalExam: 95.00,
+                    remark: 'Passed',
+                    note: 'This final grade summary is based on your current class scores for Section 3B. If a score is missing, the status will remain pending.'
                 }
             };
         }

@@ -77,16 +77,16 @@
                 <div class="lms-actions">
                     <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('class')">Change Class</button>
                     <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('section')">Change Section</button>
-                    <a class="lms-btn" href="final-grades.html">Final Grades</a>
                 </div>
             </section>
-
+            
             <section class="lms-toolbar">
                 <select class="lms-select" x-model="selectedTerm" aria-label="Filter by grading period">
                     <template x-for="period in periods" :key="period">
                         <option :value="period" x-text="period"></option>
                     </template>
                 </select>
+                <a class="lms-btn" href="final-grades.html">Final Grades</a>
             </section>
 
             <section class="lms-tabs" aria-label="Grading table tabs">

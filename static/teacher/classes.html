@@ -151,6 +151,8 @@
                     </table>
                 </div>
             </section>
+
+            
         </main>
 
         <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
@@ -170,10 +172,11 @@
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Subject">
                             <input class="lms-input" type="number" min="1" placeholder="Number of sections">
-                            <div class="lms-grid lms-grid-3">
+                            <div class="lms-grid lms-grid-2">
                                 <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %">
                                 <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %">
                                 <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %">
+                                <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %">
                             </div>
                             <p class="lms-meta m-0">Grading determinants must total 100% across attendance, quizzes, and activities.</p>
                             <button class="lms-btn" type="button">Save Class</button>

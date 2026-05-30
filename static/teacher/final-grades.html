@@ -22,12 +22,19 @@
                 </svg>
             </button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span
+                    class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
             <button class="header-icon-btn" aria-label="Notifications">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg>
             </button>
             <button class="header-icon-btn" aria-label="Profile">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg>
             </button>
         </header>
         <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
@@ -51,7 +58,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn-active" href="grading.html"><svg class="sidebar-icon" fill="none"
+                <li><a class="sidebar-btn" href="grading.html"><svg class="sidebar-icon" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
@@ -69,6 +76,14 @@
                 <div>
                     <h2 class="lms-title">Final Grades</h2>
                     <p class="lms-subtitle">Computed grade view for Capstone Research Project 1, Section 3B. Raw record encoding remains on the grading tables page.</p>
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <label for="gradeVisibility" class="text-sm font-semibold text-slate-300">Grade visibility</label>
+                        <select id="gradeVisibility" x-model="$store.grades.visible" class="lms-select max-w-xs">
+                            <option :value="false">Not Published</option>
+                            <option :value="true">Published</option>
+                        </select>
+                        <span class="lms-badge" :class="$store.grades.visible ? 'good' : 'warn'" x-text="$store.grades.visible ? 'Published' : 'Not Published'"></span>
+                    </div>
                 </div>
                 <div class="lms-actions">
                     <a class="lms-btn lms-btn-secondary" href="grading.html">Back to Records</a>
@@ -76,19 +91,38 @@
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4">
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span><strong>10%</strong><span>Attendance</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></svg></span><strong>30%</strong><span>Quizzes</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg></span><strong>30%</strong><span>Activities</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M7 16V8m5 8V5m5 11v-6" /></svg></span><strong>50/50</strong><span>Midterm and Finals</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg></span><strong>10%</strong><span>Attendance</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
+                        </svg></span><strong>30%</strong><span>Quizzes</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg></span><strong>30%</strong><span>Activities</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
+                        </svg></span><strong>50/50</strong><span>Midterm and Finals</span></div>
             </section>
 
             <section class="lms-table-card">
                 <div class="lms-table-head">
                     <div>
                         <h3>Computed Grade Summary</h3>
-                        <span class="lms-meta">Midterms and finals are both computed from raw records before the course grade is finalized.</span>
+                        <span class="lms-meta">Midterms and finals are both computed from raw records before the course
+                            grade is finalized.</span>
                     </div>
-                    <span class="lms-badge good">Computation</span>
+                    <div>
+                        <span class="lms-badge good">Computation</span>
+                        
+                    </div>
                 </div>
                 <div class="lms-table-wrap">
                     <table class="lms-table lms-table-bordered">
@@ -147,7 +181,8 @@
                 <div class="lms-table-head">
                     <div>
                         <h3>Computation Setup</h3>
-                        <span class="lms-meta">These weights mirror the class grading determinants for both grading periods.</span>
+                        <span class="lms-meta">These weights mirror the class grading determinants for both grading
+                            periods.</span>
                     </div>
                     <span class="lms-badge">Reference</span>
                 </div>
@@ -192,6 +227,18 @@
             </section>
         </main>
     </div>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('grades', {
+                visible: localStorage.getItem('gradesVisible') === 'true' || false
+            })
+
+            // Save change automatically
+            Alpine.effect(() => {
+                localStorage.setItem('gradesVisible', Alpine.store('grades').visible)
+            })
+        })
+    </script>
 </body>
 
 </html>
