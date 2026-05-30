@@ -239,7 +239,11 @@ body.login-shell {
 }
 
 .login-shell main {
-    padding: clamp(1rem, 4vw, 3rem) !important;
+    padding: calc(5rem + clamp(1rem, 4vw, 3rem)) clamp(1rem, 4vw, 3rem) clamp(1rem, 4vw, 3rem) !important;
+}
+
+.login-shell .app-header {
+    left: 0;
 }
 
 .login-shell main > div {
