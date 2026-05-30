@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+    <div class="pt-20 flex min-h-screen" x-data="teacherGradingApp()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu">
                 <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,200 +68,315 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Grading Tables</h2>
-                    <p class="lms-subtitle">Tables reflect the ERD grade flow: attendance records, activity submissions,
-                        quiz scores, computed component grades, and final class grade.</p>
+                    <p class="lms-subtitle">
+                        <span x-text="selectedClass"></span> | Section <span x-text="selectedSection"></span> |
+                        <span x-text="selectedTerm"></span>.
+                        Encode raw class records only. Grade computation belongs on the final grade page.
+                    </p>
                 </div>
-                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="#final-grade">Final Grade</a><a
-                        class="lms-btn" href="#components">Components</a></div>
-            </section>
-
-            <section id="components" class="lms-grid lms-grid-3 mb-4">
-                <div id="attendance" class="lms-table-card">
-                    <div class="lms-table-head">
-                        <h3>Attendance Grade</h3><span class="lms-badge">attendance_grade</span>
-                    </div>
-                    <div class="lms-table-wrap">
-                        <table class="lms-table">
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Total</th>
-                                    <th>Computed</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Juan Dela Cruz</td>
-                                    <td><input class="lms-input" value="15/16"></td>
-                                    <td>93.75</td>
-                                    <td><input class="lms-input" value="96"></td>
-                                </tr>
-                                <tr>
-                                    <td>Maria Santos</td>
-                                    <td><input class="lms-input" value="16/16"></td>
-                                    <td>100</td>
-                                    <td><input class="lms-input" value="99"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div id="activity-scores" class="lms-table-card">
-                    <div class="lms-table-head">
-                        <h3>Activity Grade</h3><span class="lms-badge">activity_grade</span>
-                    </div>
-                    <div class="lms-table-wrap">
-                        <table class="lms-table">
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Total</th>
-                                    <th>Computed</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Juan Dela Cruz</td>
-                                    <td><input class="lms-input" value="365/400"></td>
-                                    <td>91.25</td>
-                                    <td><input class="lms-input" value="91"></td>
-                                </tr>
-                                <tr>
-                                    <td>Maria Santos</td>
-                                    <td><input class="lms-input" value="382/400"></td>
-                                    <td>95.50</td>
-                                    <td><input class="lms-input" value="96"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div id="quiz-scores" class="lms-table-card">
-                    <div class="lms-table-head">
-                        <h3>Quiz Grade</h3><span class="lms-badge">quiz_grade</span>
-                    </div>
-                    <div class="lms-table-wrap">
-                        <table class="lms-table">
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>Total</th>
-                                    <th>Computed</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Juan Dela Cruz</td>
-                                    <td><input class="lms-input" value="89/100"></td>
-                                    <td>89</td>
-                                    <td><input class="lms-input" value="89"></td>
-                                </tr>
-                                <tr>
-                                    <td>Maria Santos</td>
-                                    <td><input class="lms-input" value="94/100"></td>
-                                    <td>94</td>
-                                    <td><input class="lms-input" value="94"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="lms-actions">
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('class')">Change Class</button>
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('section')">Change Section</button>
+                    <a class="lms-btn" href="final-grades.html">Final Grades</a>
                 </div>
             </section>
 
-            <section class="lms-table-card mb-4">
+            <section class="lms-toolbar">
+                <select class="lms-select" x-model="selectedTerm" aria-label="Filter by grading period">
+                    <template x-for="period in periods" :key="period">
+                        <option :value="period" x-text="period"></option>
+                    </template>
+                </select>
+            </section>
+
+            <section class="lms-tabs" aria-label="Grading table tabs">
+                <button class="lms-tab" :class="activeTab === 'attendance' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'attendance'">Attendance</button>
+                <button class="lms-tab" :class="activeTab === 'quiz' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'quiz'">Quiz</button>
+                <button class="lms-tab" :class="activeTab === 'activity' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'activity'">Activities</button>
+            </section>
+
+            <section id="attendance" class="lms-table-card mt-4" x-show="activeTab === 'attendance'">
                 <div class="lms-table-head">
-                    <h3>Raw Scoring Records</h3><span class="lms-badge warn">Editable</span>
+                    <div>
+                        <h3>Attendance Records</h3>
+                        <span class="lms-meta"><span x-text="selectedTerm"></span> attendance entries with total item values shown above each column.</span>
+                    </div>
+                    <span class="lms-inline-actions">
+                        <span class="lms-badge" x-text="selectedTerm"></span>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addAttendance'">Add Record</button>
+                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.attendance = !editMode.attendance"
+                            x-text="editMode.attendance ? 'Done Editing' : 'Edit Records'"></button>
+                    </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table">
+                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Activity Submission</th>
-                                <th>Quiz Score</th>
-                                <th>Attendance</th>
-                                <th>Recitation</th>
+                                <th rowspan="2">No.</th>
+                                <th rowspan="2">Student's Name</th>
+                                <th>1</th>
+                                <th>1</th>
+                                <th>1</th>
+                                <th>1</th>
+                            </tr>
+                            <tr>
+                                <th>Oct 3</th>
+                                <th>Oct 10</th>
+                                <th>Oct 17</th>
+                                <th>Oct 24</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1</td>
                                 <td>Juan Dela Cruz</td>
-                                <td><input class="lms-input" value="Chapter 1 Draft: 90"></td>
-                                <td><input class="lms-input" value="Ethics Quiz: 18/20"></td>
-                                <td><select class="lms-select">
-                                        <option>Present</option>
-                                        <option>Absent</option>
-                                    </select></td>
-                                <td><input class="lms-input" value="9/10"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="0" :disabled="!editMode.attendance"></td>
                             </tr>
                             <tr>
+                                <td>2</td>
                                 <td>Maria Santos</td>
-                                <td><input class="lms-input" value="Chapter 1 Draft: 96"></td>
-                                <td><input class="lms-input" value="Ethics Quiz: 20/20"></td>
-                                <td><select class="lms-select">
-                                        <option>Present</option>
-                                        <option>Absent</option>
-                                    </select></td>
-                                <td><input class="lms-input" value="10/10"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
+                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <section id="final-grade" class="lms-table-card">
+            <section id="quiz-scores" class="lms-table-card mt-4" x-cloak x-show="activeTab === 'quiz'">
                 <div class="lms-table-head">
-                    <h3>Final Grade Record</h3><span class="lms-badge good">grade</span>
+                    <div>
+                        <h3>Quiz Records</h3>
+                        <span class="lms-meta">Quiz scores only. Totals are placed above the quiz labels.</span>
+                    </div>
+                    <span class="lms-inline-actions">
+                        <span class="lms-badge" x-text="selectedTerm"></span>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addQuiz'">Add Score</button>
+                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.quiz = !editMode.quiz"
+                            x-text="editMode.quiz ? 'Done Editing' : 'Edit Records'"></button>
+                    </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table">
+                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Class</th>
-                                <th>Attendance GDR</th>
-                                <th>Activity GDR</th>
-                                <th>Quiz GDR</th>
-                                <th>P_GDR</th>
-                                <th>Remark</th>
+                                <th rowspan="2">No.</th>
+                                <th rowspan="2">Student's Name</th>
+                                <th>10</th>
+                                <th>10</th>
+                                <th>20</th>
+                                <th>20</th>
+                            </tr>
+                            <tr>
+                                <th>Quiz 1</th>
+                                <th>Quiz 2</th>
+                                <th>Research Ethics</th>
+                                <th>Citation Drill</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1</td>
                                 <td>Juan Dela Cruz</td>
-                                <td>Capstone 3B</td>
-                                <td>96</td>
-                                <td>91</td>
-                                <td>89</td>
-                                <td><input class="lms-input" value="92"></td>
-                                <td><select class="lms-select">
-                                        <option>Passed</option>
-                                        <option>Incomplete</option>
-                                        <option>Failed</option>
-                                    </select></td>
+                                <td><input class="lms-input" type="number" min="0" max="10" value="9" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="10" value="8" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="20" value="18" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="20" value="17" :disabled="!editMode.quiz"></td>
                             </tr>
                             <tr>
+                                <td>2</td>
                                 <td>Maria Santos</td>
-                                <td>Capstone 3B</td>
-                                <td>99</td>
-                                <td>96</td>
-                                <td>94</td>
-                                <td><input class="lms-input" value="96"></td>
-                                <td><select class="lms-select">
-                                        <option>Passed</option>
-                                        <option>Incomplete</option>
-                                        <option>Failed</option>
-                                    </select></td>
+                                <td><input class="lms-input" type="number" min="0" max="10" value="10" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="10" value="9" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="20" value="20" :disabled="!editMode.quiz"></td>
+                                <td><input class="lms-input" type="number" min="0" max="20" value="19" :disabled="!editMode.quiz"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="activity-scores" class="lms-table-card mt-4" x-cloak x-show="activeTab === 'activity'">
+                <div class="lms-table-head">
+                    <div>
+                        <h3>Activities and Project Records</h3>
+                        <span class="lms-meta">Class participation, reports, programming projects, and activity scores.</span>
+                    </div>
+                    <span class="lms-inline-actions">
+                        <span class="lms-badge" x-text="selectedTerm"></span>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addActivity'">Add Score</button>
+                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.activity = !editMode.activity"
+                            x-text="editMode.activity ? 'Done Editing' : 'Edit Records'"></button>
+                    </span>
+                </div>
+                <div class="lms-table-wrap">
+                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">No.</th>
+                                <th rowspan="2">Student's Name</th>
+                                <th>100</th>
+                                <th>100</th>
+                                <th>50</th>
+                                <th>100</th>
+                            </tr>
+                            <tr>
+                                <th>Chapter 1 Draft</th>
+                                <th>Worksheet</th>
+                                <th>Class Participation</th>
+                                <th>Programming Project</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Juan Dela Cruz</td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="90" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="92" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="50" value="45" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="88" :disabled="!editMode.activity"></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Maria Santos</td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="96" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="95" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="50" value="48" :disabled="!editMode.activity"></td>
+                                <td><input class="lms-input" type="number" min="0" max="100" value="94" :disabled="!editMode.activity"></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
         </main>
+
+        <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity
+            @click.self="modal === 'classSelector' && !hasOpenedGrading ? null : modal = null"
+            @keydown.escape.window="modal === 'classSelector' && !hasOpenedGrading ? null : modal = null">
+            <section class="lms-modal" role="dialog" aria-modal="true">
+                <div class="lms-modal-head">
+                    <h3 x-show="modal === 'classSelector'">Select Class and Section</h3>
+                    <h3 x-show="modal === 'addAttendance'">Add Attendance Record</h3>
+                    <h3 x-show="modal === 'addActivity'">Add Activity Score Column</h3>
+                    <h3 x-show="modal === 'addQuiz'">Add Quiz Score Column</h3>
+                    <button class="lms-icon-btn" type="button" x-show="modal !== 'classSelector' || hasOpenedGrading" @click="modal = null" aria-label="Close popup">
+                        <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <template x-if="modal === 'classSelector'">
+                    <div class="lms-grid">
+                        <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
+                        <select class="lms-select" x-model="selectedClass" aria-label="Class">
+                            <template x-for="className in classes" :key="className">
+                                <option :value="className" x-text="className"></option>
+                            </template>
+                        </select>
+                        <select class="lms-select" x-model="selectedSection" aria-label="Section">
+                            <template x-for="section in sections" :key="section">
+                                <option :value="section" x-text="'Section ' + section"></option>
+                            </template>
+                        </select>
+                        <button class="lms-btn" type="button" @click="hasOpenedGrading = true; modal = null">Open Grading Page</button>
+                    </div>
+                </template>
+
+                <template x-if="modal === 'addAttendance'">
+                    <div class="lms-grid">
+                        <input class="lms-input" placeholder="Attendance column label">
+                        <input class="lms-input" type="number" min="1" placeholder="Total items">
+                        <input class="lms-input" type="date" aria-label="Attendance date">
+                        <input class="lms-input" type="number" min="0" placeholder="Default score">
+                        <button class="lms-btn" type="button">Add Attendance Column</button>
+                    </div>
+                </template>
+
+                <template x-if="modal === 'addActivity'">
+                    <div class="lms-grid">
+                        <input class="lms-input" placeholder="Activity column label">
+                        <div class="lms-grid lms-grid-2">
+                            <input class="lms-input" type="number" min="1" placeholder="Total items">
+                            <input class="lms-input" type="date" aria-label="Activity date">
+                        </div>
+                        <textarea class="lms-input" rows="4" placeholder="Paste starting scores, one student per line, or leave blank"></textarea>
+                        <button class="lms-btn" type="button">Add Activity Column</button>
+                    </div>
+                </template>
+
+                <template x-if="modal === 'addQuiz'">
+                    <div class="lms-grid">
+                        <input class="lms-input" placeholder="Quiz column label">
+                        <div class="lms-grid lms-grid-2">
+                            <input class="lms-input" type="number" min="1" placeholder="Total items">
+                            <input class="lms-input" type="date" aria-label="Quiz date">
+                        </div>
+                        <textarea class="lms-input" rows="4" placeholder="Paste quiz scores, one student per line, or leave blank"></textarea>
+                        <button class="lms-btn" type="button">Add Quiz Column</button>
+                    </div>
+                </template>
+            </section>
+        </div>
     </div>
+
+    <script>
+        function teacherGradingApp() {
+            return {
+                open: false,
+                modal: 'classSelector',
+                hasOpenedGrading: false,
+                activeTab: 'attendance',
+                selectedClass: 'Capstone Research Project 1',
+                selectedSection: '3B',
+                selectedTerm: 'Midterm',
+                classes: ['Capstone Research Project 1', 'Ethics', 'Web Systems and Technologies'],
+                sections: ['3A', '3B', '3C'],
+                periods: ['Midterm', 'Final'],
+                editMode: {
+                    attendance: false,
+                    activity: false,
+                    quiz: false
+                },
+                openSelector(scope) {
+                    this.modal = 'classSelector';
+                    if (scope === 'section') {
+                        this.$nextTick(() => {
+                            const selects = document.querySelectorAll('.lms-modal select');
+                            selects[1]?.focus();
+                        });
+                    }
+                },
+                focusNextRow(event) {
+                    const target = event.target;
+                    if (!target.matches('input, select, textarea')) return;
+
+                    const cell = target.closest('td');
+                    const row = target.closest('tr');
+                    if (!cell || !row) return;
+
+                    const rows = Array.from(row.parentElement.querySelectorAll('tr'));
+                    const nextRow = rows[rows.indexOf(row) + 1];
+                    if (!nextRow) return;
+
+                    const nextCell = nextRow.children[cell.cellIndex];
+                    const nextField = nextCell?.querySelector('input, select, textarea');
+                    if (!nextField || nextField.disabled) return;
+
+                    nextField.focus();
+                    if (nextField.select) nextField.select();
+                }
+            };
+        }
+    </script>
 </body>
 
 </html>

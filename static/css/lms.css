@@ -375,6 +375,15 @@ body.lms-shell {
     text-transform: uppercase;
 }
 
+.lms-table-bordered {
+    border: 1px solid #d5e5ef;
+}
+
+.lms-table-bordered th,
+.lms-table-bordered td {
+    border: 1px solid #d5e5ef;
+}
+
 .lms-input,
 .lms-select {
     width: 100%;
