@@ -82,39 +82,39 @@
                             <div class="space-y-2">
                                 <label for="signupEmail" class="block text-xs font-medium text-slate-300">Email Address</label>
                                 <input type="email" id="signupEmail" x-model="signup.email" @input="delayedSignupValidate()" placeholder="e.g. juandela.cruz@gmail.com" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.email && !signup.errors.email, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.email && signup.errors.email}" />
-                                <small id="signupEmailError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.email" aria-live="polite"></small>
+                                <small id="signupEmailError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.email)" x-text="signup.errors.email" aria-live="polite"></small>
                             </div>
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div class="space-y-2">
                                     <label for="signupFirstName" class="block text-xs font-medium text-slate-300">First Name</label>
                                     <input type="text" id="signupFirstName" x-model="signup.firstName" @input="delayedSignupValidate()" placeholder="Enter your first name" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.firstName && !signup.errors.firstName, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.firstName && signup.errors.firstName}" />
-                                    <small id="signupFirstNameError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.firstName" aria-live="polite"></small>
+                                    <small id="signupFirstNameError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.firstName)" x-text="signup.errors.firstName" aria-live="polite"></small>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="signupMiddleName" class="block text-xs font-medium text-slate-300">Middle Name</label>
                                     <input type="text" id="signupMiddleName" x-model="signup.middleName" @input="delayedSignupValidate()" placeholder="Enter your middle name" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.middleName && !signup.errors.middleName, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.middleName && signup.errors.middleName}" />
-                                    <small id="signupMiddleNameError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.middleName" aria-live="polite"></small>
+                                    <small id="signupMiddleNameError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.middleName)" x-text="signup.errors.middleName" aria-live="polite"></small>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="signupLastName" class="block text-xs font-medium text-slate-300">Last Name</label>
                                     <input type="text" id="signupLastName" x-model="signup.lastName" @input="delayedSignupValidate()" placeholder="Enter your last name" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.lastName && !signup.errors.lastName, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.lastName && signup.errors.lastName}" />
-                                    <small id="signupLastNameError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.lastName" aria-live="polite"></small>
+                                    <small id="signupLastNameError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.lastName)" x-text="signup.errors.lastName" aria-live="polite"></small>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="signupIDnumber" class="block text-xs font-medium text-slate-300">ID Number</label>
                                     <input type="text" id="signupIDnumber" x-model="signup.idNumber" @input="delayedSignupValidate()" pattern="[A-Z][a-z]-\d{2}-\d-\d{3}" placeholder="Aq-12-3-456" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.idNumber && !signup.errors.idNumber, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.idNumber && signup.errors.idNumber}" />
-                                    <small id="signupIDnumberError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.idNumber" aria-live="polite"></small>
+                                    <small id="signupIDnumberError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.idNumber)" x-text="signup.errors.idNumber" aria-live="polite"></small>
                                 </div>
                             </div>
                             <div class="space-y-2">
                                 <label for="signupPassword" class="block text-xs font-medium text-slate-300">Password</label>
                                 <input type="password" id="signupPassword" x-model="signup.password" @input="delayedSignupValidate()" placeholder="Enter strong password" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.password && !signup.errors.password, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.password && signup.errors.password}" />
-                                <small id="signupPasswordError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.password" aria-live="polite"></small>
+                                <small id="signupPasswordError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.password)" x-text="signup.errors.password" aria-live="polite"></small>
                             </div>
                             <div class="space-y-2">
                                 <label for="signupConfirmPassword" class="block text-xs font-medium text-slate-300">Confirm Password</label>
                                 <input type="password" id="signupConfirmPassword" x-model="signup.confirmPassword" @input="delayedSignupValidate()" @paste.prevent placeholder="Re-enter password" required class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" :class="{'border-emerald-400 ring-1 ring-emerald-500/20': signup.validated.confirmPassword && !signup.errors.confirmPassword, 'border-rose-400 ring-1 ring-rose-500/20': signup.validated.confirmPassword && signup.errors.confirmPassword}" />
-                                <small id="signupConfirmPasswordError" class="block text-xs min-h-[1.25rem] text-rose-300" x-text="signup.errors.confirmPassword" aria-live="polite"></small>
+                                <small id="signupConfirmPasswordError" class="block text-xs min-h-[1.25rem]" :class="messageClass(signup.errors.confirmPassword)" x-text="signup.errors.confirmPassword" aria-live="polite"></small>
                             </div>
                             <button type="submit" id="signupSubmitBtn" :disabled="!signup.isValid" class="w-full rounded-2xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-700">Create Account</button>
                         </form>
@@ -122,6 +122,99 @@
                         <button type="button" id="showLoginBtn" class="w-full rounded-2xl bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700" @click="page = 'login'">Log In</button>
                     </section>
                 </div>
+            </div>
+        </div>
+    </main>
+                <div class="section-header">
+                    <h2 class="section-title">Access</h2>
+                    <div class="button-group">
+                        <button type="button" class="button-pill" @click="page = 'login'">Login</button>
+                        <button type="button" class="button-pill" @click="page = 'signup'">Sign Up</button>
+                    </div>
+                </div>
+                <section aria-labelledby="login-heading" x-show="page === 'login'" class="form-stack">
+                    <div>
+                        <h3 id="login-heading" class="section-title">Log In</h3>
+                        <p class="small-text">Enter your credentials to continue.</p>
+                    </div>
+                    <form id="loginForm" @submit.prevent="submitLogin" x-effect="updateLoginValid()" class="form-stack">
+                        <div class="form-group">
+                            <label for="loginRole" class="label">Select Role</label>
+                            <select id="loginRole" x-model="login.role" aria-label="Select Role" required class="select-field">
+                                <option value="" disabled selected>Select Role</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginEmail" class="label">Email Address</label>
+                            <input type="email" id="loginEmail" x-model="login.email" placeholder="e.g. juandela.cruz@gmail.com" required class="input-field" />
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword" class="label">Password</label>
+                            <input type="password" id="loginPassword" x-model="login.password" placeholder="Enter your password" required class="input-field" />
+                        </div>
+                        <button type="submit" id="loginBtn" :disabled="!login.isValid" class="primary-button">Log In</button>
+                    </form>
+                    <p class="small-text">or</p>
+                    <button type="button" id="showSignupBtn" class="secondary-button" @click="page = 'signup'">Create Account</button>
+                </section>
+                <section aria-labelledby="signup-heading" x-show="page === 'signup'" class="form-stack">
+                    <div>
+                        <h3 id="signup-heading" class="section-title">Sign Up</h3>
+                        <p class="small-text">Create your account to start using LearnSync.</p>
+                    </div>
+                    <form id="signupForm" @submit.prevent="submitSignup" class="form-stack">
+                        <div class="form-group">
+                            <label for="signupRole" class="label">Select Role</label>
+                            <select id="signupRole" x-model="signup.role" @change="validateSignupAll()" aria-label="Select Role" required class="select-field">
+                                <option value="" disabled selected>Select Role</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail" class="label">Email Address</label>
+                            <input type="email" id="signupEmail" x-model="signup.email" @input="delayedSignupValidate()" placeholder="e.g. juandela.cruz@gmail.com" required class="input-field" :class="{'valid-field': signup.validated.email && !signup.errors.email, 'invalid-field': signup.validated.email && signup.errors.email}" />
+                            <small id="signupEmailError" class="small-text" :class="messageClass(signup.errors.email)" x-text="signup.errors.email" aria-live="polite"></small>
+                        </div>
+                        <div class="two-column-grid">
+                            <div class="form-group">
+                                <label for="signupFirstName" class="label">First Name</label>
+                                <input type="text" id="signupFirstName" x-model="signup.firstName" @input="delayedSignupValidate()" placeholder="Enter your first name" required class="input-field" :class="{'valid-field': signup.validated.firstName && !signup.errors.firstName, 'invalid-field': signup.validated.firstName && signup.errors.firstName}" />
+                                <small id="signupFirstNameError" class="small-text" :class="messageClass(signup.errors.firstName)" x-text="signup.errors.firstName" aria-live="polite"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupMiddleName" class="label">Middle Name</label>
+                                <input type="text" id="signupMiddleName" x-model="signup.middleName" @input="delayedSignupValidate()" placeholder="Enter your middle name" required class="input-field" :class="{'valid-field': signup.validated.middleName && !signup.errors.middleName, 'invalid-field': signup.validated.middleName && signup.errors.middleName}" />
+                                <small id="signupMiddleNameError" class="small-text" :class="messageClass(signup.errors.middleName)" x-text="signup.errors.middleName" aria-live="polite"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupLastName" class="label">Last Name</label>
+                                <input type="text" id="signupLastName" x-model="signup.lastName" @input="delayedSignupValidate()" placeholder="Enter your last name" required class="input-field" :class="{'valid-field': signup.validated.lastName && !signup.errors.lastName, 'invalid-field': signup.validated.lastName && signup.errors.lastName}" />
+                                <small id="signupLastNameError" class="small-text" :class="messageClass(signup.errors.lastName)" x-text="signup.errors.lastName" aria-live="polite"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupIDnumber" class="label">ID Number</label>
+                                <input type="text" id="signupIDnumber" x-model="signup.idNumber" @input="delayedSignupValidate()" pattern="[A-Z][a-z]-\d{2}-\d-\d{3}" placeholder="Aq-12-3-456" required class="input-field" :class="{'valid-field': signup.validated.idNumber && !signup.errors.idNumber, 'invalid-field': signup.validated.idNumber && signup.errors.idNumber}" />
+                                <small id="signupIDnumberError" class="small-text" :class="messageClass(signup.errors.idNumber)" x-text="signup.errors.idNumber" aria-live="polite"></small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword" class="label">Password</label>
+                            <input type="password" id="signupPassword" x-model="signup.password" @input="delayedSignupValidate()" placeholder="Enter strong password" required class="input-field" :class="{'valid-field': signup.validated.password && !signup.errors.password, 'invalid-field': signup.validated.password && signup.errors.password}" />
+                            <small id="signupPasswordError" class="small-text" :class="messageClass(signup.errors.password)" x-text="signup.errors.password" aria-live="polite"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupConfirmPassword" class="label">Confirm Password</label>
+                            <input type="password" id="signupConfirmPassword" x-model="signup.confirmPassword" @input="delayedSignupValidate()" @paste.prevent placeholder="Re-enter password" required class="input-field" :class="{'valid-field': signup.validated.confirmPassword && !signup.errors.confirmPassword, 'invalid-field': signup.validated.confirmPassword && signup.errors.confirmPassword}" />
+                            <small id="signupConfirmPasswordError" class="small-text" :class="messageClass(signup.errors.confirmPassword)" x-text="signup.errors.confirmPassword" aria-live="polite"></small>
+                        </div>
+                        <button type="submit" id="signupSubmitBtn" :disabled="!signup.isValid" class="primary-button">Create Account</button>
+                    </form>
+                    <p class="small-text">or</p>
+                    <button type="button" id="showLoginBtn" class="secondary-button" @click="page = 'login'">Log In</button>
+                </section>
             </div>
         </div>
     </main>
@@ -179,11 +272,45 @@
 
                 submitLogin() {
                     if (this.login.role && this.login.email && this.login.password) {
-                        if (this.login.role === 'teacher') {
-                            window.location.href = './teacher/dashboard.html';
+                        this.submitLoginToBackend();
+                    }
+                },
+
+                async submitLoginToBackend() {
+                    try {
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                role: this.login.role,
+                                email: this.login.email,
+                                password: this.login.password
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            alert(`Login failed: ${data.detail || 'Invalid credentials'}`);
                             return;
                         }
-                        window.location.href = './student/dashboard.html';
+
+                        // Store user info in localStorage
+                        localStorage.setItem('user_id', data.user_id);
+                        localStorage.setItem('role', data.role);
+                        localStorage.setItem('name', data.name);
+
+                        // Redirect based on role
+                        if (data.role === 'teacher') {
+                            window.location.href = './teacher/dashboard.html';
+                        } else {
+                            window.location.href = './student/dashboard.html';
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        alert('Network error. Please check if the backend is running.');
                     }
                 },
 
@@ -357,11 +484,59 @@
 
                 submitSignup() {
                     if (this.validateSignupAll()) {
-                        alert('Registration Successful!');
-                        window.location.href = this.signup.role === 'teacher'
-                            ? './teacher/dashboard.html'
-                            : './student/dashboard.html';
+                        this.submitSignupToBackend();
                     }
+                },
+
+                async submitSignupToBackend() {
+                    try {
+                        const response = await fetch('/api/auth/signup', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                role: this.signup.role,
+                                email: this.signup.email,
+                                firstName: this.signup.firstName,
+                                middleName: this.signup.middleName,
+                                lastName: this.signup.lastName,
+                                idNumber: this.signup.idNumber,
+                                password: this.signup.password
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            alert(`Signup failed: ${data.detail || 'An error occurred'}`);
+                            return;
+                        }
+
+                        alert(data.message);
+
+                        // Store user info in localStorage
+                        localStorage.setItem('user_id', data.user_id);
+                        localStorage.setItem('role', data.role);
+                        localStorage.setItem('name', data.name);
+
+                        // Redirect based on role
+                        if (data.role === 'teacher') {
+                            window.location.href = './teacher/dashboard.html';
+                        } else {
+                            window.location.href = './student/dashboard.html';
+                        }
+                    } catch (error) {
+                        console.error('Signup error:', error);
+                        alert('Network error. Please check if the backend is running.');
+                    }
+                },
+
+                messageClass(message) {
+                    if (!message) {
+                        return 'text-slate-400';
+                    }
+                    return message.trim().endsWith('!') ? 'text-emerald-300' : 'text-rose-300';
                 }
             }
         }

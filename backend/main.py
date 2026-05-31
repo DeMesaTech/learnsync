@@ -1,13 +1,24 @@
-﻿from fastapi import FastAPI, HTTPException
+﻿from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import uvicorn
+from datetime import datetime
+import hashlib
+import os
+from pathlib import Path
 
 app = FastAPI()
 
-# CORS Configuration
-origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+# CORS Configuration - Allow both localhost and file:// protocol
+origins = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -16,16 +27,191 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API Endpoint
-class ItemData(BaseModel):
-    data: str
+# ============= DATABASE CONNECTION =============
+def get_db_connection():
+    """Create a connection to PostgreSQL database"""
+    try:
+        conn = psycopg2.connect(
+            host="localhost",
+            database="school_management_system",
+            user="postgres",
+            password="logiclab",  # Change this to your PostgreSQL password
+            port="5432"
+        )
+        return conn
+    except psycopg2.Error as e:
+        print(f"Database connection error: {e}")
+        return None
 
-@app.post("/api/process")
-async def process_item(item: ItemData):
-    if not item.data:
-        raise HTTPException(status_code=400, detail="No data provided")
-    processed_message = f"Backend received: {item.data}"
-    return {"message": processed_message}
+# ============= PYDANTIC MODELS =============
+class LoginRequest(BaseModel):
+    role: str
+    email: str
+    password: str
+
+class SignupRequest(BaseModel):
+    role: str
+    email: str
+    firstName: str
+    middleName: str
+    lastName: str
+    idNumber: str
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: int = None
+    role: str = None
+    name: str = None
+
+# ============= UTILITY FUNCTIONS =============
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(plain_password) == hashed_password
+
+# ============= LOGIN ENDPOINT =============
+@app.post("/api/auth/login", response_model=LoginResponse)
+async def login(request: LoginRequest):
+    """
+    LOGIN FLOW:
+    1. User submits form with email & password
+    2. Backend queries User table by email
+    3. Backend verifies password hash
+    4. Returns user_id, role, and name to frontend
+    5. Frontend stores in session/localStorage and redirects
+    """
+    
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(
+            status_code=500,
+            detail="Database connection failed"
+        )
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Query user by email
+        cur.execute(
+            'SELECT user_id, email, password, role, name FROM "User" WHERE email = %s AND role = %s',
+            (request.email, request.role)
+        )
+        user = cur.fetchone()
+        
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid email or password"
+            )
+        
+        # Verify password
+        if not verify_password(request.password, user['password']):
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid email or password"
+            )
+        
+        # Successful login
+        return LoginResponse(
+            success=True,
+            message=f"Welcome back, {user['name']}!",
+            user_id=user['user_id'],
+            role=user['role'],
+            name=user['name']
+        )
+        
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ============= SIGNUP ENDPOINT =============
+@app.post("/api/auth/signup", response_model=LoginResponse)
+async def signup(request: SignupRequest):
+    """
+    SIGNUP FLOW:
+    1. User submits form with all details
+    2. Backend validates email doesn't exist
+    3. Backend hashes password
+    4. Backend inserts new User record
+    5. Backend creates Student/Teacher record linked to User
+    6. Returns success message to frontend
+    """
+    
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(
+            status_code=500,
+            detail="Database connection failed"
+        )
+    
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Check if email already exists
+        cur.execute('SELECT user_id FROM "User" WHERE email = %s', (request.email,))
+        if cur.fetchone():
+            raise HTTPException(
+                status_code=400,
+                detail="Email already registered"
+            )
+        
+        # Hash password
+        hashed_password = hash_password(request.password)
+        full_name = f"{request.firstName} {request.middleName} {request.lastName}"
+        
+        # Insert new user
+        cur.execute(
+            '''INSERT INTO "User" (email, name, password, role, created_at)
+               VALUES (%s, %s, %s, %s, %s)
+               RETURNING user_id''',
+            (request.email, full_name, hashed_password, request.role, datetime.now())
+        )
+        user_id = cur.fetchone()['user_id']
+        
+        # Create Student or Teacher record
+        if request.role == 'student':
+            # store the provided idNumber into Student.id_number
+            cur.execute(
+                'INSERT INTO Student (user_id, id_number) VALUES (%s, %s)',
+                (user_id, request.idNumber)
+            )
+        elif request.role == 'teacher':
+            cur.execute(
+                'INSERT INTO Teacher (user_id) VALUES (%s)',
+                (user_id,)
+            )
+        
+        conn.commit()
+        
+        return LoginResponse(
+            success=True,
+            message="Account created successfully! You can now log in.",
+            user_id=user_id,
+            role=request.role,
+            name=full_name
+        )
+        
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ============= HEALTH CHECK =============
+@app.get("/api/health")
+async def health_check():
+    """Check if backend is running"""
+    return {"status": "Backend is running"}
 
 # Serve static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR.parent / "static"
+app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

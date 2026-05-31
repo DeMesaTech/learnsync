@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "C:/Users/krisscelalmario/OneDrive/Desktop/learnsync/venv/Scripts/python.exe",
+  "python.pythonPath": "C:/Users/krisscelalmario/OneDrive/Desktop/learnsync/venv/Scripts/python.exe",
+  "python.venvPath": "C:/Users/krisscelalmario/OneDrive/Desktop/learnsync",
+  "python.analysis.extraPaths": [
+    "./backend",
+    "./venv/Lib/site-packages"
+  ]
+}
