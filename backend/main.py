@@ -179,12 +179,12 @@ async def signup(request: SignupRequest):
         if request.role == 'student':
             # store the provided idNumber into Student.id_number
             cur.execute(
-                'INSERT INTO Student (user_id, id_number) VALUES (%s, %s)',
+                'INSERT INTO student (user_id, student_id) VALUES (%s, %s)',
                 (user_id, request.idNumber)
             )
         elif request.role == 'teacher':
             cur.execute(
-                'INSERT INTO Teacher (user_id) VALUES (%s)',
+                'INSERT INTO teacher (user_id) VALUES (%s)',
                 (user_id,)
             )
         

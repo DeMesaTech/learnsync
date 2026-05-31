@@ -309,6 +309,7 @@
                 validateSignupIDnumber() {
                     const idNumberRegex = /^\d{6}$/;
                     const value = this.signup.idNumber.trim();
+                    console.log('Validating ID number:', value);    
 
                     if (!value) {
                         this.signup.errors.idNumber = 'ID number is required.';
