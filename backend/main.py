@@ -2,6 +2,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import uvicorn
@@ -64,6 +65,15 @@ class LoginResponse(BaseModel):
     user_id: int = None
     role: str = None
     name: str = None
+
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    role: str
+    student_number: Optional[str] = None
+    grade_level: Optional[str] = None
 
 # ============= UTILITY FUNCTIONS =============
 def hash_password(password: str) -> str:
@@ -210,6 +220,45 @@ async def signup(request: SignupRequest):
 async def health_check():
     """Check if backend is running"""
     return {"status": "Backend is running"}
+
+
+@app.get('/api/auth/user/{user_id}', response_model=UserProfileResponse)
+async def get_user_profile(user_id: int):
+    """Return basic profile info for a user, including student details when available."""
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute('SELECT user_id, name, email, role FROM "User" WHERE user_id = %s', (user_id,))
+        user = cur.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        profile = {
+            'user_id': user['user_id'],
+            'name': user['name'],
+            'email': user['email'],
+            'role': user['role'],
+            'student_number': None,
+            'grade_level': None
+        }
+
+        if user['role'] == 'student':
+            cur.execute('SELECT student_number, grade_level FROM Student WHERE user_id = %s', (user_id,))
+            student = cur.fetchone()
+            if student:
+                profile['student_number'] = str(student.get('student_number')) if student.get('student_number') is not None else None
+                profile['grade_level'] = student.get('grade_level')
+
+        return profile
+
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
 
 # Serve static files
 BASE_DIR = Path(__file__).resolve().parent
