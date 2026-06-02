@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LearnSync Login</title>
+
+    <!--<link rel="stylesheet" href="/static/css/style.css"> -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/tailwind.css">
+
+</head>
+
+<body class="lms-shell student-shell min-h-screen text-slate-900 font-sans text-sm">
+    <!-- PAGE WRAPPER (push below header) -->
+    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+        <!-- HEADER -->
+        <header class="app-header">
+            <button @click="open = !open" class="header-menu-btn"
+                aria-label="Open menu">
+                <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+            </button>
+
+            <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
+            <h1 class="header-title">
+                <span class="header-title-short">GMVCC</span>
+                <span class="header-title-long">Governor Mariano E. Villafuerte Community College</span>
+            </h1>
+
+            <!-- Notification Icon -->
+            <button class="header-icon-btn"
+                alt="Notification">
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11
+                        a6.002 6.002 0 0 0-4-5.659V4
+                        a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159
+                        c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1
+                        a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg>
+            </button>
+            <!-- Profile Button -->
+            <button class="header-icon-btn"
+                aria-label="Profile">
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- MOBILE OVERLAY -->
+        <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay">
+        </div>
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
+            <ul class="sidebar-list">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+                        </svg></div>
+                    <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Teacher LMS</span></div>
+                </div>
+                <li><a class="sidebar-btn" href="dashboard.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" />
+                        </svg><span>Dashboard</span>
+                    </a></li>
+                <li><a class="sidebar-btn-active" href="classes.html"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
+                        </svg><span>Classes</span>
+                    </a></li>
+                <li><a class="sidebar-btn" href="grading.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
+                        </svg><span>Grading</span>
+                    </a></li>
+                <!-- Account Information -->
+                <li><a href="Account.html" @click="open=false"
+                        class="sidebar-btn">
+                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
+                        </svg>
+                        <span>Account Information</span>
+                    </a></li>
+                <!-- About -->
+                <li><a href="about.html" @click="open=false"
+                        class="sidebar-btn-active">
+                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
+                        </svg>
+                        <span>About</span>
+                    </a></li>
+                <!-- Report Bug -->
+                <li><a href="report-bug.html" @click="open=false"
+                        class="sidebar-btn">
+                        <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
+                        </svg>
+                        <span>Report Bug</span>
+                    </a></li>
+                    <!-- Log Out -->
+                <li><a class="sidebar-btn" href="/"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
+                        </svg><span>Logout</span>
+                    </a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <article class="grid grid-cols-1 gap-6 p-8 h-min flex-1 md:ml-72">
+            <h2 class="text-3xl text-white font-bold tracking-tight">About LearnSync</h2>
+
+            <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm max-w-3xl">
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">LearnSync LMS</h3>
+                <p class="text-slate-700 mb-4 leading-relaxed">
+                    LearnSync is the official Learning Management System of Governor Mariano E. Villafuerte Community
+                    College. Designed to modernize education, it connects students and instructors in a unified digital
+                    environment, making learning accessible, organized, and engaging.
+                </p>
+
+                <h4 class="font-bold text-lg mt-6 mb-2">Features</h4>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>Class Management & Materials Distribution</li>
+                    <li>Assignment Submission & Grading</li>
+                    <li>AI-Powered Learning Assistant</li>
+                    <li>Deadline Tracking & Notifications</li>
+                </ul>
+
+                <div class="mt-8 pt-4 border-t border-slate-300">
+                    <p class="text-sm text-slate-600">Version 1.0.0</p>
+                    <p class="text-sm text-slate-600">© 2026 Governor Mariano E. Villafuerte Community College</p>
+                </div>
+            </div>
+        </article>
+    </div>
+</body>
+
+</html>
