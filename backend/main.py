@@ -241,16 +241,15 @@ async def get_user_profile(user_id: int):
             'name': user['name'],
             'email': user['email'],
             'role': user['role'],
-            'student_number': None,
+            'student_id': None,
             'grade_level': None
         }
 
         if user['role'] == 'student':
-            cur.execute('SELECT student_number, grade_level FROM Student WHERE user_id = %s', (user_id,))
+            cur.execute('SELECT student_id FROM Student WHERE user_id = %s', (user_id,))
             student = cur.fetchone()
             if student:
-                profile['student_number'] = str(student.get('student_number')) if student.get('student_number') is not None else None
-                profile['grade_level'] = student.get('grade_level')
+                profile['student_id'] = str(student.get('student_id')) if student.get('student_id') is not None else None
 
         return profile
 
