@@ -119,7 +119,7 @@
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg>
                     </span>
-                    <strong x-text="account.classes || 'Not assigned'"></strong>
+                    <strong x-text="kpi.classes_count || '0'"></strong>
                     <span>Classes</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -128,7 +128,7 @@
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
                         </svg>
                     </span>
-                    <strong x-text="account.students || 'Not assigned'"></strong>
+                    <strong x-text="kpi.student_count || '0'"></strong>
                     <span>Students</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -137,7 +137,7 @@
                                 d="M7 4h7l4 4v12H7V4Zm7 0v5h5M9 14h6M9 17h4" />
                         </svg>
                     </span>
-                    <strong x-text="account.submissions || 'Not assigned'"></strong>
+                    <strong x-text="kpi.submission_count || '0'"></strong>
                     <span>Submissions</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -146,7 +146,7 @@
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
                         </svg>
                     </span>
-                    <strong x-text="account.quizzes || 'Not assigned'"></strong>
+                    <strong x-text="kpi.quiz_count || '0'"></strong>
                     <span>Quizzes</span></div>
             </section>
 
@@ -210,7 +210,7 @@
         return {
             nums: {},
             async init() {
-                const userId = localStorage.getItem('employee_id');
+                const employee_id = localStorage.getItem('employee_id');
                 // subject for change
                 if (!employee_id) {
                     console.warn('No employee_id found in localStorage. Redirect to login if needed.');
@@ -218,7 +218,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/api/auth/user/${encodeURIComponent(employee_id)}`);
+                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(employee_id)}/dashboard`);
                     if (!res.ok) {
                         console.error('Failed to load kpi data', await res.text());
                         return;
