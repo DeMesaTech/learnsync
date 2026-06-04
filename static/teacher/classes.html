@@ -93,7 +93,7 @@
             </ul>
         </nav>
 
-        <main class="lms-page">
+        <main class="lms-page" x-data="kpi()" x-init="init()">
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Classes and Content</h2>
@@ -105,10 +105,30 @@
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4">
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" /></svg></span><strong>4</strong><span>Classes</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" /></svg></span><strong>128</strong><span>Students</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" /></svg></span><strong>12</strong><span>Modules</span></div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg></span><strong>9</strong><span>Activities</span></div>
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
+                        </svg></span>
+                        <strong x-text="kpi.classes || '0'"></strong><span>Classes</span></div>
+
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
+                        </svg></span>
+                        <strong x-text="kpi.students || '0'"></strong><span>Students</span></div>
+
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
+                        </svg></span>
+                        <strong x-text="kpi.modules || '0'"></strong><span>Modules</span></div>
+
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg></span>
+                        <strong x-text="kpi.activities || '0'"></strong><span>Activities</span></div>
+
             </section>
 
             <section class="lms-grid lms-grid-3">
@@ -197,17 +217,17 @@
 
                 <div class="lms-grid">
                     <template x-if="modal === 'class'">
-                        <div class="lms-grid">
-                            <input class="lms-input" placeholder="Subject">
-                            <input class="lms-input" type="number" min="1" placeholder="Number of sections">
-                            <div class="lms-grid lms-grid-2">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %">
+                        <div class="lms-grid" x-data="{ attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
+                            <input class="lms-input" placeholder="Subject" x-model="">
+                            <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model="">
+                            <div class="lms-grid lms-grid-4">
+                                <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %" x-model.number="attendance">
+                                <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %" x-model.number="quizzes">
+                                <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %" x-model.number="activities">
+                                <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %" x-model.number="exam">
                             </div>
-                            <p class="lms-meta m-0">Grading determinants must total 100% across attendance, quizzes, and activities.</p>
-                            <button class="lms-btn" type="button">Save Class</button>
+                            <p class="lms-meta m-0" :class="{'text-red-600': !isValid}">Grading determinants must total 100% across attendance, quizzes, activities, and exam. Current total: <strong x-text="sum"></strong>%</p>
+                            <button class="lms-btn" type="button" :disabled="!isValid" @click.prevent="modalInput()">Save Class</button>
                         </div>
                     </template>
 
@@ -216,5 +236,110 @@
         </div>
     </div>
 </body>
+<script>
+    function kpi() {
+        return {
+            nums: {},
+            async init() {
+                const employee_id = localStorage.getItem('employee_id');
+                // subject for change
+                if (!employee_id) {
+                    console.warn('No employee_id found in localStorage. Redirect to login if needed.');
+                    return;
+                }
 
+                try {
+                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(employee_id)}/dashboard`);
+                    if (!res.ok) {
+                        console.error('Failed to load kpi data', await res.text());
+                        return;
+                    }
+                    this.nums = await res.json();
+                } catch (err) {
+                    console.error('Error fetching kpi data:', err);
+                }
+            }
+        }
+    }
+
+    function modalInput() {
+        const modal = document.querySelector('.lms-modal');
+        if (!modal) {
+            alert('Modal not found.');
+            return;
+        }
+
+        const getInputValue = (placeholder) => {
+            const input = modal.querySelector(`input[placeholder="${placeholder}"]`);
+            return input ? input.value.trim() : '';
+        };
+
+        const subject = getInputValue('Subject');
+        const sectionsValue = Number(getInputValue('Number of sections'));
+        const attendance = Number(getInputValue('Attendance %'));
+        const quizzes = Number(getInputValue('Quizzes %'));
+        const activities = Number(getInputValue('Activities %'));
+        const exam = Number(getInputValue('Exam %'));
+
+        const sections = Number(sectionsValue) || 0;
+        const total = attendance + quizzes + activities + exam;
+        const teacher_id = Number(localStorage.getItem('employee_id')) || null;
+
+        if (!teacher_id) {
+            alert('Teacher ID is missing. Please log in again.');
+            return;
+        }
+
+        if (!subject) {
+            alert('Please enter the class subject.');
+            return;
+        }
+
+        if (sections < 1) {
+            alert('Number of sections must be at least 1.');
+            return;
+        }
+
+        if (total !== 100) {
+            alert(`Grading weights must total 100%. Current total is ${total}%.`);
+            return;
+        }
+
+        const payload = {
+            teacher_id,
+            subject,
+            sections,
+            attendance,
+            quizzes,
+            activities,
+            exam
+        };
+
+        fetch('/api/classes/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(async (response) => {
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.detail || 'Failed to create class.');
+            }
+            return response.json();
+        })
+        .then((data) => {
+            alert(`Class created: ${data.subject}`);
+            const root = document.querySelector('[x-data]');
+            if (root && root.__x) {
+                root.__x.$data.modal = null;
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            alert(error.message || 'Error creating class.');
+        });
+    }
+</script>
 </html>

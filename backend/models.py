@@ -44,20 +44,22 @@ class TeacherDashboardResponse(BaseModel):
 # ============= CLASS MODELS =============
 class CreateClassRequest(BaseModel):
     teacher_id: int
-    class_name: str
-    subject_code: str
-    schedule: str  # "MWF 9:00-10:00"
-    room_number: str
-    semester: str
+    subject: str
+    sections: int
+    attendance: float
+    quizzes: float
+    activities: float
+    exam: float
 
 
 class ClassResponse(BaseModel):
     class_id: int
-    class_name: str
-    subject_code: str
+    subject: str
+    section_count: int
+    attendance_weight: float
+    quizzes_weight: float
+    activities_weight: float
+    exam_weight: float
     teacher_id: int
     teacher_name: str
-    schedule: str
-    room_number: str
-    semester: str
     created_at: datetime

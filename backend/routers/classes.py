@@ -17,9 +17,13 @@ async def create_class(request: CreateClassRequest):
     
     Flow:
     1. Verify teacher exists
-    2. Insert class record
-    3. Return class details
+    2. Validate grading weights
+    3. Insert class record
+    4. Return class details
     """
+    if round(request.attendance + request.quizzes + request.activities + request.exam, 2) != 100.0:
+        raise HTTPException(status_code=400, detail="Grading weights must total 100%.")
+
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -36,26 +40,29 @@ async def create_class(request: CreateClassRequest):
         
         teacher_name = teacher['name']
 
-        # Insert class (store teacher id in employee_id column)
+        # Insert class record using the modal data
         cur.execute(
-            '''INSERT INTO class (employee_id, class_name, subject_code, schedule, room_number, semester, created_at)
-               VALUES (%s, %s, %s, %s, %s, %s, %s)
+            '''INSERT INTO class (employee_id, subject, section_count, attendance_weight, quizzes_weight,
+                                   activities_weight, exam_weight, created_at)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                RETURNING class_id''',
-            (request.teacher_id, request.class_name, request.subject_code,
-             request.schedule, request.room_number, request.semester, datetime.now())
+            (request.teacher_id, request.subject, request.sections,
+             request.attendance, request.quizzes, request.activities,
+             request.exam, datetime.now())
         )
         class_id = cur.fetchone()['class_id']
         conn.commit()
         
         return ClassResponse(
             class_id=class_id,
-            class_name=request.class_name,
-            subject_code=request.subject_code,
+            subject=request.subject,
+            section_count=request.sections,
+            attendance_weight=request.attendance,
+            quizzes_weight=request.quizzes,
+            activities_weight=request.activities,
+            exam_weight=request.exam,
             teacher_id=request.teacher_id,
             teacher_name=teacher_name,
-            schedule=request.schedule,
-            room_number=request.room_number,
-            semester=request.semester,
             created_at=datetime.now()
         )
         
@@ -79,7 +86,8 @@ async def get_teacher_classes(teacher_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            '''SELECT class_id, class_name, subject_code, schedule, room_number, semester, created_at,
+            '''SELECT class_id, subject, section_count, attendance_weight, quizzes_weight,
+                      activities_weight, exam_weight, created_at,
                       employee_id AS teacher_id
                FROM class
                WHERE employee_id = %s
@@ -105,8 +113,10 @@ async def get_class_details(class_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            '''SELECT c.class_id, c.class_name, c.subject_code, c.employee_id AS teacher_id, u.name as teacher_name,
-                      c.schedule, c.room_number, c.semester, c.created_at
+            '''SELECT c.class_id, c.subject, c.section_count, c.attendance_weight,
+                      c.quizzes_weight, c.activities_weight, c.exam_weight,
+                      c.employee_id AS teacher_id, u.name as teacher_name,
+                      c.created_at
                FROM class c
                JOIN "User" u ON c.employee_id = u.user_id
                WHERE c.class_id = %s''',
