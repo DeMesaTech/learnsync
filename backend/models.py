@@ -45,6 +45,7 @@ class TeacherDashboardResponse(BaseModel):
 class CreateClassRequest(BaseModel):
     teacher_id: int
     subject: str
+    year: int
     sections: int
     attendance: float
     quizzes: float
@@ -62,4 +63,4 @@ class ClassResponse(BaseModel):
     exam_weight: float
     teacher_id: int
     teacher_name: str
-    created_at: datetime
+

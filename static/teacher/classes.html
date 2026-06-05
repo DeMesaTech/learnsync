@@ -217,9 +217,10 @@
 
                 <div class="lms-grid">
                     <template x-if="modal === 'class'">
-                        <div class="lms-grid" x-data="{ attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
-                            <input class="lms-input" placeholder="Subject" x-model="">
-                            <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model="">
+                        <div class="lms-grid" x-data="{ subject: '', year: 1, sections: 1, attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
+                            <input class="lms-input" placeholder="Subject" x-model="subject">
+                            <input class="lms-input" type="number" min="1" placeholder="Year" x-model="year">
+                            <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model="sections">
                             <div class="lms-grid lms-grid-4">
                                 <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %" x-model.number="attendance">
                                 <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %" x-model.number="quizzes">
@@ -241,15 +242,15 @@
         return {
             nums: {},
             async init() {
-                const employee_id = localStorage.getItem('employee_id');
+                const userID = localStorage.getItem('user_id');
                 // subject for change
-                if (!employee_id) {
-                    console.warn('No employee_id found in localStorage. Redirect to login if needed.');
+                if (!userID) {
+                    console.warn('No user_id found in localStorage. Redirect to login if needed.');
                     return;
                 }
 
                 try {
-                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(employee_id)}/dashboard`);
+                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(userID)}/dashboard`);
                     if (!res.ok) {
                         console.error('Failed to load kpi data', await res.text());
                         return;
@@ -275,6 +276,7 @@
         };
 
         const subject = getInputValue('Subject');
+        const year = Number(getInputValue('Year'));
         const sectionsValue = Number(getInputValue('Number of sections'));
         const attendance = Number(getInputValue('Attendance %'));
         const quizzes = Number(getInputValue('Quizzes %'));
@@ -283,10 +285,15 @@
 
         const sections = Number(sectionsValue) || 0;
         const total = attendance + quizzes + activities + exam;
-        const teacher_id = Number(localStorage.getItem('employee_id')) || null;
+        const teacher_id = Number(localStorage.getItem('user_id')) || null;
 
         if (!teacher_id) {
             alert('Teacher ID is missing. Please log in again.');
+            return;
+        }
+
+        if (isNaN(year) || year < 1) {
+            alert('Please enter a valid year.');
             return;
         }
 
@@ -305,9 +312,10 @@
             return;
         }
 
-        const payload = {
+        const classload = {
             teacher_id,
             subject,
+            year,
             sections,
             attendance,
             quizzes,
@@ -320,7 +328,7 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(classload)
         })
         .then(async (response) => {
             if (!response.ok) {

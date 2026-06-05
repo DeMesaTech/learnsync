@@ -9,7 +9,7 @@ from db import get_db_connection
 
 classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
 
-
+# 
 @classes_router.post("/create", response_model=ClassResponse)
 async def create_class(request: CreateClassRequest):
     """
@@ -17,9 +17,10 @@ async def create_class(request: CreateClassRequest):
     
     Flow:
     1. Verify teacher exists
-    2. Validate grading weights
-    3. Insert class record
-    4. Return class details
+    2. Create Sections
+    3. Validate grading weights
+    4. Insert class record
+    5. Return class details
     """
     if round(request.attendance + request.quizzes + request.activities + request.exam, 2) != 100.0:
         raise HTTPException(status_code=400, detail="Grading weights must total 100%.")
@@ -28,9 +29,12 @@ async def create_class(request: CreateClassRequest):
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Verify teacher exists and get their name
+        # Verify teacher exists and get their employee_id and name
         cur.execute(
-            'SELECT user_id, name FROM "User" WHERE user_id = %s AND role = %s',
+            '''SELECT t.employee_id, u.name
+               FROM teacher t
+               JOIN "User" u ON t.user_id = u.user_id
+               WHERE u.user_id = %s AND u.role = %s''',
             (request.teacher_id, 'teacher')
         )
         teacher = cur.fetchone()
@@ -39,18 +43,44 @@ async def create_class(request: CreateClassRequest):
             raise HTTPException(status_code=400, detail="Teacher not found")
         
         teacher_name = teacher['name']
+        teacher_employee_id = teacher['employee_id']
 
-        # Insert class record using the modal data
-        cur.execute(
-            '''INSERT INTO class (employee_id, subject, section_count, attendance_weight, quizzes_weight,
-                                   activities_weight, exam_weight, created_at)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-               RETURNING class_id''',
-            (request.teacher_id, request.subject, request.sections,
-             request.attendance, request.quizzes, request.activities,
-             request.exam, datetime.now())
-        )
-        class_id = cur.fetchone()['class_id']
+        # create sections
+        letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]  # Support up to 10 sections (1-10)
+        base = request.year  # e.g. "3"
+        section_ids = []
+        
+        for i in range(request.sections):
+            if i >= len(letters):
+                raise HTTPException(status_code=400, detail="Maximum supported sections is 10.")
+
+            section_name = f"{base}{letters[i]}"
+            cur.execute(
+                '''INSERT INTO section (employee_id, section)
+                   VALUES (%s, %s)
+                   RETURNING section_id''',
+                (teacher_employee_id, section_name)
+            )
+            section_id = cur.fetchone()['section_id']
+            section_ids.append(section_id)
+
+        # Insert class records for each section and attach grading policy
+        class_id = None
+        for section_id in section_ids:
+            cur.execute(
+                '''INSERT INTO class (employee_id, section_id, subject)
+                   VALUES (%s, %s, %s)
+                   RETURNING class_id''',
+                (teacher_employee_id, section_id, request.subject)
+            )
+            class_id = cur.fetchone()['class_id']
+
+            cur.execute("""
+            INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
+            VALUES (%s, %s, %s, %s, %s)
+            """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
+
+
         conn.commit()
         
         return ClassResponse(
@@ -73,7 +103,7 @@ async def create_class(request: CreateClassRequest):
         cur.close()
         conn.close()
 
-
+# Get all classes for a teacher
 @classes_router.get("/teacher/{teacher_id}")
 async def get_teacher_classes(teacher_id: int):
     """
@@ -104,7 +134,7 @@ async def get_teacher_classes(teacher_id: int):
         cur.close()
         conn.close()
 
-
+# Get details of a specific class
 @classes_router.get("/{class_id}")
 async def get_class_details(class_id: int):
     """Get details of a specific class"""
@@ -135,6 +165,7 @@ async def get_class_details(class_id: int):
         cur.close()
         conn.close()
 
+# Teacher Dashboard Endpoint
 @classes_router.get("/teacher/{teacher_id}/dashboard", response_model=TeacherDashboardResponse)
 async def get_teacher_dashboard(teacher_id: int):
     conn = get_db_connection()

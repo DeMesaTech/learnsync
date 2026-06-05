@@ -210,15 +210,15 @@
         return {
             nums: {},
             async init() {
-                const employee_id = localStorage.getItem('employee_id');
+                const user_id = localStorage.getItem('user_id');
                 // subject for change
-                if (!employee_id) {
-                    console.warn('No employee_id found in localStorage. Redirect to login if needed.');
+                if (!user_id) {
+                    console.warn('No user_id found in localStorage. Redirect to login if needed.');
                     return;
                 }
 
                 try {
-                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(employee_id)}/dashboard`);
+                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(user_id)}/dashboard`);
                     if (!res.ok) {
                         console.error('Failed to load kpi data', await res.text());
                         return;
