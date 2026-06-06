@@ -25,6 +25,8 @@ class LoginResponse(BaseModel):
     user_id: Optional[int] = None
     role: Optional[str] = None
     name: Optional[str] = None
+    teacher_id: Optional[int] = None
+    student_id: Optional[int] = None
 
 class UserProfileResponse(BaseModel):
     user_id: int
@@ -36,16 +38,20 @@ class UserProfileResponse(BaseModel):
 
 # ========== TEACHER DASHBOARD ===========
 class TeacherDashboardResponse(BaseModel):
+    teacher_id: Optional[int] = None
     classes_count: int
     student_count: int
     submission_count: int
     quiz_count: int
+    module_count: int
+    activity_count: int
 
 # ============= CLASS MODELS =============
 class CreateClassRequest(BaseModel):
     teacher_id: int
     subject: str
     year: int
+    subject_code: str
     sections: int
     attendance: float
     quizzes: float
@@ -63,4 +69,4 @@ class ClassResponse(BaseModel):
     exam_weight: float
     teacher_id: int
     teacher_name: str
-
+    

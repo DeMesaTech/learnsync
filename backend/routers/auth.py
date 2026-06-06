@@ -46,12 +46,29 @@ async def login(request: LoginRequest):
             )
         
         # Successful login
+        teacher_id = None
+        student_id = None
+        if user['role'] == 'teacher':
+            # try to fetch employee_id from teacher table
+            cur.execute('SELECT employee_id FROM teacher WHERE user_id = %s', (user['user_id'],))
+            t = cur.fetchone()
+            if t:
+                teacher_id = t.get('employee_id')
+        elif user['role'] == 'student':
+            # try to fetch employee_id from student table
+            cur.execute('SELECT student_id FROM student WHERE user_id = %s', (user['user_id'],))
+            s = cur.fetchone()
+            if s:
+                student_id = s.get('student_id')
+
         return LoginResponse(
             success=True,
             message=f"Welcome back, {user['name']}!",
             user_id=user['user_id'],
             role=user['role'],
-            name=user['name']
+            name=user['name'],
+            teacher_id=teacher_id,
+            student_id=student_id
         )
         
     except psycopg2.Error as e:
@@ -97,17 +114,23 @@ async def signup(request: SignupRequest):
         )
         user_id = cur.fetchone()['user_id']
         
-        # Create Student or Teacher record
         if request.role == 'student':
             cur.execute(
                 'INSERT INTO student (user_id, student_id) VALUES (%s, %s)',
                 (user_id, request.idNumber)
             )
+            student_id = request.idNumber
+            teacher_id = None
         elif request.role == 'teacher':
             cur.execute(
-                'INSERT INTO teacher (user_id) VALUES (%s)',
+                'INSERT INTO teacher (user_id) VALUES (%s) RETURNING employee_id',
                 (user_id,)
             )
+            teacher_id = cur.fetchone().get('employee_id')
+            student_id = None
+        else:
+            teacher_id = None
+            student_id = None
         
         conn.commit()
         
@@ -116,7 +139,9 @@ async def signup(request: SignupRequest):
             message="Account created successfully! You can now log in.",
             user_id=user_id,
             role=request.role,
-            name=full_name
+            name=full_name,
+            teacher_id=teacher_id,
+            student_id=student_id
         )
         
     except psycopg2.Error as e:

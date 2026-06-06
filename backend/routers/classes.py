@@ -47,7 +47,7 @@ async def create_class(request: CreateClassRequest):
 
         # create sections
         letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]  # Support up to 10 sections (1-10)
-        base = request.year  # e.g. "3"
+        base = str(request.year)  # e.g. "3"
         section_ids = []
         
         for i in range(request.sections):
@@ -68,10 +68,10 @@ async def create_class(request: CreateClassRequest):
         class_id = None
         for section_id in section_ids:
             cur.execute(
-                '''INSERT INTO class (employee_id, section_id, subject)
-                   VALUES (%s, %s, %s)
+                '''INSERT INTO class (employee_id, section_id, subject, subj_code)
+                   VALUES (%s, %s, %s, %s)
                    RETURNING class_id''',
-                (teacher_employee_id, section_id, request.subject)
+                (teacher_employee_id, section_id, request.subject, request.subject_code)
             )
             class_id = cur.fetchone()['class_id']
 
@@ -116,13 +116,10 @@ async def get_teacher_classes(teacher_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            '''SELECT class_id, subject, section_count, attendance_weight, quizzes_weight,
-                      activities_weight, exam_weight, created_at,
-                      employee_id AS teacher_id
-               FROM class
-               WHERE employee_id = %s
-               ORDER BY created_at DESC''',
-            (teacher_id,)
+            '''SELECT c.class_id, c.subject, s.section FROM class c
+            JOIN section s ON s.section_id = c.section_id
+            WHERE c.employee_id = %s'''
+            ,(teacher_id,)
         )
         
         classes = cur.fetchall()
@@ -175,8 +172,9 @@ async def get_teacher_dashboard(teacher_id: int):
         # KPIs
         # 1. Count existing classes for this teacher
         cur.execute(
-            'SELECT COUNT(*) AS classes_count FROM class WHERE employee_id = %s',
-            (teacher_id,)
+            '''SELECT COUNT(DISTINCT subject) AS classes_count FROM class
+            WHERE employee_id = %s'''
+            ,(teacher_id,)
         )
         classes_count = cur.fetchone()['classes_count'] or 0
         #2. Count enrolled students in all subjects
@@ -205,10 +203,13 @@ async def get_teacher_dashboard(teacher_id: int):
         quiz_count = cur.fetchone()['quiz_count'] or 0
 
         return TeacherDashboardResponse(
+            teacher_id=teacher_id,
             classes_count=classes_count,
             student_count=student_count,
             submission_count=submission_count,
-            quiz_count=quiz_count
+            quiz_count=quiz_count,
+            module_count=143,
+            activity_count=69
         )
     except psycopg2.Error as e:
         conn.rollback()

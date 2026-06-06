@@ -119,7 +119,7 @@
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.classes_count || '0'"></strong>
+                    <strong x-text="nums.classes_count || '0'"></strong>
                     <span>Classes</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -128,7 +128,7 @@
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.student_count || '0'"></strong>
+                    <strong x-text="nums.student_count || '0'"></strong>
                     <span>Students</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -137,7 +137,7 @@
                                 d="M7 4h7l4 4v12H7V4Zm7 0v5h5M9 14h6M9 17h4" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.submission_count || '0'"></strong>
+                    <strong x-text="nums.submission_count || '0'"></strong>
                     <span>Submissions</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -146,7 +146,7 @@
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.quiz_count || '0'"></strong>
+                    <strong x-text="nums.quiz_count || '0'"></strong>
                     <span>Quizzes</span></div>
             </section>
 
@@ -206,24 +206,32 @@
     </div>
 </body>
 <script>
+    console.log('Teacher dashboard script loaded \n User ID from localStorage:', localStorage.getItem('user_id'));
     function kpi() {
         return {
             nums: {},
             async init() {
                 const user_id = localStorage.getItem('user_id');
+                const teacher_id = localStorage.getItem('teacher_id');
                 // subject for change
                 if (!user_id) {
                     console.warn('No user_id found in localStorage. Redirect to login if needed.');
                     return;
                 }
 
+                const dashboardTeacherId = teacher_id || user_id;
+                if (!teacher_id) {
+                    console.warn('No teacher_id found in localStorage; using user_id as fallback.');
+                }
                 try {
-                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(user_id)}/dashboard`);
+                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}/dashboard`);
                     if (!res.ok) {
                         console.error('Failed to load kpi data', await res.text());
                         return;
                     }
                     this.nums = await res.json();
+                    console.log('Employee ID from dashboard API response:', this.nums.teacher_id);
+                    console.log('KPI data loaded:', this.nums);
                 } catch (err) {
                     console.error('Error fetching kpi data:', err);
                 }

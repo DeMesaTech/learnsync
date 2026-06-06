@@ -211,10 +211,15 @@
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('name', data.name);
+                        if (data.teacher_id) {
+                            localStorage.setItem('teacher_id', data.teacher_id);
+                        }
+                        
 
                         // Redirect based on role
                         if (data.role === 'teacher') {
                             window.location.href = './teacher/dashboard.html';
+
                         } else {
                             window.location.href = './student/dashboard.html';
                         }
@@ -445,6 +450,9 @@
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('name', data.name);
+                        if (data.teacher_id) {
+                            localStorage.setItem('teacher_id', data.teacher_id);
+                        }
 
                         // Redirect based on role
                         if (data.role === 'teacher') {
