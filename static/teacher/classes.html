@@ -239,7 +239,10 @@
 <script>
     function kpi() {
         return {
-            nums: {},
+            classes: 0,
+            students: 0,
+            modules: 0,
+            activities: 0,
             async init() {
                 const employee_id = localStorage.getItem('employee_id');
                 if (!employee_id) {
@@ -253,7 +256,11 @@
                         console.error('Failed to load kpi data', await res.text());
                         return;
                     }
-                    this.nums = await res.json();
+                    const data = await res.json();
+                    this.classes = data.classes || 0;
+                    this.students = data.students || 0;
+                    this.modules = data.modules || 0;
+                    this.activities = data.activities || 0;
                 } catch (err) {
                     console.error('Error fetching kpi data:', err);
                 }

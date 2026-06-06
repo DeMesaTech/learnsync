@@ -126,46 +126,95 @@
         </nav>
 
         <!-- Main Content -->
-        <article class="grid grid-cols-1 gap-6 p-8 h-min flex-1 md:ml-72">
+        <article class="grid grid-cols-1 gap-6 p-8 h-min flex-1 md:ml-72" x-data="bugReportPage()" x-init="init()">
             <h2 class="text-3xl text-white font-bold tracking-tight">Report a Problem</h2>
 
             <div class="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-sm max-w-2xl">
-                <form action="" method="POST">
+                <form @submit.prevent="submitReport">
                     <div class="mb-4">
                         <label class="block text-sm font-semibold text-slate-800 mb-2">Issue Type</label>
-                        <select
+                        <select x-model="form.issueType"
                             class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                            <option>Select type of issue...</option>
-                            <option>Bug / Error</option>
-                            <option>Feature Request</option>
-                            <option>UI / Design Problem</option>
-                            <option>Performance Issue</option>
-                            <option>Other</option>
+                            <option value="">Select type of issue...</option>
+                            <option value="bug">Bug / Error</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="ui">UI / Design Problem</option>
+                            <option value="performance">Performance Issue</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-semibold text-slate-800 mb-2">Subject</label>
-                        <input type="text"
+                        <input type="text" x-model="form.subject"
                             class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                            placeholder="Brief summary of the problem">
+                            placeholder="Brief summary of the problem" required>
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-sm font-semibold text-slate-800 mb-2">Description</label>
-                        <textarea rows="6"
+                        <textarea rows="6" x-model="form.description"
                             class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                            placeholder="Please describe what happened, what you expected to happen, and steps to reproduce the issue..."></textarea>
+                            placeholder="Please describe what happened, what you expected to happen, and steps to reproduce the issue..." required></textarea>
                     </div>
 
-                    <button type="submit"
-                        class="w-full py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition font-semibold">
-                        Submit Report
+                    <button type="submit" :disabled="isSubmitting"
+                        class="w-full py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-text="isSubmitting ? 'Submitting...' : 'Submit Report'"></span>
                     </button>
+                    <div x-show="successMessage" x-transition class="mt-4 p-3 bg-green-100 text-green-800 rounded-lg" x-text="successMessage"></div>
+                    <div x-show="errorMessage" x-transition class="mt-4 p-3 bg-red-100 text-red-800 rounded-lg" x-text="errorMessage"></div>
                 </form>
             </div>
         </article>
     </div>
+    <script>
+        function bugReportPage() {
+            return {
+                form: {
+                    issueType: '',
+                    subject: '',
+                    description: ''
+                },
+                isSubmitting: false,
+                successMessage: '',
+                errorMessage: '',
+                init() {
+                    // Initialize form
+                },
+                async submitReport() {
+                    if (!this.form.issueType || !this.form.subject || !this.form.description) {
+                        this.errorMessage = 'Please fill in all fields.';
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+                    this.errorMessage = '';
+                    this.successMessage = '';
+
+                    try {
+                        const response = await fetch('/api/bugs/report', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+
+                        if (response.ok) {
+                            this.successMessage = 'Thank you! Your report has been submitted.';
+                            this.form = { issueType: '', subject: '', description: '' };
+                        } else {
+                            this.errorMessage = 'Failed to submit report. Please try again.';
+                        }
+                    } catch (err) {
+                        console.error('Error submitting report:', err);
+                        this.errorMessage = 'Error submitting report. Please try again later.';
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>

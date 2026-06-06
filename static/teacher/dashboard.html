@@ -119,7 +119,7 @@
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.classes_count || '0'"></strong>
+                    <strong x-text="kpi.classes_count"></strong>
                     <span>Classes</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -128,7 +128,7 @@
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.student_count || '0'"></strong>
+                    <strong x-text="kpi.student_count"></strong>
                     <span>Students</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -137,7 +137,7 @@
                                 d="M7 4h7l4 4v12H7V4Zm7 0v5h5M9 14h6M9 17h4" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.submission_count || '0'"></strong>
+                    <strong x-text="kpi.submission_count"></strong>
                     <span>Submissions</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
@@ -146,7 +146,7 @@
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
                         </svg>
                     </span>
-                    <strong x-text="kpi.quiz_count || '0'"></strong>
+                    <strong x-text="kpi.quiz_count"></strong>
                     <span>Quizzes</span></div>
             </section>
 
@@ -208,10 +208,12 @@
 <script>
     function kpi() {
         return {
-            nums: {},
+            classes_count: 0,
+            student_count: 0,
+            submission_count: 0,
+            quiz_count: 0,
             async init() {
                 const employee_id = localStorage.getItem('employee_id');
-                // subject for change
                 if (!employee_id) {
                     console.warn('No employee_id found in localStorage. Redirect to login if needed.');
                     return;
@@ -223,7 +225,12 @@
                         console.error('Failed to load kpi data', await res.text());
                         return;
                     }
-                    this.nums = await res.json();
+                    const data = await res.json();
+                    // Map response data to component state
+                    this.classes_count = data.classes_count || data.classes || 0;
+                    this.student_count = data.student_count || data.students || 0;
+                    this.submission_count = data.submission_count || data.submissions || 0;
+                    this.quiz_count = data.quiz_count || data.quizzes || 0;
                 } catch (err) {
                     console.error('Error fetching kpi data:', err);
                 }

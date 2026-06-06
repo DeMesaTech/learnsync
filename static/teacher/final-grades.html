@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+    <div class="pt-20 flex min-h-screen" x-data="finalGradesApp()" x-init="init()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu">
                 <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -257,16 +257,42 @@
         </main>
     </div>
     <script>
+        function finalGradesApp() {
+            return {
+                open: false,
+                gradesVisible: false,
+                classInfo: {
+                    name: 'Capstone Research Project 1',
+                    section: '3B',
+                    weights: {
+                        attendance: 10,
+                        quiz: 30,
+                        activities: 30,
+                        exams: 50
+                    }
+                },
+                async init() {
+                    const gradesVisible = localStorage.getItem('gradesVisible');
+                    this.gradesVisible = gradesVisible === 'true';
+                },
+                toggleGradeVisibility() {
+                    this.gradesVisible = !this.gradesVisible;
+                    localStorage.setItem('gradesVisible', this.gradesVisible);
+                }
+            }
+        }
+
+        // Initialize Alpine store for grades if needed
         document.addEventListener('alpine:init', () => {
             Alpine.store('grades', {
                 visible: localStorage.getItem('gradesVisible') === 'true' || false
-            })
+            });
 
             // Save change automatically
             Alpine.effect(() => {
-                localStorage.setItem('gradesVisible', Alpine.store('grades').visible)
-            })
-        })
+                localStorage.setItem('gradesVisible', Alpine.store('grades').visible);
+            });
+        });
     </script>
 </body>
 
