@@ -244,9 +244,9 @@
             modules: 0,
             activities: 0,
             async init() {
-                const employee_id = localStorage.getItem('employee_id');
+                const employee_id = localStorage.getItem('employee_id') || localStorage.getItem('user_id');
                 if (!employee_id) {
-                    console.warn('No employee_id found in localStorage. Redirecting to login if needed.');
+                    console.warn('No employee_id or user_id found in localStorage. Redirecting to login if needed.');
                     return;
                 }
 
@@ -257,10 +257,10 @@
                         return;
                     }
                     const data = await res.json();
-                    this.classes = data.classes || 0;
-                    this.students = data.students || 0;
-                    this.modules = data.modules || 0;
-                    this.activities = data.activities || 0;
+                    this.classes = data.classes_count || 0;
+                    this.students = data.student_count || 0;
+                    this.modules = data.module_count || 0;
+                    this.activities = data.activity_count || 0;
                 } catch (err) {
                     console.error('Error fetching kpi data:', err);
                 }
@@ -283,7 +283,7 @@
                 return this.subject.trim() && this.sections >= 1 && this.sum === 100;
             },
             async submitClass() {
-                const teacher_id = Number(localStorage.getItem('employee_id')) || null;
+                const teacher_id = Number(localStorage.getItem('employee_id') || localStorage.getItem('user_id')) || null;
                 if (!teacher_id) {
                     alert('Teacher ID is missing. Please log in again.');
                     return;

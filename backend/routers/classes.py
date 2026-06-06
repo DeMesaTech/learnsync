@@ -156,10 +156,12 @@ async def get_teacher_dashboard(teacher_id: int):
             (teacher_id,)
         )
         student_count = cur.fetchone()['student_count'] or 0
-        #3. Count Activity Submissions in all subjects
+        #3. Count activity submissions in all subjects
         cur.execute(
-            '''SELECT COUNT(a.activity_id) AS submission_count
-            FROM class c JOIN activity a ON a.class_id = c.class_id
+            '''SELECT COUNT(s.act_submission_id) AS submission_count
+            FROM class c
+            JOIN activity a ON a.class_id = c.class_id
+            JOIN act_submission s ON s.activity_id = a.activity_id
             WHERE c.employee_id = %s''',
             (teacher_id,)
         )
@@ -172,12 +174,30 @@ async def get_teacher_dashboard(teacher_id: int):
             (teacher_id,)
         )
         quiz_count = cur.fetchone()['quiz_count'] or 0
+        #5. Count Modules created
+        cur.execute(
+            '''SELECT COUNT(m.module_id) AS module_count
+            FROM class c JOIN module m ON m.class_id = c.class_id
+            WHERE c.employee_id = %s''',
+            (teacher_id,)
+        )
+        module_count = cur.fetchone()['module_count'] or 0
+        #6. Count Activities created
+        cur.execute(
+            '''SELECT COUNT(a.activity_id) AS activity_count
+            FROM class c JOIN activity a ON a.class_id = c.class_id
+            WHERE c.employee_id = %s''',
+            (teacher_id,)
+        )
+        activity_count = cur.fetchone()['activity_count'] or 0
 
         return TeacherDashboardResponse(
             classes_count=classes_count,
             student_count=student_count,
             submission_count=submission_count,
-            quiz_count=quiz_count
+            quiz_count=quiz_count,
+            module_count=module_count,
+            activity_count=activity_count
         )
     except psycopg2.Error as e:
         conn.rollback()

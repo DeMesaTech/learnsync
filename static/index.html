@@ -211,6 +211,9 @@
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('name', data.name);
+                        if (data.role === 'teacher') {
+                            localStorage.setItem('employee_id', data.user_id);
+                        }
 
                         // Redirect based on role
                         if (data.role === 'teacher') {
@@ -446,6 +449,9 @@
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('name', data.name);
+                        if (data.role === 'teacher') {
+                            localStorage.setItem('employee_id', data.user_id);
+                        }
 
                         // Redirect based on role
                         if (data.role === 'teacher') {
