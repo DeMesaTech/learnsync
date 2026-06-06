@@ -311,7 +311,7 @@
                                 <option :value="className" x-text="className"></option>
                             </template>
                         </select>
-                        <select class="lms-select" x-model="selectedSection" aria-label="Section">
+                        <select class="lms-select" x-model="selectedSection" x-ref="sectionSelect" aria-label="Section">
                             <template x-for="section in sections" :key="section">
                                 <option :value="section" x-text="'Section ' + section"></option>
                             </template>
@@ -379,8 +379,7 @@
                     this.modal = 'classSelector';
                     if (scope === 'section') {
                         this.$nextTick(() => {
-                            const selects = document.querySelectorAll('.lms-modal select');
-                            selects[1]?.focus();
+                            this.$refs.sectionSelect?.focus();
                         });
                     }
                 },
