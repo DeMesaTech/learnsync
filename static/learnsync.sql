@@ -3,7 +3,7 @@
 BEGIN;
 
 
-CREATE TABLE IF NOT EXISTS public."User"
+CREATE TABLE IF NOT EXISTS public.user
 (
     user_id serial NOT NULL,
     name character varying(100) COLLATE pg_catalog."default",
@@ -12,14 +12,14 @@ CREATE TABLE IF NOT EXISTS public."User"
     password character varying(255) COLLATE pg_catalog."default" NOT NULL,
     role character varying(50) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "User_pkey" PRIMARY KEY (user_id),
-    CONSTRAINT "User_email_key" UNIQUE (email)
+    CONSTRAINT "user_pkey" PRIMARY KEY (user_id),
+    CONSTRAINT "user_email_key" UNIQUE (email)
 );
 
 CREATE TABLE IF NOT EXISTS public.act_recitation
 (
     act_recitation_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     title character varying(255) COLLATE pg_catalog."default",
     score numeric(5, 2),
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.act_submission
 CREATE TABLE IF NOT EXISTS public.activity
 (
     activity_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     title character varying(255) COLLATE pg_catalog."default",
     description text COLLATE pg_catalog."default",
     due_date timestamp without time zone,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.activity
 CREATE TABLE IF NOT EXISTS public.activity_grade
 (
     activity_grade_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     activity_grade_total numeric(5, 2),
     activity_grd numeric(5, 2),
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS public.ai_query
 CREATE TABLE IF NOT EXISTS public.attendance
 (
     attendance_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     is_present boolean,
     score numeric(5, 2),
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.attendance
 CREATE TABLE IF NOT EXISTS public.attendance_grade
 (
     attendance_grade_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     attendance_total numeric(5, 2),
     attendance_grd numeric(5, 2),
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS public.attendance_grade
 
 CREATE TABLE IF NOT EXISTS public.class
 (
-    class_id serial NOT NULL,
+    class_id varchar(5) NOT NULL,
     employee_id integer,
     section_id integer,
     subject character varying(100) COLLATE pg_catalog."default",
@@ -105,14 +105,14 @@ CREATE TABLE IF NOT EXISTS public.enrollment
 (
     enrollment_id serial NOT NULL,
     student_id integer,
-    class_id integer,
+    class_id varchar(5),
     CONSTRAINT enrollment_pkey PRIMARY KEY (enrollment_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.grade
 (
     grade_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     attendance_grade_id integer,
     activity_grade_id integer,
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS public.grade
 CREATE TABLE IF NOT EXISTS public.grading_policy
 (
     policy_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     attendance_weight numeric(5, 2),
     recit_weight numeric(5, 2),
     quizzes_weight numeric(5, 2),
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS public.grading_policy
 CREATE TABLE IF NOT EXISTS public.module
 (
     module_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     user_id integer,
     title character varying(255) COLLATE pg_catalog."default",
     file_path character varying(255) COLLATE pg_catalog."default",
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS public.question
 CREATE TABLE IF NOT EXISTS public.quiz
 (
     quiz_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     title character varying(255) COLLATE pg_catalog."default",
     date_created timestamp without time zone,
     CONSTRAINT quiz_pkey PRIMARY KEY (quiz_id)
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS public.quiz
 CREATE TABLE IF NOT EXISTS public.quiz_grade
 (
     quiz_grade_id serial NOT NULL,
-    class_id integer,
+    class_id varchar(5),
     student_id integer,
     quiz_grade_total numeric(5, 2),
     quiz_grd numeric(5, 2),
@@ -294,7 +294,7 @@ ALTER TABLE IF EXISTS public.activity_grade
 
 ALTER TABLE IF EXISTS public.ai_query
     ADD CONSTRAINT ai_query_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."User" (user_id) MATCH SIMPLE
+    REFERENCES public."user" (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
@@ -408,7 +408,7 @@ ALTER TABLE IF EXISTS public.module
 
 ALTER TABLE IF EXISTS public.module
     ADD CONSTRAINT module_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."User" (user_id) MATCH SIMPLE
+    REFERENCES public."user" (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
@@ -485,7 +485,7 @@ ALTER TABLE IF EXISTS public.section
 
 ALTER TABLE IF EXISTS public.student
     ADD CONSTRAINT student_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."User" (user_id) MATCH SIMPLE
+    REFERENCES public."user" (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS student_user_id_key
@@ -508,7 +508,7 @@ ALTER TABLE IF EXISTS public.student_answer
 
 ALTER TABLE IF EXISTS public.teacher
     ADD CONSTRAINT teacher_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."User" (user_id) MATCH SIMPLE
+    REFERENCES public."user" (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS teacher_user_id_key

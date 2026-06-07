@@ -6,7 +6,7 @@ from fastapi import HTTPException
 # ============= DATABASE CONFIGURATION =============
 DB_CONFIG = {
     "host": "localhost",
-    "database": "school_management_system",
+    "database": "lms",
     "user": "postgres",
     "password": "logiclab",
     "port": "5432"

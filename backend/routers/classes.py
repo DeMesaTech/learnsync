@@ -1,5 +1,5 @@
 """Class management endpoints"""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -33,7 +33,7 @@ async def create_class(request: CreateClassRequest):
         cur.execute(
             '''SELECT t.employee_id, u.name
                FROM teacher t
-               JOIN "User" u ON t.user_id = u.user_id
+               JOIN "user" u ON t.user_id = u.user_id
                WHERE u.user_id = %s AND u.role = %s''',
             (request.teacher_id, 'teacher')
         )
@@ -66,19 +66,25 @@ async def create_class(request: CreateClassRequest):
 
         # Insert class records for each section and attach grading policy
         class_id = None
-        for section_id in section_ids:
-            cur.execute(
-                '''INSERT INTO class (employee_id, section_id, subject, subj_code)
-                   VALUES (%s, %s, %s, %s)
-                   RETURNING class_id''',
-                (teacher_employee_id, section_id, request.subject, request.subject_code)
-            )
-            class_id = cur.fetchone()['class_id']
+        """for i, section_id in enumerate(section_ids):
+            # If multiple sections, append letter to provided class_id to ensure uniqueness per section
+            if request.sections > 1:
+                row_class_id = f"{request.class_id}{letters[i]}"
+            else:
+                row_class_id = request.class_id
+"""
+        cur.execute(
+            '''INSERT INTO class (class_id, employee_id, section_id, subject)
+                VALUES (%s, %s, %s, %s)
+                RETURNING class_id''',
+            (request.class_id, teacher_employee_id, section_id, request.subject)
+        )
+        class_id = cur.fetchone()['class_id']
 
-            cur.execute("""
-            INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
-            VALUES (%s, %s, %s, %s, %s)
-            """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
+        cur.execute("""
+        INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
+        VALUES (%s, %s, %s, %s, %s)
+        """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
 
 
         conn.commit()
@@ -103,6 +109,87 @@ async def create_class(request: CreateClassRequest):
         cur.close()
         conn.close()
 
+
+# Get details of a specific class
+@classes_router.get("/{class_id}")
+async def get_class_details(class_id: str):
+    """Get details of a specific class"""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            '''SELECT c.class_id,
+                      c.subject,
+                      s.section,
+                      gp.attendance_weight,
+                      gp.quizzes_weight,
+                      gp.recit_weight AS activities_weight,
+                      gp.exam_weight,
+                      t.employee_id AS teacher_id,
+                      u.name as teacher_name
+               FROM class c
+               JOIN section s ON s.section_id = c.section_id
+               JOIN teacher t ON c.employee_id = t.employee_id
+               JOIN "user" u ON t.user_id = u.user_id
+               LEFT JOIN grading_policy gp ON gp.class_id = c.class_id
+               WHERE c.class_id = %s''',
+            (class_id,)
+        )
+
+        class_data = cur.fetchone()
+        if not class_data:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        return class_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+# Enroll students into a specific class
+@classes_router.post("/{class_id}/enroll")
+async def enroll_students(class_id: str, payload: dict = Body(...)):
+    """Enroll a list of student IDs into the given class_id.
+
+    Expects JSON: { "student_ids": [123, 456, ...] }
+    """
+    student_ids = payload.get('student_ids')
+    if not isinstance(student_ids, list):
+        raise HTTPException(status_code=400, detail="student_ids must be a list of integers")
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        enrolled = 0
+        for sid in student_ids:
+            try:
+                sid_int = int(sid)
+            except Exception:
+                continue
+
+            # ensure student record exists (insert if missing)
+            cur.execute('''INSERT INTO student (student_id) VALUES (%s) ON CONFLICT (student_id) DO NOTHING''', (sid_int,))
+
+            # check existing enrollment
+            cur.execute('SELECT 1 FROM enrollment WHERE student_id = %s AND class_id = %s', (sid_int, class_id))
+            if not cur.fetchone():
+                cur.execute('INSERT INTO enrollment (student_id, class_id) VALUES (%s, %s)', (sid_int, class_id))
+                enrolled += 1
+
+        conn.commit()
+        return {"enrolled": enrolled}
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ======================================
 # Get all classes for a teacher
 @classes_router.get("/teacher/{teacher_id}")
 async def get_teacher_classes(teacher_id: int):
@@ -116,13 +203,22 @@ async def get_teacher_classes(teacher_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            '''SELECT c.class_id, c.subject, s.section FROM class c
-            JOIN section s ON s.section_id = c.section_id
-            WHERE c.employee_id = %s'''
-            ,(teacher_id,)
+            '''SELECT c.class_id,
+                      c.subject,
+                      s.section,
+                      COALESCE((SELECT COUNT(*) FROM enrollment e WHERE e.class_id = c.class_id), 0) AS student_count,
+                      COALESCE((SELECT COUNT(*) FROM module m WHERE m.class_id = c.class_id), 0) AS module_count,
+                      COALESCE((SELECT COUNT(*) FROM activity a WHERE a.class_id = c.class_id), 0) AS activity_count,
+                      COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
+               FROM class c
+               JOIN section s ON s.section_id = c.section_id
+               WHERE c.employee_id = %s
+               ORDER BY c.subject, s.section''',
+            (teacher_id,)
         )
         
         classes = cur.fetchall()
+
         return {"classes": classes or []}
         
     except psycopg2.Error as e:
@@ -131,39 +227,9 @@ async def get_teacher_classes(teacher_id: int):
         cur.close()
         conn.close()
 
-# Get details of a specific class
-@classes_router.get("/{class_id}")
-async def get_class_details(class_id: int):
-    """Get details of a specific class"""
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        cur.execute(
-            '''SELECT c.class_id, c.subject, c.section_count, c.attendance_weight,
-                      c.quizzes_weight, c.activities_weight, c.exam_weight,
-                      c.employee_id AS teacher_id, u.name as teacher_name,
-                      c.created_at
-               FROM class c
-               JOIN "User" u ON c.employee_id = u.user_id
-               WHERE c.class_id = %s''',
-            (class_id,)
-        )
-        
-        class_data = cur.fetchone()
-        if not class_data:
-            raise HTTPException(status_code=404, detail="Class not found")
-        
-        return ClassResponse(**class_data)
-        
-    except psycopg2.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    finally:
-        cur.close()
-        conn.close()
-
+# ======================================
 # Teacher Dashboard Endpoint
-@classes_router.get("/teacher/{teacher_id}/dashboard", response_model=TeacherDashboardResponse)
+@classes_router.get("/teacher/{teacher_id}/dashboard")
 async def get_teacher_dashboard(teacher_id: int):
     conn = get_db_connection()
     try:
@@ -201,6 +267,14 @@ async def get_teacher_dashboard(teacher_id: int):
             (teacher_id,)
         )
         quiz_count = cur.fetchone()['quiz_count'] or 0
+        #4. Count modules created
+        cur.execute(
+            '''SELECT COUNT(m.module_id) AS module_count
+            FROM class c JOIN module m ON m.class_id = c.class_id
+            WHERE c.employee_id = %s''',
+            (teacher_id,)
+        )
+        module_count = cur.fetchone()['module_count'] or 0
 
         return TeacherDashboardResponse(
             teacher_id=teacher_id,
@@ -208,8 +282,8 @@ async def get_teacher_dashboard(teacher_id: int):
             student_count=student_count,
             submission_count=submission_count,
             quiz_count=quiz_count,
-            module_count=143,
-            activity_count=69
+            module_count=module_count,
+            activity_count=submission_count
         )
     except psycopg2.Error as e:
         conn.rollback()
@@ -217,3 +291,4 @@ async def get_teacher_dashboard(teacher_id: int):
     finally:
         cur.close()
         conn.close()
+

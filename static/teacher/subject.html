@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="teacherSubjectApp()">
+    <div class="pt-20 flex min-h-screen" x-data="teacherSubjectApp()" x-init="init()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,19 +100,20 @@
         <main class="lms-page">
             <section class="lms-hero">
                 <div>
-                    <h2 class="lms-title">Capstone Research Project 1</h2>
-                    <p class="lms-subtitle">Section 3B class workspace for announcements, modules, activities, quizzes,
-                        visibility, submissions, and class-level grading setup.</p>
+                    <h2 class="lms-title" x-text="subjectTitle || 'Class Workspace'"></h2>
+                    <p class="lms-subtitle" x-text="enrollSection ? 'Section ' + enrollSection + ' class workspace for announcements, modules, activities, quizzes, visibility, submissions, and class-level grading setup.' : 'Class workspace for announcements, modules, activities, quizzes, visibility, submissions, and class-level grading setup.'"></p>
                 </div>
             </section>
 
-            <section class="lms-grid lms-grid-4 mb-4">
+            <section class="lms-grid lms-grid-4 mb-4"><!--KPIs-->
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
-                        </svg></span><strong>32</strong><span>Students</span><button class="lms-btn lms-btn-small"
-                        type="button" @click="modal = 'enrollment'">Enroll</button></div>
+                        </svg></span><strong>32</strong><span>Students</span>
+                        <button class="lms-btn lms-btn-small" type="button" @click="modal = 'enrollment'">
+                        Enroll</button>
+                    </div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -133,8 +134,8 @@
                         type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
             </section>
 
-            <section class="lms-toolbar">
-                <select class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
+            <section class="lms-toolbar"><!-- Section Selector -->
+                <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
                     <option value="all">All sections</option>
                     <template x-for="section in sections" :key="section">
                         <option :value="section" x-text="'Section ' + section"></option>
@@ -285,6 +286,21 @@
                 </div>
 
                 <div class="lms-grid">
+                    <template x-if="modal === 'enrollment'">
+                        <div class="lms-grid">
+                            <p class="lms-meta m-0" x-text="subjectTitle + ' enrollment'"></p>
+                            <select class="lms-select" aria-label="Enrollment section" x-model="enrollSection"><!-- Section Selector -->
+                                <template x-for="section in sections" :key="section">
+                                    <option :value="section" x-text="section"></option>
+                                </template>
+                            </select>
+                            <textarea class="lms-input" x-ref="enrollInput" rows="7"
+                                placeholder="Paste one student ID per line, or CSV rows: Student ID, Last Name, First Name"></textarea>
+                            <p class="lms-meta m-0">Students are added directly to the selected class section.</p>
+                            <button class="lms-btn" type="button" @click="enrollStudents()">Enroll Students</button>
+                        </div>
+                    </template>
+
                     <template x-if="modal === 'classModule'">
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Module title">
@@ -374,22 +390,6 @@
                                 <label class="lms-choice"><input type="checkbox"><span>Section 3C</span></label>
                             </div>
                             <button class="lms-btn" type="button">Create Activity</button>
-                        </div>
-                    </template>
-
-                    <template x-if="modal === 'enrollment'">
-                        <div class="lms-grid">
-                            <p class="lms-meta m-0">Capstone Research Project 1 enrollment</p>
-                            <select class="lms-select" aria-label="Enrollment section">
-                                <option>Section 3B</option>
-                                <option>Section 3A</option>
-                                <option>Section 3C</option>
-                            </select>
-                            <textarea class="lms-input" rows="7"
-                                placeholder="Paste one student ID per line, or CSV rows: Student ID, Last Name, First Name"></textarea>
-                            <p class="lms-meta m-0">Students are added directly to this class. No subject selection is
-                                needed here.</p>
-                            <button class="lms-btn" type="button">Enroll Students</button>
                         </div>
                     </template>
 
@@ -525,11 +525,11 @@
                     badgeClass: 'warn',
                     title: 'Bring printed Chapter 1 outline next meeting',
                     meta: 'Posted Oct 18, 2026 by Prof. Gilda Taupa',
-                    visibility: 'Visible to Sections 3A and 3B',
-                    sections: ['3A', '3B']
+                    visibility: 'Visible to Sections ' + ['3A ', '3B ','3C'],
+                    sections: ['3A', '3B', '3C']
                 },
                 {
-                    subject: 'Consultation',
+                    subject: 'Capstone',
                     badgeClass: 'good',
                     title: 'Group consultation schedule has been updated',
                     meta: 'Posted Oct 16, 2026 by Prof. Gilda Taupa',
@@ -544,10 +544,103 @@
                 activeTab: 'modules',
                 showAnnouncements: true,
                 sectionFilter: 'all',
-                sections: ['3A', '3B', '3C'],
+                sections: [],
+                teacherClasses: [],
+                currentClassId: null,
+                group_id: null,
+                subjectTitle: '',
+                enrollSection: '',
                 announcements,
                 selectedAnnouncement: announcements[0],
                 selectedManagement: { type: '', title: '' },
+                
+
+                // Initialize by loading class details and teacher classes
+                async init() {
+                    // Prevent double initialization when Alpine may call init more than once
+                    if (this._initialized) {
+                        console.log('teacherSubjectApp.init already ran; skipping.');
+                        return;
+                    }
+                    this._initialized = true;
+                    try {
+                        const params = new URLSearchParams(window.location.search);
+                        const rawClassParam = params.get('class_id');
+                        const classId = rawClassParam; // No longer stripping section suffixes, as class_id should match the API format directly
+                        let groupParam = params.get('subj_code');
+
+                        // If a class_id was provided, try loading that specific class first.
+                        if (classId) {
+                            this.currentClassId = classId;
+                            const clsRes = await fetch(`/api/classes/${encodeURIComponent(classId)}`);
+                            console.log('Class details response', clsRes);
+                            if (clsRes.ok) {
+                                const classData = await clsRes.json();
+                                console.log('Class details data', classData);
+                                // Use subject as the group identifier so all sections are included
+                                this.group_id = classData.subject || classData.class_id;
+                                this.subjectTitle = classData.subject || '';
+                                this.enrollSection = classData.section || '';
+
+                                const teacherId = classData.teacher_id || localStorage.getItem('teacher_id');
+                                if (teacherId) {
+                                    const res = await fetch(`/api/classes/teacher/${teacherId}`);
+                                    if (res.ok) {
+                                        const data = await res.json();
+                                        this.teacherClasses = data.classes || [];
+                                    } else {
+                                        console.error('Failed to load teacher classes', await res.text());
+                                    }
+                                }
+                            } else {
+                                // If fetching a single class failed, treat the provided value as a group identifier
+                                // and fall through to loading teacher classes.
+                                console.warn('Class fetch failed, treating class_id as group identifier', await clsRes.text());
+                                groupParam = classId;
+                                this.currentClassId = null;
+                            }
+
+                        }
+
+                        // If subj_code param is provided (group view), load teacher classes and derive sections
+                        if (!this.currentClassId && groupParam) {
+                            this.group_id = groupParam;
+                            // try to get teacher id from localStorage
+                            const teacherId = localStorage.getItem('teacher_id');
+                            if (teacherId) {
+                                const res = await fetch(`/api/classes/teacher/${teacherId}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    this.teacherClasses = data.classes || [];
+                                    const match = this.teacherClasses.find(c => c.subject === this.group_id || c.class_id === this.group_id);
+                                    if (match) {
+                                        this.subjectTitle = match.subject || this.subjectTitle;
+                                        this.enrollSection = match.section || this.enrollSection;
+                                    }
+                                } else {
+                                    console.error('Failed to load teacher classes', await res.text());
+                                }
+                            } else {
+                                console.warn('No teacher_id in localStorage to load classes for group_id');
+                            }
+
+                        } else if (!this.currentClassId && !groupParam) {
+                            console.warn('No class_id or subj_code provided in URL', { rawClassParam, groupParam });
+                        }
+
+                        // Populate sections from teacherClasses filtered by group_id
+                        if (this.teacherClasses.length) {
+                            const sections = this.teacherClasses
+                                .filter(c => c.subject === this.group_id || c.class_id === this.group_id)
+                                .map(c => c.section);
+                            this.sections = [...new Set(sections)];
+                            if (!this.enrollSection && this.sections.length) this.enrollSection = this.sections[0];
+                        }
+                    } catch (err) {
+                        console.error('Init error', err);
+                    }
+                },
+
                 openAnnouncementManagement(announcement) {
                     this.selectedAnnouncement = announcement;
                     this.modal = 'manageAnnouncement';
@@ -559,6 +652,38 @@
                 visibleFor(sections) {
                     return this.sectionFilter === 'all' || sections.includes(this.sectionFilter);
                 },
+
+                // Parse textarea and call enroll endpoint
+                async enrollStudents() {
+                    const text = this.$refs.enrollInput ? this.$refs.enrollInput.value : '';
+                    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                    const student_ids = lines.map(l => {
+                        const first = l.split(',')[0].trim();
+                        const n = Number(first);
+                        return isNaN(n) ? null : n;
+                    }).filter(n => n !== null);
+
+                    if (!student_ids.length) { alert('No valid student IDs found'); return; }
+
+                    const target = this.teacherClasses.find(c => (c.subject === this.group_id || c.class_id === this.group_id) && c.section === this.enrollSection);
+                    if (!target) { alert('Target class not found for selected section'); return; }
+
+                    try {
+                        const res = await fetch(`/api/classes/${target.class_id}/enroll`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ student_ids })
+                        });
+                        if (!res.ok) { const txt = await res.text(); throw new Error(txt); }
+                        const data = await res.json();
+                        alert(`Enrolled ${data.enrolled} students`);
+                        if (this.$refs.enrollInput) this.$refs.enrollInput.value = '';
+                    } catch (err) {
+                        console.error(err);
+                        alert('Enroll failed: ' + (err.message || err));
+                    }
+                },
+
                 classGrade: {
                     published: false,
                     courseGrade: 89.40,

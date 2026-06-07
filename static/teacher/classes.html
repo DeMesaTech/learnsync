@@ -131,76 +131,52 @@
 
             </section>
             <!-- CLASSES -->
-            <section class="lms-grid lms-grid-3" x-data="classes()" x-init="init()">
-                <template x-for="cls in classes" :key="cls.class_id">
-                    <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card lms-card-button">
-                        <span class="lms-badge">Class</span>
-                        <h3 class="mt-3" x-text="cls.subject"></h3>
-                        <p x-text="cls.section"></p>
-                        <p class="lms-meta">No Due</p>
-                    </a>
-                </template>
-
-            </section>
-
-            <section class="lms-table-card mt-4">
-                <div class="lms-table-head">
-                    <h3>Active Classes</h3><span class="lms-badge">4 records</span>
-                </div>
-                <div class="lms-table-wrap">
-                    <table class="lms-table">
-                        <thead>
-                            <tr>
-                                <th>Class ID</th>
-                                <th>Subject</th>
-                                <th>Sections</th>
-                                <th>Students</th>
-                                <th>Modules</th>
-                                <th>Activities</th>
-                                <th>Quizzes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>CLS-001</td>
-                                <td>Capstone Research Project 1</td>
-                                <td>3A, 3B</td>
-                                <td>64</td>
-                                <td>5</td>
-                                <td>4</td>
-                                <td>2</td>
-                            </tr>
-                            <tr>
-                                <td>CLS-002</td>
-                                <td>System Analysis &amp; Design</td>
-                                <td>3B, 3C</td>
-                                <td>62</td>
-                                <td>3</td>
-                                <td>3</td>
-                                <td>2</td>
-                            </tr>
-                            <tr>
-                                <td>CLS-003</td>
-                                <td>Web Development</td>
-                                <td>3A, 3B</td>
-                                <td>68</td>
-                                <td>4</td>
-                                <td>5</td>
-                                <td>1</td>
-                            </tr>
-                            <tr>
-                                <td>CLS-004</td>
-                                <td>Database Management Systems</td>
-                                <td>3A</td>
-                                <td>30</td>
-                                <td>2</td>
-                                <td>2</td>
-                                <td>1</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+             <section x-data="classes()" x-init="init()">
+                 <section class="lms-grid lms-grid-3" >
+                     <template x-for="cls in groupedClasses" :key="cls.class_id">
+                         <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card lms-card-button">
+                             <span class="lms-badge">Class</span>
+                             <p class="text-xs text-slate-500" x-text="cls.class_id"></p>
+                             <h3 class="mt-3" x-text="cls.subject"></h3>
+                             <p x-text="cls.sections.join(', ')" class="mb-1"></p>
+                             <p class="lms-meta" x-text="`${cls.sections.length} Sections`"></p>
+                         </a>
+                     </template>
+                 </section>
+                 <section class="lms-table-card mt-4">
+                     <div class="lms-table-head">
+                         <h3>Active Classes</h3><span class="lms-badge">4 records</span>
+                     </div>
+                     <div class="lms-table-wrap">
+                         <table class="lms-table">
+                            <thead>
+                                <tr>
+                                    <th>Class ID</th>
+                                    <th>Subject</th>
+                                    <th>Sections</th>
+                                    <th>Students</th>
+                                    <th>Modules</th>
+                                    <th>Activities</th>
+                                    <th>Quizzes</th>
+                                </tr>
+                            </thead>
+                                <template x-for="cls in groupedClasses" :key="cls.class_id">
+                                    <tbody>
+                                    <tr>
+                                        <td x-text="cls.class_id"></td>
+                                        <td x-text="cls.subject"></td>
+                                        <td x-text="cls.sections.join(', ')"></td>
+                                        <td x-text="cls.students"></td>
+                                        <td x-text="cls.modules"></td>
+                                        <td x-text="cls.activities"></td>
+                                        <td x-text="cls.quizzes"></td>
+                                    </tr>
+                                    </tbody>
+                                </template>
+                        </table>
+                     </div>
+                 </section>
+             </section>
 
             
         </main>
@@ -219,9 +195,9 @@
 
                 <div class="lms-grid">
                     <template x-if="modal === 'class'">
-                        <div class="lms-grid" x-data="{ subject: '', subject_code: '', year: 1, sections: 1, attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
+                        <div class="lms-grid" x-data="{ subject: '', class_id: '', year: 1, sections: 1, attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
                             <input class="lms-input" placeholder="Subject" x-model="subject">
-                            <input class="lms-input" placeholder="Subject Code" x-model="subject_code">
+                            <input class="lms-input" placeholder="Class ID" x-model="class_id">
                             <input class="lms-input" type="number" min="1" placeholder="Year" x-model="year">
                             <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model="sections">
                             <div class="lms-grid lms-grid-4">
@@ -277,40 +253,49 @@
     function classes() {
     return {
         classes: [],
+        groupedClasses: [],
 
         async init() {
-            const user_id = localStorage.getItem('user_id');
             const teacher_id = localStorage.getItem('teacher_id');
 
-            if (!user_id) {
-                console.warn('No user_id found.');
-                return;
-            }
+            const res = await fetch(`/api/classes/teacher/${teacher_id}`);
+            const data = await res.json();
+            this.classes = data.classes || [];
 
-            const dashboardTeacherId = teacher_id || user_id;
-
-            try {
-                const res = await fetch(
-                    `/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}`
-                );
-
-                if (!res.ok) {
-                    console.error('Failed to load classes', await res.text());
-                    return;
+            const groups = {};
+            this.classes.forEach(cls => {
+                // Group by subject so that all sections for the same subject are combined
+                const key = cls.subject || cls.class_id;
+                if (!groups[key]) {
+                    groups[key] = {
+                        // use the first encountered class_id as a representative id for links
+                        class_id: cls.class_id,
+                        subject: cls.subject,
+                        sections: [],
+                        students: 0,
+                        modules: 0,
+                        activities: 0,
+                        quizzes: 0
+                    };
                 }
 
-                const data = await res.json();
-                // API may return either an array or an object wrapper { classes: [...] }
-                this.classes = Array.isArray(data) ? data : (data.classes || []);
+                const group = groups[key];
+                if (cls.section && !group.sections.includes(cls.section)) {
+                    group.sections.push(cls.section);
+                }
+                group.students += Number(cls.student_count || 0);
+                group.modules += Number(cls.module_count || 0);
+                group.activities += Number(cls.activity_count || 0);
+                group.quizzes += Number(cls.quiz_count || 0);
+            });
 
-                console.log('classes loaded:', this.classes);
-            } catch (err) {
-                console.error('Error fetching classes:', err);
-            }
+            // Optionally sort sections for consistent display
+            Object.values(groups).forEach(g => g.sections.sort());
+            console.log('Grouped classes data', groups);    
+            this.groupedClasses = Object.values(groups);
         }
     }
-}
-    function modalInput() {
+}function modalInput() {
         const modal = document.querySelector('.lms-modal');
         if (!modal) {
             alert('Modal not found.');
@@ -323,7 +308,7 @@
         };
 
         const subject = getInputValue('Subject');
-        const subject_code = getInputValue('Subject Code');
+        const subject_code = getInputValue('Class ID');
         const year = Number(getInputValue('Year'));
         const sectionsValue = Number(getInputValue('Number of sections'));
         const attendance = Number(getInputValue('Attendance %'));
@@ -350,7 +335,7 @@
             return;
         }
         if (!subject_code) {
-            alert('Please enter the subject code.');
+            alert('Please enter the class ID.');
             return;
         }
 
@@ -367,7 +352,7 @@
         const classload = {
             teacher_id,
             subject,
-            subject_code,
+            class_id: subject_code,
             year,
             sections,
             attendance,

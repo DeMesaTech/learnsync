@@ -27,7 +27,7 @@ async def login(request: LoginRequest):
         
         # Query user by email and role
         cur.execute(
-            'SELECT user_id, email, password, role, name FROM "User" WHERE email = %s AND role = %s',
+            'SELECT user_id, email, password, role, name FROM "user" WHERE email = %s AND role = %s',
             (request.email, request.role)
         )
         user = cur.fetchone()
@@ -94,7 +94,7 @@ async def signup(request: SignupRequest):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         # Check if email already exists
-        cur.execute('SELECT user_id FROM "User" WHERE email = %s', (request.email,))
+        cur.execute('SELECT user_id FROM "user" WHERE email = %s', (request.email,))
         if cur.fetchone():
             raise HTTPException(
                 status_code=400,
@@ -107,7 +107,7 @@ async def signup(request: SignupRequest):
         
         # Insert new user
         cur.execute(
-            '''INSERT INTO "User" (email, name, password, role, created_at)
+            '''INSERT INTO "user" (email, name, password, role, created_at)
                VALUES (%s, %s, %s, %s, %s)
                RETURNING user_id''',
             (request.email, full_name, hashed_password, request.role, datetime.now())
@@ -161,7 +161,7 @@ async def get_user_profile(user_id: int):
         
         # Get user info
         cur.execute(
-            'SELECT user_id, name, email, role FROM "User" WHERE user_id = %s',
+            'SELECT user_id, name, email, role FROM "user" WHERE user_id = %s',
             (user_id,)
         )
         user = cur.fetchone()
