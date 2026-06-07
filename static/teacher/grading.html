@@ -306,12 +306,12 @@
                 <template x-if="modal === 'classSelector'">
                     <div class="lms-grid">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
-                        <select class="lms-select" x-model="selectedClass" aria-label="Class">
+                        <select class="lms-select" x-model="selectedClass" aria-label="Class" x-ref="classSelect">
                             <template x-for="className in classes" :key="className">
                                 <option :value="className" x-text="className"></option>
                             </template>
                         </select>
-                        <select class="lms-select" x-model="selectedSection" aria-label="Section">
+                        <select class="lms-select" x-model="selectedSection" aria-label="Section" x-ref="sectionSelect">
                             <template x-for="section in sections" :key="section">
                                 <option :value="section" x-text="'Section ' + section"></option>
                             </template>
@@ -370,38 +370,21 @@
                 classes: ['Capstone Research Project 1', 'Ethics', 'Web Systems and Technologies'],
                 sections: ['3A', '3B', '3C'],
                 periods: ['Midterm', 'Final'],
-                editMode: {
-                    attendance: false,
-                    activity: false,
-                    quiz: false
-                },
-                openSelector(scope) {
-                    this.modal = 'classSelector';
-                    if (scope === 'section') {
-                        this.$nextTick(() => {
-                            const selects = document.querySelectorAll('.lms-modal select');
-                            selects[1]?.focus();
-                        });
-                    }
-                },
+                editMode: { attendance: false, activity: false, quiz: false },
+                openSelector(scope) { this.modal = 'classSelector'; this.$nextTick(() => { if (scope === 'section') { this.$refs.sectionSelect?.focus(); } else { this.$refs.classSelect?.focus(); } }); },
                 focusNextRow(event) {
                     const target = event.target;
                     if (!target.matches('input, select, textarea')) return;
-
                     const cell = target.closest('td');
                     const row = target.closest('tr');
                     if (!cell || !row) return;
-
-                    const rows = Array.from(row.parentElement.querySelectorAll('tr'));
+                    const rows = Array.from(row.closest('tbody').querySelectorAll('tr'));
                     const nextRow = rows[rows.indexOf(row) + 1];
                     if (!nextRow) return;
-
                     const nextCell = nextRow.children[cell.cellIndex];
                     const nextField = nextCell?.querySelector('input, select, textarea');
                     if (!nextField || nextField.disabled) return;
-
-                    nextField.focus();
-                    if (nextField.select) nextField.select();
+                    nextField.focus(); if (nextField.select) nextField.select();
                 }
             };
         }

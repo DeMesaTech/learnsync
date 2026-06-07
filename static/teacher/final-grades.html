@@ -259,14 +259,12 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('grades', {
-                visible: localStorage.getItem('gradesVisible') === 'true' || false
-            })
-
-            // Save change automatically
+                visible: localStorage.getItem('gradesVisible') === 'true'
+            });
             Alpine.effect(() => {
-                localStorage.setItem('gradesVisible', Alpine.store('grades').visible)
-            })
-        })
+                localStorage.setItem('gradesVisible', Alpine.store('grades').visible);
+            });
+        });
     </script>
 </body>
 

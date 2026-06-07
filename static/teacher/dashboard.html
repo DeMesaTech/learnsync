@@ -204,40 +204,32 @@
             </section>
         </main>
     </div>
-</body>
-<script>
-    console.log('Teacher dashboard script loaded \n User ID from localStorage:', localStorage.getItem('user_id'));
-    function kpi() {
-        return {
-            nums: {},
-            async init() {
-                const user_id = localStorage.getItem('user_id');
-                const teacher_id = localStorage.getItem('teacher_id');
-                // subject for change
-                if (!user_id) {
-                    console.warn('No user_id found in localStorage. Redirect to login if needed.');
-                    return;
-                }
-
-                const dashboardTeacherId = teacher_id || user_id;
-                if (!teacher_id) {
-                    console.warn('No teacher_id found in localStorage; using user_id as fallback.');
-                }
-                try {
-                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}/dashboard`);
-                    if (!res.ok) {
-                        console.error('Failed to load kpi data', await res.text());
+    <script>
+        function kpi() {
+            return {
+                nums: {},
+                async init() {
+                    const user_id = localStorage.getItem('user_id');
+                    const teacher_id = localStorage.getItem('teacher_id');
+                    if (!user_id) {
+                        console.warn('No user_id found in localStorage.');
                         return;
                     }
-                    this.nums = await res.json();
-                    console.log('Employee ID from dashboard API response:', this.nums.teacher_id);
-                    console.log('KPI data loaded:', this.nums);
-                } catch (err) {
-                    console.error('Error fetching kpi data:', err);
+                    const dashboardTeacherId = teacher_id || user_id;
+                    try {
+                        const res = await fetch(`/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}/dashboard`);
+                        if (!res.ok) {
+                            console.error('Failed to load kpi data', await res.text());
+                            return;
+                        }
+                        this.nums = await res.json();
+                    } catch (err) {
+                        console.error('Error fetching kpi data:', err);
+                    }
                 }
-            }
+            };
         }
-    }
-</script>
+    </script>
+</body>
 
 </html>

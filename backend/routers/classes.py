@@ -66,26 +66,24 @@ async def create_class(request: CreateClassRequest):
 
         # Insert class records for each section and attach grading policy
         class_id = None
-        """for i, section_id in enumerate(section_ids):
-            # If multiple sections, append letter to provided class_id to ensure uniqueness per section
+        for i, section_id in enumerate(section_ids):
             if request.sections > 1:
                 row_class_id = f"{request.class_id}{letters[i]}"
             else:
                 row_class_id = request.class_id
-"""
-        cur.execute(
-            '''INSERT INTO class (class_id, employee_id, section_id, subject)
-                VALUES (%s, %s, %s, %s)
-                RETURNING class_id''',
-            (request.class_id, teacher_employee_id, section_id, request.subject)
-        )
-        class_id = cur.fetchone()['class_id']
 
-        cur.execute("""
-        INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
-        VALUES (%s, %s, %s, %s, %s)
-        """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
+            cur.execute(
+                '''INSERT INTO class (class_id, employee_id, section_id, subject)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING class_id''',
+                (row_class_id, teacher_employee_id, section_id, request.subject)
+            )
+            class_id = cur.fetchone()['class_id']
 
+            cur.execute("""
+            INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
+            VALUES (%s, %s, %s, %s, %s)
+            """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
 
         conn.commit()
         

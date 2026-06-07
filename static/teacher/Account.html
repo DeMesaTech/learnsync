@@ -173,23 +173,12 @@
                 account: {},
                 async init() {
                     const userId = localStorage.getItem('user_id');
-                    if (!userId) {
-                        console.warn('No user_id found in localStorage. Redirecting to login.');
-                        // Optionally redirect to login
-                        // window.location.href = '../login.html';
-                        return;
-                    }
-
+                    if (!userId) { console.warn('No user_id found in localStorage.'); return; }
                     try {
                         const res = await fetch(`/api/auth/user/${encodeURIComponent(userId)}`);
-                        if (!res.ok) {
-                            console.error('Failed to load profile', await res.text());
-                            return;
-                        }
+                        if (!res.ok) { console.error('Failed to load profile', await res.text()); return; }
                         this.account = await res.json();
-                    } catch (err) {
-                        console.error('Error fetching profile:', err);
-                    }
+                    } catch (err) { console.error('Error fetching profile:', err); }
                 },
                 formatEmployeeId(raw) {
                     if (!raw) return '';
@@ -198,7 +187,7 @@
                     if (digits.length <= 3) return `${digits.slice(0,2)}-${digits.slice(2)}`;
                     return `${digits.slice(0,2)}-${digits.slice(2,3)}-${digits.slice(3)}`;
                 }
-            }
+            };
         }
     </script>
 </body>

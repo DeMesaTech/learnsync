@@ -134,27 +134,16 @@
                         type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
             </section>
 
-            <section class="lms-toolbar"><!-- Section Selector -->
-                <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
-                    <option value="all">All sections</option>
-                    <template x-for="section in sections" :key="section">
-                        <option :value="section" x-text="'Section ' + section"></option>
-                    </template>
-                </select>
-            </section>
-
             <section class="lms-panel">
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
                     <span class="lms-inline-actions">
-                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add
-                            Announcement</button>
+                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Announcement</button>
                         <button class="lms-icon-btn" type="button" @click="showAnnouncements = !showAnnouncements"
                             :aria-expanded="showAnnouncements.toString()" aria-label="Toggle announcements">
-                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                :class="showAnnouncements ? 'rotate-180' : ''">
+                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m6 9 6 6 6-6" />
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
                             </svg>
                         </button>
                     </span>
@@ -162,14 +151,14 @@
                 <div class="lms-list" x-show="showAnnouncements" x-transition>
                     <template x-for="announcement in announcements" :key="announcement.title">
                         <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
-                            <span class="lms-badge" :class="announcement.badgeClass"
-                                x-text="announcement.subject"></span>
-                            <strong x-text="announcement.title"></strong>
-                            <span class="lms-meta" x-text="announcement.meta"></span>
-                            <span class="lms-meta" x-text="announcement.visibility"></span>
+                            <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.subject"></span>
+                            <div class="lms-announcement-content">
+                                <strong x-text="announcement.title"></strong>
+                                <span class="lms-meta" x-text="announcement.meta"></span>
+                                <span class="lms-meta" x-text="announcement.visibility"></span>
+                            </div>
                             <span class="lms-inline-actions">
-                                <button class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openAnnouncementManagement(announcement)">Manage Announcement</button>
+                                <button class="lms-btn lms-btn-small" type="button" @click.prevent="openAnnouncementManagement(announcement)">Manage</button>
                             </span>
                         </article>
                     </template>
@@ -191,21 +180,17 @@
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable"><strong>Research Problem and Objectives</strong>
-                            <p class="m-0">PDF module uploaded Oct 2. Visible to Sections 3A and 3B.</p><span
-                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
-                                    type="button"
-                                    @click="openManagement('module', 'Research Problem and Objectives')">Manage
-                                    Module</button></span>
+                        <article class="lms-clickable">
+                            <strong>Research Problem and Objectives</strong>
+                            <p class="m-0">PDF module uploaded Oct 2. Visible to Sections 3A and 3B.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('module','Research Problem and Objectives')">Manage</button></span>
                         </article>
                     </li>
                     <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable"><strong>Review of Related Literature</strong>
-                            <p class="m-0">Reference notes and class discussion file. Hidden until review is complete.
-                            </p><span class="lms-inline-actions mt-2"><button
-                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openManagement('module', 'Review of Related Literature')">Manage
-                                    Module</button></span>
+                        <article class="lms-clickable">
+                            <strong>Review of Related Literature</strong>
+                            <p class="m-0">Reference notes and class discussion file. Hidden until review is complete.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('module','Review of Related Literature')">Manage</button></span>
                         </article>
                     </li>
                 </ul>
@@ -217,22 +202,19 @@
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable"><span class="lms-badge warn">Due Oct 25</span><strong
-                                class="block mt-2">Chapter 1 Draft</strong>
-                            <p class="m-0">18 submitted | 14 pending | visible to Sections 3A and 3B.</p><span
-                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
-                                    type="button" @click="openManagement('activity', 'Chapter 1 Draft')">Manage
-                                    Activity</button></span>
+                        <article class="lms-clickable">
+                            <span class="lms-badge warn">Due Oct 25</span>
+                            <strong class="block mt-2">Chapter 1 Draft</strong>
+                            <p class="m-0">18 submitted | 14 pending | visible to Sections 3A and 3B.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('activity','Chapter 1 Draft')">Manage</button></span>
                         </article>
                     </li>
                     <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable"><span class="lms-badge good">Scored</span><strong
-                                class="block mt-2">Problem Statement Worksheet</strong>
-                            <p class="m-0">Average score: 91 / 100. Deadline Oct 10, 2026.</p><span
-                                class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-secondary lms-btn-small"
-                                    type="button"
-                                    @click="openManagement('activity', 'Problem Statement Worksheet')">Manage
-                                    Activity</button></span>
+                        <article class="lms-clickable">
+                            <span class="lms-badge good">Scored</span>
+                            <strong class="block mt-2">Problem Statement Worksheet</strong>
+                            <p class="m-0">Average score: 91 / 100. Deadline Oct 10, 2026.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('activity','Problem Statement Worksheet')">Manage</button></span>
                         </article>
                     </li>
                 </ul>
@@ -244,21 +226,19 @@
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable"><span class="lms-badge">Online</span><strong
-                                class="block mt-2">Research Ethics Quiz</strong>
-                            <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026. Visible
-                                to Section 3B.</p><span class="lms-inline-actions mt-2"><button
-                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Research Ethics Quiz')">Manage Quiz</button></span>
+                        <article class="lms-clickable">
+                            <span class="lms-badge">Online</span>
+                            <strong class="block mt-2">Research Ethics Quiz</strong>
+                            <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('quiz','Research Ethics Quiz')">Manage</button></span>
                         </article>
                     </li>
                     <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable"><span class="lms-badge">Practice</span><strong
-                                class="block mt-2">Citation Format Drill</strong>
-                            <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
-                            </p><span class="lms-inline-actions mt-2"><button
-                                    class="lms-btn lms-btn-secondary lms-btn-small" type="button"
-                                    @click="openManagement('quiz', 'Citation Format Drill')">Manage Quiz</button></span>
+                        <article class="lms-clickable">
+                            <span class="lms-badge">Practice</span>
+                            <strong class="block mt-2">Citation Format Drill</strong>
+                            <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.</p>
+                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button" @click.prevent="openManagement('quiz','Citation Format Drill')">Manage</button></span>
                         </article>
                     </li>
                 </ul>
@@ -340,16 +320,13 @@
                                 <option>Use all published modules</option>
                             </select>
                             <div class="lms-list">
-                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple
-                                        choice</span></label>
-                                <label class="lms-choice"><input type="checkbox" checked><span>True or
-                                        false</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple choice</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>True or false</span></label>
                                 <label class="lms-choice"><input type="checkbox"><span>Short answer</span></label>
                                 <label class="lms-choice"><input type="checkbox"><span>Essay</span></label>
                             </div>
                             <div class="lms-grid lms-grid-2">
-                                <input class="lms-input" type="number" min="1" max="100"
-                                    placeholder="Number of questions">
+                                <input class="lms-input" type="number" min="1" max="100" placeholder="Number of questions">
                                 <input class="lms-input" type="number" min="1" placeholder="Points per question">
                             </div>
                             <div class="lms-grid lms-grid-2">
@@ -361,10 +338,8 @@
                                 </select>
                                 <input class="lms-input" type="number" min="1" placeholder="Time limit in minutes">
                             </div>
-                            <textarea class="lms-input" rows="3"
-                                placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
-                            <textarea class="lms-input" rows="3"
-                                placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
+                            <textarea class="lms-input" rows="3" placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
+                            <textarea class="lms-input" rows="3" placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
                             <input class="lms-input" type="date" aria-label="Quiz deadline">
                             <div class="lms-list">
                                 <span class="lms-meta">Visible sections</span>
@@ -379,8 +354,7 @@
                     <template x-if="modal === 'classActivity'">
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Activity title">
-                            <textarea class="lms-input" rows="4"
-                                placeholder="Instructions and submission requirements"></textarea>
+                            <textarea class="lms-input" rows="4" placeholder="Instructions and submission requirements"></textarea>
                             <input class="lms-input" type="date">
                             <input class="lms-input" type="number" min="1" placeholder="Total points">
                             <div class="lms-list">
@@ -396,8 +370,7 @@
                     <template x-if="modal === 'manageAnnouncement'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedAnnouncement.meta"></p>
-                            <input class="lms-input" placeholder="Announcement title"
-                                :value="selectedAnnouncement.title">
+                            <input class="lms-input" placeholder="Announcement title" :value="selectedAnnouncement.title">
                             <textarea class="lms-input" rows="5" placeholder="Revise announcement message"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
@@ -425,8 +398,7 @@
                             <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
                             <input class="lms-input" placeholder="Module title" :value="selectedManagement.title">
                             <input class="lms-input" placeholder="Replace file path or attachment">
-                            <textarea class="lms-input" rows="4"
-                                placeholder="Update module summary, lesson notes, or teacher remarks"></textarea>
+                            <textarea class="lms-input" rows="4" placeholder="Update module summary, lesson notes, or teacher remarks"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
                                     <option>Status: Published</option>
@@ -452,8 +424,7 @@
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
                             <input class="lms-input" placeholder="Activity title" :value="selectedManagement.title">
-                            <textarea class="lms-input" rows="4"
-                                placeholder="Revise instructions and submission requirements"></textarea>
+                            <textarea class="lms-input" rows="4" placeholder="Revise instructions and submission requirements"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <input class="lms-input" type="date" aria-label="Activity deadline">
                                 <input class="lms-input" type="number" min="1" placeholder="Total points">
@@ -493,10 +464,8 @@
                             </div>
                             <div class="lms-list">
                                 <span class="lms-meta">Question types</span>
-                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple
-                                        choice</span></label>
-                                <label class="lms-choice"><input type="checkbox" checked><span>True or
-                                        false</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple choice</span></label>
+                                <label class="lms-choice"><input type="checkbox" checked><span>True or false</span></label>
                                 <label class="lms-choice"><input type="checkbox"><span>Short answer</span></label>
                                 <label class="lms-choice"><input type="checkbox"><span>Essay</span></label>
                             </div>

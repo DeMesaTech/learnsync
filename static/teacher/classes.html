@@ -100,7 +100,7 @@
                     <p class="lms-subtitle">Manage class records with multiple sections, then open a class workspace for announcements, modules, activities, quizzes, and student work.</p>
                 </div>
                 <div class="lms-actions">
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'class'">New Class</button>
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="window.dispatchEvent(new CustomEvent('open-class-modal'))">New Class</button>
                 </div>
             </section>
 
@@ -143,6 +143,40 @@
                          </a>
                      </template>
                  </section>
+                 <!-- Moved modal inside classes() scope so inputs bind directly to component state -->
+                 <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
+                     @keydown.escape.window="modal = null">
+                     <section class="lms-modal" role="dialog" aria-modal="true">
+                         <div class="lms-modal-head">
+                             <h3 x-show="modal === 'class'">Create Class</h3>
+                             <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
+                                     class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                         d="M6 18 18 6M6 6l12 12" />
+                                 </svg></button>
+                         </div>
+
+                         <div class="lms-grid">
+                             <template x-if="modal === 'class'">
+                                 <div class="lms-grid">
+                                     <input class="lms-input" placeholder="Subject" x-model="subject">
+                                     <input class="lms-input" placeholder="Class ID" x-model="class_id">
+                                     <input class="lms-input" type="number" min="1" placeholder="Year" x-model.number="year">
+                                     <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model.number="sections">
+                                     <div class="lms-grid lms-grid-4">
+                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %" x-model.number="attendance">
+                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %" x-model.number="quizzes">
+                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %" x-model.number="activities">
+                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %" x-model.number="exam">
+                                     </div>
+                                     <p class="lms-meta m-0" :class="{'text-red-600': sum !== 100}">Grading determinants must total 100% across attendance, quizzes, activities, and exam. Current total: <strong x-text="sum"></strong>%</p>
+                                     <button class="lms-btn" type="button" :disabled="sum !== 100" @click.prevent="saveClass()">Save Class</button>
+                                 </div>
+                             </template>
+
+                         </div>
+                     </section>
+                 </div>
                  <section class="lms-table-card mt-4">
                      <div class="lms-table-head">
                          <h3>Active Classes</h3><span class="lms-badge">4 records</span>
@@ -178,214 +212,95 @@
                  </section>
              </section>
 
-            
         </main>
 
-        <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
-            @keydown.escape.window="modal = null">
-            <section class="lms-modal" role="dialog" aria-modal="true">
-                <div class="lms-modal-head">
-                    <h3 x-show="modal === 'class'">Create Class</h3>
-                    <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
-                            class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18 18 6M6 6l12 12" />
-                        </svg></button>
-                </div>
-
-                <div class="lms-grid">
-                    <template x-if="modal === 'class'">
-                        <div class="lms-grid" x-data="{ subject: '', class_id: '', year: 1, sections: 1, attendance: 0, quizzes: 0, activities: 0, exam: 0, get sum(){ return (+this.attendance||0) + (+this.quizzes||0) + (+this.activities||0) + (+this.exam||0) }, get isValid(){ return this.sum === 100 } }">
-                            <input class="lms-input" placeholder="Subject" x-model="subject">
-                            <input class="lms-input" placeholder="Class ID" x-model="class_id">
-                            <input class="lms-input" type="number" min="1" placeholder="Year" x-model="year">
-                            <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model="sections">
-                            <div class="lms-grid lms-grid-4">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %" x-model.number="attendance">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %" x-model.number="quizzes">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %" x-model.number="activities">
-                                <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %" x-model.number="exam">
-                            </div>
-                            <p class="lms-meta m-0" :class="{'text-red-600': !isValid}">Grading determinants must total 100% across attendance, quizzes, activities, and exam. Current total: <strong x-text="sum"></strong>%</p>
-                            <button class="lms-btn" type="button" :disabled="!isValid" @click.prevent="modalInput()">Save Class</button>
-                        </div>
-                    </template>
-
-                </div>
-            </section>
-        </div>
     </div>
-</body>
-<script>
-    console.log('Teacher dashboard script loaded \n User ID from localStorage:', localStorage.getItem('user_id'));
-    function kpi() {
-        return {
-            nums: {},
-            async init() {
-                const user_id = localStorage.getItem('user_id');
-                const teacher_id = localStorage.getItem('teacher_id');
-                // subject for change
-                if (!user_id) {
-                    console.warn('No user_id found in localStorage. Redirect to login if needed.');
-                    return;
-                }
-
-                const dashboardTeacherId = teacher_id || user_id;
-                if (!teacher_id) {
-                    console.warn('No teacher_id found in localStorage; using user_id as fallback.');
-                }
-                try {
-                    const res = await fetch(`/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}/dashboard`);
-                    if (!res.ok) {
-                        console.error('Failed to load kpi data', await res.text());
+    <script>
+        function kpi() {
+            return {
+                nums: {},
+                async init() {
+                    const user_id = localStorage.getItem('user_id');
+                    const teacher_id = localStorage.getItem('teacher_id');
+                    const dashboardTeacherId = teacher_id || user_id;
+                    if (!dashboardTeacherId) {
+                        console.warn('No teacher or user id found in localStorage.');
                         return;
                     }
-                    this.nums = await res.json();
-                    console.log('Employee ID from dashboard API response:', this.nums.teacher_id);
-                    console.log('KPI data loaded:', this.nums);
-                } catch (err) {
-                    console.error('Error fetching kpi data:', err);
+                    try {
+                        const res = await fetch(`/api/classes/teacher/${encodeURIComponent(dashboardTeacherId)}/dashboard`);
+                        if (!res.ok) {
+                            console.error('Failed to load dashboard KPI data', await res.text());
+                            return;
+                        }
+                        this.nums = await res.json();
+                    } catch (err) {
+                        console.error('Error fetching dashboard KPI data:', err);
+                    }
                 }
-            }
+            };
         }
-    }
 
-    function classes() {
-    return {
-        classes: [],
-        groupedClasses: [],
+        function classes() {
+            return {
+                classes: [],
+                groupedClasses: [],
+                modal: null,
+                subject: '',
+                class_id: '',
+                year: 1,
+                sections: 1,
+                attendance: 0,
+                quizzes: 0,
+                activities: 0,
+                exam: 0,
 
-        async init() {
-            const teacher_id = localStorage.getItem('teacher_id');
+                get sum() { return (+this.attendance || 0) + (+this.quizzes || 0) + (+this.activities || 0) + (+this.exam || 0); },
+                get isValid() { return this.sum === 100; },
 
-            const res = await fetch(`/api/classes/teacher/${teacher_id}`);
-            const data = await res.json();
-            this.classes = data.classes || [];
+                async init() {
+                    const teacher_id = localStorage.getItem('teacher_id');
+                    try {
+                        const res = await fetch(`/api/classes/teacher/${encodeURIComponent(teacher_id)}`);
+                        if (!res.ok) { console.error('Failed loading classes', await res.text()); return; }
+                        const data = await res.json();
+                        this.classes = data.classes || [];
+                        const groups = {};
+                        this.classes.forEach(cls => {
+                            const key = cls.subject || cls.class_id;
+                            if (!groups[key]) {
+                                groups[key] = { class_id: cls.class_id, subject: cls.subject, sections: [], students: 0, modules: 0, activities: 0, quizzes: 0 };
+                            }
+                            const g = groups[key];
+                            if (cls.section && !g.sections.includes(cls.section)) g.sections.push(cls.section);
+                            g.students += Number(cls.student_count || 0);
+                            g.modules += Number(cls.module_count || 0);
+                            g.activities += Number(cls.activity_count || 0);
+                            g.quizzes += Number(cls.quiz_count || 0);
+                        });
+                        Object.values(groups).forEach(g => g.sections.sort());
+                        this.groupedClasses = Object.values(groups);
+                    } catch (err) { console.error(err); }
+                    window.addEventListener('open-class-modal', () => { this.modal = 'class'; });
+                },
 
-            const groups = {};
-            this.classes.forEach(cls => {
-                // Group by subject so that all sections for the same subject are combined
-                const key = cls.subject || cls.class_id;
-                if (!groups[key]) {
-                    groups[key] = {
-                        // use the first encountered class_id as a representative id for links
-                        class_id: cls.class_id,
-                        subject: cls.subject,
-                        sections: [],
-                        students: 0,
-                        modules: 0,
-                        activities: 0,
-                        quizzes: 0
-                    };
+                async saveClass() {
+                    if (!this.isValid) { alert('Grading weights must total 100%'); return; }
+                    const teacher_id = Number(localStorage.getItem('user_id')) || null;
+                    if (!teacher_id) { alert('Teacher ID missing. Please log in.'); return; }
+                    const payload = { teacher_id, subject: this.subject, class_id: this.class_id, year: this.year, sections: this.sections, attendance: this.attendance, quizzes: this.quizzes, activities: this.activities, exam: this.exam };
+                    try {
+                        const res = await fetch('/api/classes/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                        if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.detail || 'Failed to create class.'); }
+                        const data = await res.json();
+                        alert(`Class created: ${data.subject}`);
+                        this.modal = null;
+                        this.subject = ''; this.class_id = ''; this.year = 1; this.sections = 1; this.attendance = this.quizzes = this.activities = this.exam = 0;
+                        await this.init();
+                    } catch (err) { console.error(err); alert(err.message || 'Error creating class.'); }
                 }
-
-                const group = groups[key];
-                if (cls.section && !group.sections.includes(cls.section)) {
-                    group.sections.push(cls.section);
-                }
-                group.students += Number(cls.student_count || 0);
-                group.modules += Number(cls.module_count || 0);
-                group.activities += Number(cls.activity_count || 0);
-                group.quizzes += Number(cls.quiz_count || 0);
-            });
-
-            // Optionally sort sections for consistent display
-            Object.values(groups).forEach(g => g.sections.sort());
-            console.log('Grouped classes data', groups);    
-            this.groupedClasses = Object.values(groups);
+            };
         }
-    }
-}function modalInput() {
-        const modal = document.querySelector('.lms-modal');
-        if (!modal) {
-            alert('Modal not found.');
-            return;
-        }
-
-        const getInputValue = (placeholder) => {
-            const input = modal.querySelector(`input[placeholder="${placeholder}"]`);
-            return input ? input.value.trim() : '';
-        };
-
-        const subject = getInputValue('Subject');
-        const subject_code = getInputValue('Class ID');
-        const year = Number(getInputValue('Year'));
-        const sectionsValue = Number(getInputValue('Number of sections'));
-        const attendance = Number(getInputValue('Attendance %'));
-        const quizzes = Number(getInputValue('Quizzes %'));
-        const activities = Number(getInputValue('Activities %'));
-        const exam = Number(getInputValue('Exam %'));
-
-        const sections = Number(sectionsValue) || 0;
-        const total = attendance + quizzes + activities + exam;
-        const teacher_id = Number(localStorage.getItem('user_id')) || null;
-
-        if (!teacher_id) {
-            alert('Teacher ID is missing. Please log in again.');
-            return;
-        }
-
-        if (isNaN(year) || year < 1) {
-            alert('Please enter a valid year.');
-            return;
-        }
-
-        if (!subject) {
-            alert('Please enter the class subject.');
-            return;
-        }
-        if (!subject_code) {
-            alert('Please enter the class ID.');
-            return;
-        }
-
-        if (sections < 1) {
-            alert('Number of sections must be at least 1.');
-            return;
-        }
-
-        if (total !== 100) {
-            alert(`Grading weights must total 100%. Current total is ${total}%.`);
-            return;
-        }
-
-        const classload = {
-            teacher_id,
-            subject,
-            class_id: subject_code,
-            year,
-            sections,
-            attendance,
-            quizzes,
-            activities,
-            exam
-        };
-
-        fetch('/api/classes/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(classload)
-        })
-        .then(async (response) => {
-            if (!response.ok) {
-                const data = await response.json().catch(() => ({}));
-                throw new Error(data.detail || 'Failed to create class.');
-            }
-            return response.json();
-        })
-        .then((data) => {
-            alert(`Class created: ${data.subject}`);
-            const root = document.querySelector('[x-data]');
-            if (root && root.__x) {
-                root.__x.$data.modal = null;
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-            alert(error.message || 'Error creating class.');
-        });
-    }
-</script>
+    </script>
+</body>
 </html>
