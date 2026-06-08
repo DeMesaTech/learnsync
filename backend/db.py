@@ -8,8 +8,9 @@ from sqlalchemy import create_engine
 
 # ============= DATABASE CONFIGURATION =============
 
-DATABASE_URL = os.getenv("postgresql://lms_72tg_user:YD3IiTezojIHU6gcqkFUB5yybZ0QsTcF@dpg-d8j1725ckfvc73caogk0-a.singapore-postgres.render.com/lms_72tg")
-engine = create_engine(DATABASE_URL)
+DATABASE_URL = os.getenv(
+    "postgresql://lms_72tg_user:YD3IiTezojIHU6gcqkFUB5yybZ0QsTcF@dpg-d8j1725ckfvc73caogk0-a/lms_72tg")
+engine = create_engine("postgresql://lms_72tg_user:YD3IiTezojIHU6gcqkFUB5yybZ0QsTcF@dpg-d8j1725ckfvc73caogk0-a/lms_72tg")
 
 DB_CONFIG = {
     "host": "localhost",
