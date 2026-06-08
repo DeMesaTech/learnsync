@@ -4,27 +4,23 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import HTTPException
 
-from sqlalchemy import create_engine
 
 # ============= DATABASE CONFIGURATION =============
-
-DATABASE_URL = os.getenv(
-    "postgresql://lms_72tg_user:YD3IiTezojIHU6gcqkFUB5yybZ0QsTcF@dpg-d8j1725ckfvc73caogk0-a/lms_72tg")
-engine = create_engine("postgresql://lms_72tg_user:YD3IiTezojIHU6gcqkFUB5yybZ0QsTcF@dpg-d8j1725ckfvc73caogk0-a/lms_72tg")
-
-DB_CONFIG = {
+"""DB_CONFIG = {
     "host": "localhost",
     "database": "lms",
     "user": "postgres",
     "password": "logiclab",
     "port": "5432"
-}
+}"""
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 def get_db_connection():
     """Create and return a PostgreSQL database connection"""
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(DATABASE_URL)
+#        conn = psycopg2.connect(**DB_CONFIG)
         return conn
     except psycopg2.Error as e:
         print(f"[DB ERROR] Connection failed: {e}")
