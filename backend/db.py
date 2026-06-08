@@ -6,20 +6,20 @@ from fastapi import HTTPException
 
 
 # ============= DATABASE CONFIGURATION =============
-"""DB_CONFIG = {
+DB_CONFIG = {
     "host": "localhost",
     "database": "lms",
     "user": "postgres",
     "password": "logiclab",
     "port": "5432"
-}"""
+}
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 def get_db_connection():
     """Create and return a PostgreSQL database connection"""
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = psycopg2.connect(DB_CONFIG) if not DATABASE_URL else psycopg2.connect(DATABASE_URL)
 #        conn = psycopg2.connect(**DB_CONFIG)
         return conn
     except psycopg2.Error as e:
