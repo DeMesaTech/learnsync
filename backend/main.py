@@ -3,6 +3,8 @@ LearnSync Backend - FastAPI Application
 Organized modular structure with routers, models, and database helpers
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
