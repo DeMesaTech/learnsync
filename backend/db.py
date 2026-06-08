@@ -1,9 +1,14 @@
 """Database connection and helper functions"""
+import os
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import HTTPException
 
 # ============= DATABASE CONFIGURATION =============
+
+os.getenv("DATABASE_URL")
+    
 DB_CONFIG = {
     "host": "localhost",
     "database": "lms",
