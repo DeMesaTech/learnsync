@@ -134,7 +134,16 @@
                         type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
             </section>
 
-            <section class="lms-panel">
+            <section class="lms-toolbar"><!-- Section Selector -->
+                <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
+                    <option value="all">All sections</option>
+                    <template x-for="section in sections" :key="section">
+                        <option :value="section" x-text="'Section ' + section"></option>
+                    </template>
+                </select>
+            </section>
+
+            <section class="lms-panel"><!-- Announcements -->
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
                     <span class="lms-inline-actions">
@@ -535,8 +544,8 @@
                     try {
                         const params = new URLSearchParams(window.location.search);
                         const rawClassParam = params.get('class_id');
-                        const classId = rawClassParam; // No longer stripping section suffixes, as class_id should match the API format directly
-                        let groupParam = params.get('subj_code');
+                        const classId = rawClassParam;
+                        let groupParam = params.get('class_code') || params.get('subj_code');
 
                         // If a class_id was provided, try loading that specific class first.
                         if (classId) {
@@ -546,8 +555,8 @@
                             if (clsRes.ok) {
                                 const classData = await clsRes.json();
                                 console.log('Class details data', classData);
-                                // Use subject as the group identifier so all sections are included
-                                this.group_id = classData.subject || classData.class_id;
+                                // Use class_code as the group identifier so all sections under the same code are included.
+                                this.group_id = classData.class_code || classData.subject || classData.class_id;
                                 this.subjectTitle = classData.subject || '';
                                 this.enrollSection = classData.section || '';
 
@@ -581,7 +590,7 @@
                                 if (res.ok) {
                                     const data = await res.json();
                                     this.teacherClasses = data.classes || [];
-                                    const match = this.teacherClasses.find(c => c.subject === this.group_id || c.class_id === this.group_id);
+                                    const match = this.teacherClasses.find(c => c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id));
                                     if (match) {
                                         this.subjectTitle = match.subject || this.subjectTitle;
                                         this.enrollSection = match.section || this.enrollSection;
@@ -594,13 +603,13 @@
                             }
 
                         } else if (!this.currentClassId && !groupParam) {
-                            console.warn('No class_id or subj_code provided in URL', { rawClassParam, groupParam });
+                            console.warn('No class_id, class_code, or subj_code provided in URL', { rawClassParam, groupParam });
                         }
 
                         // Populate sections from teacherClasses filtered by group_id
                         if (this.teacherClasses.length) {
                             const sections = this.teacherClasses
-                                .filter(c => c.subject === this.group_id || c.class_id === this.group_id)
+                                .filter(c => c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id))
                                 .map(c => c.section);
                             this.sections = [...new Set(sections)];
                             if (!this.enrollSection && this.sections.length) this.enrollSection = this.sections[0];
@@ -634,7 +643,7 @@
 
                     if (!student_ids.length) { alert('No valid student IDs found'); return; }
 
-                    const target = this.teacherClasses.find(c => (c.subject === this.group_id || c.class_id === this.group_id) && c.section === this.enrollSection);
+                    const target = this.teacherClasses.find(c => (c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id)) && c.section === this.enrollSection);
                     if (!target) { alert('Target class not found for selected section'); return; }
 
                     try {

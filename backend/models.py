@@ -1,6 +1,6 @@
 """Pydantic models for request/response validation (like Java POJOs)"""
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Dict, Optional
 from datetime import datetime
 
 
@@ -42,8 +42,8 @@ class CreateClassRequest(BaseModel):
     teacher_id: int
     subject: str
     year: int
-    class_id: str
-    sections: int
+    class_code: str
+    sections: Dict[str, str]
     attendance: float
     quizzes: float
     activities: float
@@ -51,7 +51,8 @@ class CreateClassRequest(BaseModel):
 
 
 class ClassResponse(BaseModel):
-    class_id: str
+    class_id: int
+    class_code: str
     subject: str
     section_count: int
     attendance_weight: float

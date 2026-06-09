@@ -19,8 +19,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 def get_db_connection():
     """Create and return a PostgreSQL database connection"""
     try:
-        conn = psycopg2.connect(DB_CONFIG) if not DATABASE_URL else psycopg2.connect(DATABASE_URL)
-#        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(**DB_CONFIG) if not DATABASE_URL else psycopg2.connect(DATABASE_URL)
         return conn
     except psycopg2.Error as e:
         print(f"[DB ERROR] Connection failed: {e}")

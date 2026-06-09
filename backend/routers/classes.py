@@ -1,6 +1,5 @@
 """Class management endpoints"""
 from fastapi import APIRouter, HTTPException, Body
-from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -9,7 +8,7 @@ from db import get_db_connection
 
 classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
 
-# 
+# ===========================================================
 @classes_router.post("/create", response_model=ClassResponse)
 async def create_class(request: CreateClassRequest):
     """
@@ -45,38 +44,34 @@ async def create_class(request: CreateClassRequest):
         teacher_name = teacher['name']
         teacher_employee_id = teacher['employee_id']
 
-        # create sections
-        letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]  # Support up to 10 sections (1-10)
-        base = str(request.year)  # e.g. "3"
+        # The frontend already combines year + section before sending JSON, like:
+        # { "section_1": "2A", "section_2": "2B", "section_3": "2D" }
+        section_values = [value.strip().upper() for value in request.sections.values() if value and value.strip()]
+        if not section_values:
+            raise HTTPException(status_code=400, detail="At least one section is required.")
+
+        duplicate_sections = {section for section in section_values if section_values.count(section) > 1}
+        if duplicate_sections:
+            raise HTTPException(status_code=400, detail="Section names must be unique.")
+
         section_ids = []
         
-        for i in range(request.sections):
-            if i >= len(letters):
-                raise HTTPException(status_code=400, detail="Maximum supported sections is 10.")
-
-            section_name = f"{base}{letters[i]}"
+        for section_value in section_values:
             cur.execute(
                 '''INSERT INTO section (employee_id, section)
                    VALUES (%s, %s)
                    RETURNING section_id''',
-                (teacher_employee_id, section_name)
+                (teacher_employee_id, section_value)
             )
             section_id = cur.fetchone()['section_id']
             section_ids.append(section_id)
 
-        # Insert class records for each section and attach grading policy
-        class_id = None
-        for i, section_id in enumerate(section_ids):
-            if request.sections > 1:
-                row_class_id = f"{request.class_id}{letters[i]}"
-            else:
-                row_class_id = request.class_id
-
+#
             cur.execute(
-                '''INSERT INTO class (class_id, employee_id, section_id, subject)
+                '''INSERT INTO class (class_code, employee_id, section_id, subject)
                     VALUES (%s, %s, %s, %s)
-                    RETURNING class_id''',
-                (row_class_id, teacher_employee_id, section_id, request.subject)
+                    RETURNING class_code, class_id''',
+                (request.class_code, teacher_employee_id, section_id, request.subject)
             )
             class_id = cur.fetchone()['class_id']
 
@@ -89,15 +84,15 @@ async def create_class(request: CreateClassRequest):
         
         return ClassResponse(
             class_id=class_id,
+            class_code=request.class_code,
             subject=request.subject,
-            section_count=request.sections,
+            section_count=len(section_ids),
             attendance_weight=request.attendance,
             quizzes_weight=request.quizzes,
             activities_weight=request.activities,
             exam_weight=request.exam,
             teacher_id=request.teacher_id,
-            teacher_name=teacher_name,
-            created_at=datetime.now()
+            teacher_name=teacher_name
         )
         
     except psycopg2.Error as e:
@@ -107,6 +102,7 @@ async def create_class(request: CreateClassRequest):
         cur.close()
         conn.close()
 
+# ===========================================================
 
 # Get details of a specific class
 @classes_router.get("/{class_id}")
@@ -118,6 +114,7 @@ async def get_class_details(class_id: str):
 
         cur.execute(
             '''SELECT c.class_id,
+                      c.class_code,
                       c.subject,
                       s.section,
                       gp.attendance_weight,
@@ -202,6 +199,7 @@ async def get_teacher_classes(teacher_id: int):
         
         cur.execute(
             '''SELECT c.class_id,
+                      c.class_code,
                       c.subject,
                       s.section,
                       COALESCE((SELECT COUNT(*) FROM enrollment e WHERE e.class_id = c.class_id), 0) AS student_count,

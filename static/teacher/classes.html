@@ -23,12 +23,19 @@
                 </svg>
             </button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span
+                    class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
             <button class="header-icon-btn" aria-label="Notifications">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg>
             </button>
             <button class="header-icon-btn" aria-label="Profile">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg>
             </button>
         </header>
         <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
@@ -58,8 +65,7 @@
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
                         </svg><span>Grading</span></a></li>
                 <!-- Account Information -->
-                <li><a href="Account.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="Account.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
@@ -67,8 +73,7 @@
                         <span>Account Information</span>
                     </a></li>
                 <!-- About -->
-                <li><a href="about.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="about.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
@@ -76,17 +81,16 @@
                         <span>About</span>
                     </a></li>
                 <!-- Report Bug -->
-                <li><a href="report-bug.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="report-bug.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
                         </svg>
                         <span>Report Bug</span>
                     </a></li>
-                    <!-- Log Out -->
-                <li><a class="sidebar-btn" href="/"><svg class="sidebar-icon" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                <!-- Log Out -->
+                <li><a class="sidebar-btn" href="/"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
                         </svg><span>Logout</span></a></li>
@@ -97,92 +101,124 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Classes and Content</h2>
-                    <p class="lms-subtitle">Manage class records with multiple sections, then open a class workspace for announcements, modules, activities, quizzes, and student work.</p>
+                    <p class="lms-subtitle">Manage class records with multiple sections, then open a class workspace for
+                        announcements, modules, activities, quizzes, and student work.</p>
                 </div>
                 <div class="lms-actions">
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="window.dispatchEvent(new CustomEvent('open-class-modal'))">New Class</button>
+                    <button class="lms-btn lms-btn-secondary" type="button"
+                        @click="window.dispatchEvent(new CustomEvent('open-class-modal'))">New Class</button>
                 </div>
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4" x-data="kpi()" x-init="init()">
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg></span>
-                        <strong x-text="nums.classes_count || '0'"></strong><span>Classes</span></div>
+                    <strong x-text="nums.classes_count || '0'"></strong><span>Classes</span>
+                </div>
 
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
                         </svg></span>
-                        <strong x-text="nums.student_count || '0'"></strong><span>Students</span></div>
+                    <strong x-text="nums.student_count || '0'"></strong><span>Students</span>
+                </div>
 
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
                         </svg></span>
-                        <strong x-text="nums.module_count || '0' "></strong><span>Modules</span></div>
+                    <strong x-text="nums.module_count || '0' "></strong><span>Modules</span>
+                </div>
 
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
                         </svg></span>
-                        <strong x-text="nums.activity_count || '0'"></strong><span>Activities</span></div>
+                    <strong x-text="nums.activity_count || '0'"></strong><span>Activities</span>
+                </div>
 
             </section>
             <!-- CLASSES -->
-             <section x-data="classes()" x-init="init()">
-                 <section class="lms-grid lms-grid-3" >
-                     <template x-for="cls in groupedClasses" :key="cls.class_id">
-                         <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card lms-card-button">
-                             <span class="lms-badge">Class</span>
-                             <p class="text-xs text-slate-500" x-text="cls.class_id"></p>
-                             <h3 class="mt-3" x-text="cls.subject"></h3>
-                             <p x-text="cls.sections.join(', ')" class="mb-1"></p>
-                             <p class="lms-meta" x-text="`${cls.sections.length} Sections`"></p>
-                         </a>
-                     </template>
-                 </section>
-                 <!-- Moved modal inside classes() scope so inputs bind directly to component state -->
-                 <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
-                     @keydown.escape.window="modal = null">
-                     <section class="lms-modal" role="dialog" aria-modal="true">
-                         <div class="lms-modal-head">
-                             <h3 x-show="modal === 'class'">Create Class</h3>
-                             <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
-                                     class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                         d="M6 18 18 6M6 6l12 12" />
-                                 </svg></button>
-                         </div>
+            <section x-data="classes()" x-init="init()">
+                <section class="lms-grid lms-grid-3">
+                    <template x-for="cls in groupedClasses" :key="cls.class_code">
+                        <a :href="`subject.html?class_code=${cls.class_code}`" class="lms-card lms-card-button">
+                            <span class="lms-badge">Class</span>
+                            <p class="text-xs text-slate-500" x-text="cls.class_code"></p>
+                            <h3 class="mt-3" x-text="cls.subject"></h3>
+                            <p x-text="cls.sections.join(', ')" class="mb-1"></p>
+                            <p class="lms-meta" x-text="`${cls.sections.length} Sections`"></p>
+                        </a>
+                    </template>
+                </section>
+                <!-- Class modal lives inside classes() so every x-model below can save input into this component's JavaScript state. -->
+                <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
+                    @keydown.escape.window="modal = null">
+                    <section class="lms-modal" role="dialog" aria-modal="true">
+                        <div class="lms-modal-head">
+                            <h3 x-show="modal === 'class'">Create Class</h3>
+                            <button class="lms-icon-btn" type="button" @click="modal = null"
+                                aria-label="Close popup"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18 18 6M6 6l12 12" />
+                                </svg></button>
+                        </div>
 
-                         <div class="lms-grid">
-                             <template x-if="modal === 'class'">
-                                 <div class="lms-grid">
-                                     <input class="lms-input" placeholder="Subject" x-model="subject">
-                                     <input class="lms-input" placeholder="Class ID" x-model="class_id">
-                                     <input class="lms-input" type="number" min="1" placeholder="Year" x-model.number="year">
-                                     <input class="lms-input" type="number" min="1" placeholder="Number of sections" x-model.number="sections">
-                                     <div class="lms-grid lms-grid-4">
-                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Attendance %" x-model.number="attendance">
-                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %" x-model.number="quizzes">
-                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Activities %" x-model.number="activities">
-                                         <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %" x-model.number="exam">
-                                     </div>
-                                     <p class="lms-meta m-0" :class="{'text-red-600': sum !== 100}">Grading determinants must total 100% across attendance, quizzes, activities, and exam. Current total: <strong x-text="sum"></strong>%</p>
-                                     <button class="lms-btn" type="button" :disabled="sum !== 100" @click.prevent="saveClass()">Save Class</button>
-                                 </div>
-                             </template>
+                        <div class="lms-grid">
+                            <template x-if="modal === 'class'">
+                                <div class="lms-grid">
+                                    <!-- x-model copies each typed value into the matching property inside classes(), like subject, class_code, and year. -->
+                                    <input class="lms-input" placeholder="Subject" x-model="subject">
+                                    <input class="lms-input" placeholder="Class ID" x-model="class_code">
+                                    <!-- x-model.number converts numeric inputs from text into numbers before storing them in component state. -->
+                                    <input class="lms-input" type="number" min="1" placeholder="Year"
+                                        x-model.number="year">
+                                    <input class="lms-input" type="number" min="1" x-model.number="sectionCount"
+                                        placeholder="Number of sections">
 
-                         </div>
-                     </section>
-                 </div>
-                 <section class="lms-table-card mt-4">
-                     <div class="lms-table-head">
-                         <h3>Active Classes</h3><span class="lms-badge">4 records</span>
-                     </div>
-                     <div class="lms-table-wrap">
-                         <table class="lms-table">
+                                    <div class="grid gap-3 sm:grid-cols-2">
+                                            <template x-for="(section, i) in sections" :key="i">
+                                                <input class="lms-input" x-model="sections[i]"
+                                                    :placeholder="`Section ${i + 1}`">
+                                            </template>
+                                    </div>
+
+                                    <div class="lms-grid lms-grid-4">
+                                        <input class="lms-input" type="number" min="0" max="100"
+                                            placeholder="Attendance %" x-model.number="attendance">
+                                        <input class="lms-input" type="number" min="0" max="100" placeholder="Quizzes %"
+                                            x-model.number="quizzes">
+                                        <input class="lms-input" type="number" min="0" max="100"
+                                            placeholder="Activities %" x-model.number="activities">
+                                        <input class="lms-input" type="number" min="0" max="100" placeholder="Exam %"
+                                            x-model.number="exam">
+                                    </div>
+                                    <p class="lms-meta m-0" :class="{'text-red-600': sum !== 100}">Grading determinants
+                                        must total 100% across attendance, quizzes, activities, and exam. Current total:
+                                        <strong x-text="sum"></strong>%
+                                    </p>
+                                    <!-- Clicking Save runs saveClass(), which validates the inputs, builds a JSON payload, and sends it to the backend. -->
+                                    <button class="lms-btn" type="button" :disabled="sum !== 100"
+                                        @click.prevent="saveClass()">Save Class</button>
+                                </div>
+                            </template>
+
+                        </div>
+                    </section>
+                </div>
+                <section class="lms-table-card mt-4">
+                    <div class="lms-table-head">
+                        <h3>Active Classes</h3><span class="lms-badge">4 records</span>
+                    </div>
+                    <div class="lms-table-wrap">
+                        <table class="lms-table">
                             <thead>
                                 <tr>
                                     <th>Class ID</th>
@@ -194,10 +230,10 @@
                                     <th>Quizzes</th>
                                 </tr>
                             </thead>
-                                <template x-for="cls in groupedClasses" :key="cls.class_id">
-                                    <tbody>
+                            <template x-for="cls in groupedClasses" :key="cls.class_code">
+                                <tbody>
                                     <tr>
-                                        <td x-text="cls.class_id"></td>
+                                        <td x-text="cls.class_code"></td>
                                         <td x-text="cls.subject"></td>
                                         <td x-text="cls.sections.join(', ')"></td>
                                         <td x-text="cls.students"></td>
@@ -205,12 +241,12 @@
                                         <td x-text="cls.activities"></td>
                                         <td x-text="cls.quizzes"></td>
                                     </tr>
-                                    </tbody>
-                                </template>
+                                </tbody>
+                            </template>
                         </table>
-                     </div>
-                 </section>
-             </section>
+                    </div>
+                </section>
+            </section>
 
         </main>
 
@@ -247,15 +283,18 @@
                 groupedClasses: [],
                 modal: null,
                 subject: '',
-                class_id: '',
-                year: 1,
-                sections: 1,
-                attendance: 0,
-                quizzes: 0,
-                activities: 0,
-                exam: 0,
+                class_code: '',
+                year: null,
+                sectionCount: null,
+                sections: [],
+                attendance: null,
+                quizzes: null,
+                activities: null,
+                exam: null,
 
+                // sum recalculates whenever any grading input changes, because it reads the Alpine state above.
                 get sum() { return (+this.attendance || 0) + (+this.quizzes || 0) + (+this.activities || 0) + (+this.exam || 0); },
+                // isValid is used by saveClass() to allow saving only when grading weights total exactly 100%.
                 get isValid() { return this.sum === 100; },
 
                 async init() {
@@ -267,9 +306,9 @@
                         this.classes = data.classes || [];
                         const groups = {};
                         this.classes.forEach(cls => {
-                            const key = cls.subject || cls.class_id;
+                            const key = cls.class_code || cls.subject;
                             if (!groups[key]) {
-                                groups[key] = { class_id: cls.class_id, subject: cls.subject, sections: [], students: 0, modules: 0, activities: 0, quizzes: 0 };
+                                groups[key] = { class_code: cls.class_code, subject: cls.subject, sections: [], students: 0, modules: 0, activities: 0, quizzes: 0 };
                             }
                             const g = groups[key];
                             if (cls.section && !g.sections.includes(cls.section)) g.sections.push(cls.section);
@@ -281,21 +320,56 @@
                         Object.values(groups).forEach(g => g.sections.sort());
                         this.groupedClasses = Object.values(groups);
                     } catch (err) { console.error(err); }
+                    // The "New Class" button dispatches this event; setting modal to 'class' makes the class modal appear.
                     window.addEventListener('open-class-modal', () => { this.modal = 'class'; });
+                    this.$watch('sectionCount', (value) => {
+                        this.sections = Array.from(
+                            { length: value },
+                            (_, i) => this.sections[i] || ''
+                        )
+                    })
                 },
 
                 async saveClass() {
+                    // Stop before creating JSON if the grading percentages do not add up correctly.
                     if (!this.isValid) { alert('Grading weights must total 100%'); return; }
+                    // Read the logged-in teacher id from localStorage so the new class belongs to the current teacher.
                     const teacher_id = Number(localStorage.getItem('user_id')) || null;
                     if (!teacher_id) { alert('Teacher ID missing. Please log in.'); return; }
-                    const payload = { teacher_id, subject: this.subject, class_id: this.class_id, year: this.year, sections: this.sections, attendance: this.attendance, quizzes: this.quizzes, activities: this.activities, exam: this.exam };
+                    // Collect the values stored by x-model into one plain JavaScript object.
+                    // This object has the same fields the backend expects for creating a class.
+                    const sectionNames = {};
+                    for (let i = 0; i < this.sections.length; i++) {
+                        sectionNames[`section_${i + 1}`] = `${this.year}${this.sections[i].trim().toUpperCase()}`;
+                    }
+                    const payload = { teacher_id, 
+                                subject: this.subject, 
+                                class_code: this.class_code, 
+                                year: this.year, 
+                                sections: sectionNames, 
+                                attendance: this.attendance, 
+                                quizzes: this.quizzes, 
+                                activities: this.activities, 
+                                exam: this.exam };
                     try {
-                        const res = await fetch('/api/classes/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                        if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.detail || 'Failed to create class.'); }
+                        // JSON.stringify turns the payload object into JSON text for the POST request body.
+                        // Content-Type tells the backend to read that body as JSON.
+                        const payloadJson = JSON.stringify(payload);
+                        console.log('Saving class payload object:', payload);
+                        console.log('Saving class payload JSON:', payloadJson);
+                        const res = await fetch('/api/classes/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson });
+                        if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            console.error('Backend create class error:', data);
+                            console.error('Backend create class error JSON:', JSON.stringify(data, null, 2));
+                            throw new Error(data.detail || 'Failed to create class.');
+                        }
                         const data = await res.json();
                         alert(`Class created: ${data.subject}`);
                         this.modal = null;
-                        this.subject = ''; this.class_id = ''; this.year = 1; this.sections = 1; this.attendance = this.quizzes = this.activities = this.exam = 0;
+                        // Clear the form after a successful save so the next class starts with fresh input fields.
+                        // this.subject = ''; this.class_code = ''; this.year = null; this.sectionCount = null; this.sections = []; this.attendance = this.quizzes = this.activities = this.exam = null;
+                        // Reload the class list so the newly created class appears on the page.
                         await this.init();
                     } catch (err) { console.error(err); alert(err.message || 'Error creating class.'); }
                 }
@@ -303,4 +377,5 @@
         }
     </script>
 </body>
+
 </html>
