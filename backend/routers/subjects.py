@@ -70,27 +70,32 @@ async def upload_module(
     try:
         # Convert sections back to Python list
         sections_list = json.loads(sections)
-        print(f"Received sections: {sections_list}")
 
         # Save file (example path)
         upload_dir = "uploads/modules"
         os.makedirs(upload_dir, exist_ok=True)
 
         file_location = f"{upload_dir}/{file.filename}"
+        print(f"Received title: {title}, path: {file_location}, summary: {summary}, class_id: {class_id}")
+        print(f"Received sections: {sections_list}")
 
         with open(file_location, "wb") as buffer:
             buffer.write(await file.read())
 
-        # Insert into DB (example)
+        # Verify teacher's employee_id currently logged in.
+        cursor.execute("SELECT employee_id FROM class WHERE class_id = %s", (class_id,))
+        employee_id = cursor.fetchone()
+        print(f"Queried employee_id for class_id {class_id}: {employee_id}")
+
+        # Insert into DB
         cursor.execute("""
-            INSERT INTO modules (module_title, class_id, content, file_path, sections)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO module (employee_id, title, file_path, summary)
+            VALUES (%s, %s, %s, %s)
         """, (
+            employee_id,
             title,
-            class_id,
-            summary,
             file_location,
-            json.dumps(sections_list)
+            summary
         ))
 
         conn.commit()
@@ -99,6 +104,7 @@ async def upload_module(
             "message": "Module uploaded successfully",
             "class_id": class_id,
             "file_path": file_location,
+            "summary": summary,
             "sections": sections_list
         }
 

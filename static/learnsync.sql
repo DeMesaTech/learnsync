@@ -76,8 +76,16 @@ CREATE TABLE module (
     title VARCHAR(255),
     file_path VARCHAR(255),
     upload_date TIMESTAMP,
+    summary VARCHAR(255),
     FOREIGN KEY (class_id) REFERENCES class(class_id),
     FOREIGN KEY (user_id) REFERENCES "user"(user_id)
+);
+
+CREATE TABLE module_sections (
+    id SERIAL PRIMARY KEY,
+    module_id INT REFERENCES module(module_id),
+    section_id INT REFERENCES section(section_id),
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE module_content (

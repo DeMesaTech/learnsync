@@ -626,6 +626,11 @@
                             this.sections = [...new Set(filtered.map(c => c.section))];
 
                             console.log('FINAL SECTIONS:', this.sections);
+                            console.log('LOCAL STORAGE:',
+                                Object.fromEntries(
+                                    Object.entries(localStorage)
+                                )
+                            );
                         }
 
                     } catch (err) {
@@ -726,7 +731,6 @@
                         for (const [key, value] of formData.entries()) {
                             console.log(key, value);
                         }
-
 
                         const res = await fetch(`/api/subjects/${target.class_id}/up_module`, {
                             method: 'POST',
