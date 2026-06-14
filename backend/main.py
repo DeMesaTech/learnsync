@@ -13,6 +13,7 @@ from pathlib import Path
 # Import routers
 from routers.auth import auth_router
 from routers.classes import classes_router
+from routers.subjects import subject_router
 
 # ============= APP INITIALIZATION =============
 app = FastAPI(
@@ -42,6 +43,7 @@ app.add_middleware(
 # ============= INCLUDE ROUTERS =============
 app.include_router(auth_router)
 app.include_router(classes_router)
+app.include_router(subject_router)
 
 
 # ============= SERVE STATIC FILES =============

@@ -1,8 +1,6 @@
 """Pydantic models for request/response validation (like Java POJOs)"""
 from pydantic import BaseModel, EmailStr
 from typing import Dict, Optional
-from datetime import datetime
-
 
 # ============= AUTH MODELS =============
 class LoginRequest(BaseModel):

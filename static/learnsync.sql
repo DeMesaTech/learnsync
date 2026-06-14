@@ -2,7 +2,7 @@ BEGIN;
 -- SQL script to create the database schema for LearnSync
 -- This script defines tables for users, teachers, students, classes, enrollments, modules,
 -- AI queries, quizzes, activities, attendance, and grading.
--- \l C:/Users/krisscelalmario/OneDrive/Desktop/learnsync/static/learnsync.sql
+-- \i C:/Users/krisscelalmario/OneDrive/Desktop/learnsync/static/learnsync.sql
 -- =========================
 -- USERS
 -- =========================

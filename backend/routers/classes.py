@@ -9,6 +9,7 @@ from db import get_db_connection
 classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
 
 # ===========================================================
+# Create a new class for a teacher
 @classes_router.post("/create", response_model=ClassResponse)
 async def create_class(request: CreateClassRequest):
     """
@@ -144,47 +145,8 @@ async def get_class_details(class_id: str):
         cur.close()
         conn.close()
 
+# ===========================================================
 
-# Enroll students into a specific class
-@classes_router.post("/{class_id}/enroll")
-async def enroll_students(class_id: str, payload: dict = Body(...)):
-    """Enroll a list of student IDs into the given class_id.
-
-    Expects JSON: { "student_ids": [123, 456, ...] }
-    """
-    student_ids = payload.get('student_ids')
-    if not isinstance(student_ids, list):
-        raise HTTPException(status_code=400, detail="student_ids must be a list of integers")
-
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        enrolled = 0
-        for sid in student_ids:
-            try:
-                sid_int = int(sid)
-            except Exception:
-                continue
-
-            # ensure student record exists (insert if missing)
-            cur.execute('''INSERT INTO student (student_id) VALUES (%s) ON CONFLICT (student_id) DO NOTHING''', (sid_int,))
-
-            # check existing enrollment
-            cur.execute('SELECT 1 FROM enrollment WHERE student_id = %s AND class_id = %s', (sid_int, class_id))
-            if not cur.fetchone():
-                cur.execute('INSERT INTO enrollment (student_id, class_id) VALUES (%s, %s)', (sid_int, class_id))
-                enrolled += 1
-
-        conn.commit()
-        return {"enrolled": enrolled}
-    except psycopg2.Error as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    finally:
-        cur.close()
-        conn.close()
-
-# ======================================
 # Get all classes for a teacher
 @classes_router.get("/teacher/{teacher_id}")
 async def get_teacher_classes(teacher_id: int):
@@ -223,7 +185,7 @@ async def get_teacher_classes(teacher_id: int):
         cur.close()
         conn.close()
 
-# ======================================
+# ===========================================================
 # Teacher Dashboard Endpoint
 @classes_router.get("/teacher/{teacher_id}/dashboard")
 async def get_teacher_dashboard(teacher_id: int):
