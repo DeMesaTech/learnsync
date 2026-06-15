@@ -59,22 +59,23 @@ async def create_class(request: CreateClassRequest):
         
         for section_value in section_values:
             cur.execute(
-                '''INSERT INTO section (employee_id, section)
-                   VALUES (%s, %s)
+                '''INSERT INTO class (class_code, employee_id, subject)
+                    VALUES (%s, %s, %s)
+                    RETURNING class_code, class_id''',
+                (request.class_code, teacher_employee_id, request.subject)
+            )
+            class_id = cur.fetchone()['class_id']
+
+            cur.execute(
+                '''INSERT INTO section (employee_id, section, class_id)
+                   VALUES (%s, %s, %s)
                    RETURNING section_id''',
-                (teacher_employee_id, section_value)
+                (teacher_employee_id, section_value, class_id)
             )
             section_id = cur.fetchone()['section_id']
             section_ids.append(section_id)
 
 #
-            cur.execute(
-                '''INSERT INTO class (class_code, employee_id, section_id, subject)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING class_code, class_id''',
-                (request.class_code, teacher_employee_id, section_id, request.subject)
-            )
-            class_id = cur.fetchone()['class_id']
 
             cur.execute("""
             INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
@@ -125,7 +126,7 @@ async def get_class_details(class_id: str):
                       t.employee_id AS teacher_id,
                       u.name as teacher_name
                FROM class c
-               JOIN section s ON s.section_id = c.section_id
+               JOIN section s ON s.class_id = c.class_id
                JOIN teacher t ON c.employee_id = t.employee_id
                JOIN "user" u ON t.user_id = u.user_id
                LEFT JOIN grading_policy gp ON gp.class_id = c.class_id
@@ -169,7 +170,7 @@ async def get_teacher_classes(teacher_id: int):
                       COALESCE((SELECT COUNT(*) FROM activity a WHERE a.class_id = c.class_id), 0) AS activity_count,
                       COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
                FROM class c
-               JOIN section s ON s.section_id = c.section_id
+               JOIN section s ON s.class_id = c.class_id
                WHERE c.employee_id = %s
                ORDER BY c.subject, s.section''',
             (teacher_id,)
