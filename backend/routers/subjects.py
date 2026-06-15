@@ -68,40 +68,119 @@ async def upload_module(
     cursor = conn.cursor()
 
     try:
-        # Convert sections back to Python list
+        # Convert sections JSON string back to Python list
         sections_list = json.loads(sections)
 
-        # Save file (example path)
+        # Save file
         upload_dir = "uploads/modules"
         os.makedirs(upload_dir, exist_ok=True)
 
         file_location = f"{upload_dir}/{file.filename}"
-        print(f"Received title: {title}, path: {file_location}, summary: {summary}, class_id: {class_id}")
+
+        print(
+            f"Received title: {title}, "
+            f"path: {file_location}, "
+            f"summary: {summary}, "
+            f"class_id: {class_id}"
+        )
         print(f"Received sections: {sections_list}")
 
         with open(file_location, "wb") as buffer:
             buffer.write(await file.read())
 
-        # Verify teacher's employee_id currently logged in.
-        cursor.execute("SELECT employee_id FROM class WHERE class_id = %s", (class_id,))
-        employee_id = cursor.fetchone()
-        print(f"Queried employee_id for class_id {class_id}: {employee_id}")
+        # Get teacher assigned to this class
+        cursor.execute(
+            """
+            SELECT employee_id
+            FROM class
+            WHERE class_id = %s
+            """,
+            (class_id,)
+        )
 
-        # Insert into DB
-        cursor.execute("""
-            INSERT INTO module (employee_id, title, file_path, summary)
-            VALUES (%s, %s, %s, %s)
-        """, (
-            employee_id,
-            title,
-            file_location,
-            summary
-        ))
+        row = cursor.fetchone()
 
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="Class not found"
+            )
+
+        employee_id = row[0]
+
+        print(
+            f"Found employee_id={employee_id} "
+            f"for class_id={class_id}"
+        )
+
+        # Insert module and immediately get its module_id
+        cursor.execute(
+            """
+            INSERT INTO module (
+                employee_id,
+                title,
+                file_path,
+                summary,
+                upload_date
+            )
+            VALUES (%s, %s, %s, %s, NOW())
+            RETURNING module_id
+            """,
+            (
+                employee_id,
+                title,
+                file_location,
+                summary
+            )
+        )
+
+        module_id = cursor.fetchone()[0]
+
+        print(f"Created module_id={module_id}")
+
+        # Insert module-section mappings
+        for section_code in sections_list:
+
+            cursor.execute(
+                """
+                SELECT section_id
+                FROM section
+                WHERE section = %s
+                """,
+                (section_code,)
+            )
+
+            row = cursor.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Section {section_code} not found"
+                )
+
+            section_id = row[0]
+
+            cursor.execute(
+                """
+                INSERT INTO module_sections (
+                    module_id,
+                    section_id
+                )
+                VALUES (%s, %s)
+                """,
+                (module_id, section_id)
+            )
+
+            print(
+                f"Linked module_id={module_id} "
+                f"to section_id={section_id}"
+            )
         conn.commit()
 
         return {
             "message": "Module uploaded successfully",
+            "module_id": module_id,
+            "employee_id": employee_id,
             "class_id": class_id,
             "file_path": file_location,
             "summary": summary,
@@ -110,8 +189,12 @@ async def upload_module(
 
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
     finally:
         cursor.close()
         conn.close()
+        

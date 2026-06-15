@@ -165,7 +165,7 @@ async def get_teacher_classes(teacher_id: int):
                       c.subject,
                       s.section,
                       COALESCE((SELECT COUNT(*) FROM enrollment e WHERE e.class_id = c.class_id), 0) AS student_count,
-                      COALESCE((SELECT COUNT(*) FROM module m WHERE m.class_id = c.class_id), 0) AS module_count,
+                      COALESCE((SELECT COUNT(*) FROM module m WHERE m.employee_id = c.employee_id), 0) AS module_count,
                       COALESCE((SELECT COUNT(*) FROM activity a WHERE a.class_id = c.class_id), 0) AS activity_count,
                       COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
                FROM class c
@@ -228,7 +228,7 @@ async def get_teacher_dashboard(teacher_id: int):
         #4. Count modules created
         cur.execute(
             '''SELECT COUNT(m.module_id) AS module_count
-            FROM class c JOIN module m ON m.class_id = c.class_id
+            FROM class c JOIN module m ON m.employee_id = c.employee_id
             WHERE c.employee_id = %s''',
             (teacher_id,)
         )
