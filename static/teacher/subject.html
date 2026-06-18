@@ -285,6 +285,7 @@
                 </div>
 
                 <div class="lms-grid">
+                    <!-- KPI-->
                     <template x-if="modal === 'enrollment'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="subjectTitle + ' enrollment'"></p>
@@ -328,15 +329,27 @@
                         </div>
                     </template>
 
-                    <template x-if="modal === 'classPost'">
+                    <template x-if="modal === 'classActivity'">
                         <div class="lms-grid">
-                            <input class="lms-input" placeholder="Announcement title">
-                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"></textarea>
+                            <input class="lms-input" placeholder="Activity title" x-ref="activityTitle">
+                            <label class="lms-input file-input">
+                                <input
+                                    type="file"
+                                    x-ref="activityFile"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                    @change="handleFileChange()"
+                                    hidden>
+                                <span x-text="fileName ? fileName : 'Choose file'"></span>
+                            </label>
+                            <textarea class="lms-input" rows="4"
+                                placeholder="Instructions and submission requirements" x-ref="activityInstructions"></textarea>
+                            <input class="lms-input" type="date" placeholder="Activity deadline" x-ref="activityDeadline" aria-label="Activity deadline">
+                            <input class="lms-input" type="number" min="1" placeholder="Total points" x-ref="activityPoints">
                             <template x-for="section in sections" :key="section">
                                     <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
                                             checked><span x-text="'Section' + section"></span></label>
                                 </template>
-                            <button class="lms-btn" type="button">Post Announcement</button>
+                            <button class="lms-btn" type="button">Create Activity</button>
                         </div>
                     </template>
 
@@ -383,21 +396,19 @@
                         </div>
                     </template>
 
-                    <template x-if="modal === 'classActivity'">
+                    <template x-if="modal === 'classPost'">
                         <div class="lms-grid">
-                            <input class="lms-input" placeholder="Activity title">
-                            <textarea class="lms-input" rows="4"
-                                placeholder="Instructions and submission requirements"></textarea>
-                            <input class="lms-input" type="date">
-                            <input class="lms-input" type="number" min="1" placeholder="Total points">
+                            <input class="lms-input" placeholder="Announcement title">
+                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"></textarea>
                             <template x-for="section in sections" :key="section">
                                     <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
                                             checked><span x-text="'Section' + section"></span></label>
                                 </template>
-                            <button class="lms-btn" type="button">Create Activity</button>
+                            <button class="lms-btn" type="button">Post Announcement</button>
                         </div>
                     </template>
 
+                    <!-- Manage -->
                     <template x-if="modal === 'manageAnnouncement'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedAnnouncement.meta"></p>
@@ -682,7 +693,10 @@
 
                 // Handle file selection and display file name
                 handleFileChange() {
-                    const file = this.$refs.moduleFile.files[0]
+                    const moduleFile = this.$refs.moduleFile?.files?.[0];
+                    const activityFile = this.$refs.activityFile?.files?.[0];
+
+                    const file = moduleFile || activityFile;
                     this.fileName = file ? file.name : 'Choose file'
                 },
 
@@ -762,6 +776,88 @@
                     }
                 },
 
+                // Similar to uploadModule but with activity-specific fields
+                // Implement validation, target class finding, and API call for activity upload
+                async uploadActivity() {
+                    const title = this.$refs.activityTitle?.value || '';
+                    const file = this.$refs.activityFile?.files?.[0];
+                    const instruction = this.$refs.activityInstruction?.value || '';
+                    const deadline = this.$refs.activityDeadline?.value || '';
+                    const points = this.$refs.activityPoints?.value || '';
+                    const selectedSections = this.selectedSections;
+                    
+                    console.log('Selected sections:', selectedSections);
+                    // Validation
+                    if (!title.trim()) {
+                        alert('Please enter a activity title');
+                        return;
+                    }
+                    if (!file) {
+                        alert('Please select a file to upload');
+                        return;
+                    }
+                    
+
+                    // Find target class for upload
+                    const target = this.teacherClasses.find(c =>
+                        (c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id))
+                    );
+
+                    console.log('group_id:', this.group_id);
+                    console.log('teacherClasses:', this.teacherClasses);
+                    console.log('filtered sections:', this.sections);
+                    
+                    if (!target) {
+                        alert('Target class not found');
+                        return;
+                    }
+
+                    try {
+                        console.log({ title, file, instruction, deadline, points, selectedSections, target });
+
+                        const formData = new FormData();
+                        formData.append('title', title);
+                        formData.append('file', file);
+                        formData.append('instruction', instruction);
+                        formData.append('deadline', deadline);
+                        formData.append('points', points);
+                        formData.append('sections', JSON.stringify(selectedSections));
+                        
+                        for (const [key, value] of formData.entries()) {
+                            console.log(key, value);
+                        }
+
+                        const res = await fetch(`/api/subjects/${target.class_id}/up_activity`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        console.log('Status:', res.status);
+                        console.log('OK:', res.ok);
+                        
+                        if (!res.ok) {
+                            const txt = await res.text();
+                            throw new Error(txt || `HTTP ${res.status}`);
+                        }
+
+                        const data = await res.json();
+                        console.log('Response JSON:', data);
+
+                        alert(`Activity "${title}" published successfully`);
+
+                        // Clear form and close modal
+                        this.$refs.activityTitle.value = '';
+                        this.$refs.activityFile.value = '';
+                        this.$refs.activityInstruction.value = '';
+                        this.$refs.activityDeadline.value = '';
+                        this.$refs.activityPoints.value = '';
+                        this.fileName = 'Choose file';
+                        this.modal = null;
+                    } catch (err) {
+                        console.error('Activity upload error:', err);
+                        alert('Activity upload failed: ' + (err.message || err));
+                    }
+                },
             };
         }
     </script>

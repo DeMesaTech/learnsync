@@ -198,3 +198,120 @@ async def upload_module(
         cursor.close()
         conn.close()
         
+@subject_router.post("/{class_id}/up_activity")
+async def upload_activity(
+    class_id: str,
+    title: str = Form(...),
+    instruction: str = Form(""),
+    deadline: str = Form(""),
+    points: int = Form(0),
+    file: UploadFile = File(...)
+):
+    """
+    Upload Activity for the class
+    """
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Save file
+        upload_dir = "uploads/activities"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        file_location = f"{upload_dir}/{file.filename}"
+
+        print(
+            f"Received title: {title}, "
+            f"path: {file_location}, "
+            f"instruction: {instruction}, "
+            f"deadline: {deadline}, "
+            f"points: {points}, "
+            f"class_id: {class_id}"
+        )
+
+        with open(file_location, "wb") as buffer:
+            buffer.write(await file.read())
+
+        # Get teacher assigned to this class
+        cursor.execute(
+            """
+            SELECT employee_id
+            FROM class
+            WHERE class_id = %s
+            """,
+            (class_id,)
+        )
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="Class not found"
+            )
+        employee_id = row[0]
+
+        print(
+            f"Found employee_id={employee_id} "
+            f"for class_id={class_id}"
+        )
+        # Insert activity and immediately get its activity_id
+        cursor.execute(
+            """
+            INSERT INTO activity (
+                employee_id,
+                title,
+                file_path,
+                instruction,
+                deadline,
+                points,
+                upload_date
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            RETURNING activity_id
+            """,
+            (
+                employee_id,
+                title,
+                file_location,
+                instruction,
+                deadline,
+                points
+            )
+        )
+        activity_id = cursor.fetchone()[0]
+        print(f"Created activity_id={activity_id}")
+        # Link activity to class
+        cursor.execute(
+            """
+            INSERT INTO class_activities (
+                class_id,
+                activity_id
+            )
+            VALUES (%s, %s)
+            """,
+            (class_id, activity_id)
+        )
+        print(
+            f"Linked activity_id={activity_id} "
+            f"to class_id={class_id}"
+        )
+        conn.commit()
+        return {
+            "message": "Activity uploaded successfully",
+            "activity_id": activity_id,
+            "employee_id": employee_id,
+            "class_id": class_id,
+            "file_path": file_location,
+            "instruction": instruction,
+            "deadline": deadline,
+            "points": points
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    finally:
+        cursor.close()
+        conn.close()
