@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Body, UploadFile
+from models import SubjectKPIsResponse
 import psycopg2
 import json 
 import os
@@ -8,6 +9,64 @@ from psycopg2.extras import RealDictCursor
 from db import get_db_connection
 
 subject_router = APIRouter(prefix="/api/subjects", tags=["subjects"])
+
+# ===========================================================
+# Teacher Dashboard Endpoint
+@subject_router.get("/subject/{class_id}/kpis", response_model=SubjectKPIsResponse)
+async def get_teacher_dashboard(class_id: str):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # KPIs
+        #2. Count enrolled students in in a subjects
+        cur.execute(
+            '''SELECT COUNT(e.enrollment_id) AS student_count
+            FROM class c JOIN enrollment e ON e.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        student_count = cur.fetchone()['student_count'] or 0
+        #3. Count Activity Submissions in all subjects
+        cur.execute(
+            '''SELECT COUNT(a.activity_id) AS activity_count
+            FROM class c JOIN activity a ON a.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        activity_count = cur.fetchone()['activity_count'] or 0
+        #4. Count Quizzes created
+        cur.execute(
+            '''SELECT COUNT(q.quiz_id) AS quiz_count
+            FROM class c JOIN quiz q ON q.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        quiz_count = cur.fetchone()['quiz_count'] or 0
+        #4. Count modules created
+        cur.execute(
+            '''SELECT COUNT(m.module_id) AS module_count
+            FROM class c JOIN module m ON m.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        module_count = cur.fetchone()['module_count'] or 0
+
+        print(f"KPIs for class_id={class_id}: \nstudents={student_count}, \nmodules={module_count}, \nquizzes={quiz_count}, \nactivities={activity_count}")   
+        return SubjectKPIsResponse(
+            class_id=class_id,  # Use the provided class_id
+            total_students=student_count,
+            total_modules=module_count,
+            total_quizzes=quiz_count,
+            total_activities=activity_count
+        )
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
 # ===========================================================
 
 # Enroll students into a specific class
@@ -121,16 +180,17 @@ async def upload_module(
                 title,
                 file_path,
                 summary,
-                upload_date
+                class_id
             )
-            VALUES (%s, %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING module_id
             """,
             (
                 employee_id,
                 title,
                 file_location,
-                summary
+                summary,
+                class_id
             )
         )
 
@@ -265,6 +325,7 @@ async def upload_activity(
         cursor.execute(
             """
             INSERT INTO activity (
+                class_id,
                 title,
                 description,
                 due_date,
@@ -272,10 +333,11 @@ async def upload_activity(
                 file_path,
                 points
             )
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING activity_id
             """,
             (
+                class_id,
                 title,
                 instruction,
                 deadline,

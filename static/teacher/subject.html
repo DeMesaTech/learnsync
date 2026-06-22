@@ -109,7 +109,7 @@
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
-                        </svg></span><strong>32</strong><span>Students</span>
+                        </svg></span><strong x-text="nums.students || '0'"></strong><span>Students</span>
                     <button class="lms-btn lms-btn-small" type="button" @click="modal = 'enrollment'">
                         Enroll</button>
                 </div>
@@ -117,19 +117,19 @@
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
-                        </svg></span><strong>5</strong><span>Modules</span><button class="lms-btn lms-btn-small"
+                        </svg></span><strong x-text="nums.modules || '0'"></strong><span>Modules</span><button class="lms-btn lms-btn-small"
                         type="button" @click="modal = 'classModule'">Add Module</button></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
-                        </svg></span><strong>4</strong><span>Activities</span><button class="lms-btn lms-btn-small"
+                        </svg></span><strong x-text="nums.activities || '0'"></strong><span>Activities</span><button class="lms-btn lms-btn-small"
                         type="button" @click="modal = 'classActivity'">Add Activity</button></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
-                        </svg></span><strong>2</strong><span>Quizzes</span><button class="lms-btn lms-btn-small"
+                        </svg></span><strong x-text="nums.quizzes || '0'"></strong><span>Quizzes</span><button class="lms-btn lms-btn-small"
                         type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
             </section>
 
@@ -364,7 +364,7 @@
                             <select class="lms-select">
                                 <option>Source module: Research Problem and Objectives</option>
                                 <option>Source module: Review of Related Literature</option>
-                                <option>Use all published modules</option>
+                                <option>Use multiple modules</option>
                             </select>
                             <div class="lms-list">
                                 <label class="lms-choice"><input type="checkbox" checked><span>Multiple
@@ -568,6 +568,7 @@
                 sectionFilter: 'all',
                 sections: [],
                 teacherClasses: [],
+                nums: { students: 0, modules: 0, activities: 0, quizzes: 0 },
                 currentClassId: null,
                 group_id: null,
                 subjectTitle: '',
@@ -596,7 +597,7 @@
                         if (classId) {
                             this.currentClassId = classId;
 
-                            const clsRes = await fetch(`/api/classes/${encodeURIComponent(classId)}`);
+                            const clsRes = await fetch(`/api/subjects/${encodeURIComponent(classId)}`);
                             if (clsRes.ok) {
                                 const classData = await clsRes.json();
 
@@ -641,6 +642,10 @@
 
                             this.sections = [...new Set(filtered.map(c => c.section))];
 
+                            if (!this.currentClassId && filtered.length) {
+                                this.currentClassId = filtered[0].class_id;
+                            }
+
                             console.log('FINAL SECTIONS:', this.sections);
                             console.log('LOCAL STORAGE:',
                                 Object.fromEntries(
@@ -648,6 +653,8 @@
                                 )
                             );
                         }
+
+                        await this.loadKPIs();
 
                     } catch (err) {
                         console.error('Init error', err);
@@ -665,6 +672,40 @@
                     return this.sectionFilter === 'all' || sections.includes(this.sectionFilter);
                 },
 
+                // load KPIs for the current subject class
+                async loadKPIs() {
+                    const targetClassId = this.currentClassId
+                        || this.teacherClasses.find(c =>
+                            String(c.class_code).trim() === String(this.group_id).trim()
+                            || String(c.subject).trim() === String(this.group_id).trim()
+                        )?.class_id;
+
+                    if (!targetClassId) {
+                        console.warn('Cannot load KPIs: class_id is missing.');
+                        return;
+                    }
+
+                    this.currentClassId = targetClassId;
+
+                    try {
+                        const res = await fetch(`/api/subjects/subject/${encodeURIComponent(targetClassId)}/kpis`);
+
+                        if (!res.ok) {
+                            console.error('Failed to load subject KPIs', await res.text());
+                            return;
+                        }
+
+                        const data = await res.json();
+                        this.nums = {
+                            students: Number(data.total_students || 0),
+                            modules: Number(data.total_modules || 0),
+                            activities: Number(data.total_activities || 0),
+                            quizzes: Number(data.total_quizzes || 0)
+                        };
+                    } catch (err) {
+                        console.error('Error loading subject KPIs:', err);
+                    }
+                },
                 // Parse textarea and call enroll endpoint
                 async enrollStudents() {
                     const text = this.$refs.enrollInput ? this.$refs.enrollInput.value : '';

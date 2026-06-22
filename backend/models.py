@@ -78,3 +78,11 @@ class StudentDashboardResponse(BaseModel):
     quiz_count: int
     module_count: int
     activity_count: int
+
+# ========== SUBJECT KPIs ===========
+class SubjectKPIsResponse(BaseModel):
+    class_id: str
+    total_students: int
+    total_modules: int
+    total_activities: int
+    total_quizzes: int
