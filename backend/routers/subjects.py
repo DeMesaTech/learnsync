@@ -201,6 +201,7 @@ async def upload_module(
 @subject_router.post("/{class_id}/up_activity")
 async def upload_activity(
     class_id: str,
+    sections: str = Form(...),  # JSON string from frontend
     title: str = Form(...),
     instruction: str = Form(""),
     deadline: str = Form(""),
@@ -215,6 +216,9 @@ async def upload_activity(
     cursor = conn.cursor()
 
     try:
+        # Convert sections JSON string back to Python list
+        sections_list = json.loads(sections)
+
         # Save file
         upload_dir = "uploads/activities"
         os.makedirs(upload_dir, exist_ok=True)
@@ -228,6 +232,7 @@ async def upload_activity(
             f"deadline: {deadline}, "
             f"points: {points}, "
             f"class_id: {class_id}"
+            f"sections: {sections_list}"
         )
 
         with open(file_location, "wb") as buffer:
@@ -253,48 +258,72 @@ async def upload_activity(
         print(
             f"Found employee_id={employee_id} "
             f"for class_id={class_id}"
+            f"Created ={employee_id, title, file_location, instruction, deadline, points}"
+
         )
         # Insert activity and immediately get its activity_id
         cursor.execute(
             """
             INSERT INTO activity (
-                employee_id,
                 title,
+                description,
+                due_date,
+                employee_id,
                 file_path,
-                instruction,
-                deadline,
-                points,
-                upload_date
+                points
             )
-            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING activity_id
             """,
             (
-                employee_id,
                 title,
-                file_location,
                 instruction,
                 deadline,
+                employee_id,
+                file_location,
                 points
             )
         )
         activity_id = cursor.fetchone()[0]
         print(f"Created activity_id={activity_id}")
-        # Link activity to class
-        cursor.execute(
-            """
-            INSERT INTO class_activities (
-                class_id,
-                activity_id
+        # Insert module-section mappings
+        for section_code in sections_list:
+
+            cursor.execute(
+                """
+                SELECT section_id
+                FROM section
+                WHERE section = %s
+                """,
+                (section_code,)
             )
-            VALUES (%s, %s)
-            """,
-            (class_id, activity_id)
-        )
-        print(
-            f"Linked activity_id={activity_id} "
-            f"to class_id={class_id}"
-        )
+
+            row = cursor.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Section {section_code} not found"
+                )
+
+            section_id = row[0]
+            print(f"sections for activity={section_id}")
+
+            cursor.execute(
+                """
+                INSERT INTO activity_sections (
+                    activity_id,
+                    section_id
+                )
+                VALUES (%s, %s)
+                """,
+                (activity_id, section_id)
+            )
+
+            print(
+                f"Linked module_id={activity_id} "
+                f"to section_id={section_id}"
+            )
         conn.commit()
         return {
             "message": "Activity uploaded successfully",
@@ -304,7 +333,8 @@ async def upload_activity(
             "file_path": file_location,
             "instruction": instruction,
             "deadline": deadline,
-            "points": points
+            "points": points,
+            "sections": sections_list
         }
     except Exception as e:
         conn.rollback()

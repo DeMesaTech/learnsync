@@ -345,11 +345,16 @@
                                 placeholder="Instructions and submission requirements" x-ref="activityInstructions"></textarea>
                             <input class="lms-input" type="date" placeholder="Activity deadline" x-ref="activityDeadline" aria-label="Activity deadline">
                             <input class="lms-input" type="number" min="1" placeholder="Total points" x-ref="activityPoints">
-                            <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
+                            <div class="lms-list">
+                                <span class="lms-meta">Visible sections</span>
+                                
+                                <template x-for="section in sections" :key="section">
+                                    <label class="lms-choice"><input type="checkbox" :value="section" x-model="selectedSections"
                                             checked><span x-text="'Section' + section"></span></label>
                                 </template>
-                            <button class="lms-btn" type="button">Create Activity</button>
+
+                            </div>
+                            <button class="lms-btn" type="button" @click="uploadActivity()">Create Activity</button>
                         </div>
                     </template>
 
@@ -781,7 +786,7 @@
                 async uploadActivity() {
                     const title = this.$refs.activityTitle?.value || '';
                     const file = this.$refs.activityFile?.files?.[0];
-                    const instruction = this.$refs.activityInstruction?.value || '';
+                    const instruction = this.$refs.activityInstructions?.value || '';
                     const deadline = this.$refs.activityDeadline?.value || '';
                     const points = this.$refs.activityPoints?.value || '';
                     const selectedSections = this.selectedSections;
@@ -848,7 +853,7 @@
                         // Clear form and close modal
                         this.$refs.activityTitle.value = '';
                         this.$refs.activityFile.value = '';
-                        this.$refs.activityInstruction.value = '';
+                        this.$refs.activityInstructions.value = '';
                         this.$refs.activityDeadline.value = '';
                         this.$refs.activityPoints.value = '';
                         this.fileName = 'Choose file';
