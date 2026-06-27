@@ -566,23 +566,21 @@ async def load_Modules(class_id: int):
 
         cur.execute(
             '''SELECT
-                a.module_id,
-                a.title,
-                a.message,
-                a.status,
-                a.publish_date,
+                m.module_id,
+                m.title,
+                m.file_path,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.section), NULL) AS sections
-            FROM announcement a
+            FROM module m
             JOIN teacher t
-                ON a.employee_id = t.employee_id
-            LEFT JOIN announcement_section ans
-                ON a.announcement_id = ans.announcement_id
+                ON m.employee_id = t.employee_id
+            LEFT JOIN module_sections ms
+                ON m.module_id = ms.module_id
             LEFT JOIN section s
-                ON ans.section_id = s.section_id
-            WHERE a.class_id = %s
+                ON ms.section_id = s.section_id
+            WHERE m.class_id = %s
             GROUP BY
-                a.announcement_id
-            ORDER BY a.publish_date DESC;''',
+                m.module_id
+            ORDER BY m.upload_date DESC;''',
             (class_id,)
         )
 

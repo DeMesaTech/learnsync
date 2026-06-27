@@ -163,11 +163,11 @@
                 <!-- BODY -->
                 <div class="lms-list" x-show="showAnnouncements" x-transition>
                     <p class="lms-meta m-0" x-show="announcementsLoading">Loading announcements...</p>
-                    <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements yet.</p>
+                    <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements
+                        yet.</p>
                     <template x-for="announcement in announcements" :key="announcement.announcement_id">
                         <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
-                            <span class="lms-badge" :class="announcement.badgeClass"
-                                x-text="announcement.title"></span>
+                            <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.title"></span>
                             <div class="lms-announcement-content">
                                 <strong x-text="announcement.message"></strong>
                                 <span class="lms-meta" x-text="announcement.date"></span>
@@ -196,23 +196,31 @@
                     <h3>Modules</h3>
                 </div>
                 <ul class="lms-list">
-                    <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable">
-                            <strong>Research Problem and Objectives</strong>
-                            <p class="m-0">PDF module uploaded Oct 2. Visible to Sections 3A and 3B.</p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('module','Research Problem and Objectives')">Manage</button></span>
-                        </article>
-                    </li>
-                    <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable">
-                            <strong>Review of Related Literature</strong>
-                            <p class="m-0">Reference notes and class discussion file. Hidden until review is complete.
-                            </p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('module','Review of Related Literature')">Manage</button></span>
-                        </article>
-                    </li>
+                    <template x-if="modulesLoading">
+                        <li>Loading modules...</li>
+                    </template>
+                    <template x-if="!modulesLoading && modules.length === 0">
+                        <li>No modules uploaded.</li>
+                    </template>
+                    <template x-for="module in modules" :key="module.module_id">
+                        <li x-show="visibleFor(module.sections)">
+                            <article class="lms-clickable">
+                                <strong x-text="module.title"></strong>
+                                <p class="m-0">
+                                    <span x-text="module.visibility"></span>
+                                </p>
+                                <a :href="'/' + module.file_path" target="_blank">
+                                    View Module
+                                </a>
+                                <span class="lms-inline-actions mt-2">
+                                    <button class="lms-btn lms-btn-small" type="button"
+                                        @click.prevent="openManagement('module', module.title)">
+                                        Manage
+                                    </button>
+                                </span>
+                            </article>
+                        </li>
+                    </template>
                 </ul>
             </section>
 
@@ -444,11 +452,12 @@
                     <template x-if="modal === 'classPost'">
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Announcement title" x-ref="announcementTitle">
-                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message" x-ref="announcementMessage"></textarea>
+                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"
+                                x-ref="announcementMessage"></textarea>
                             <template x-for="section in sections" :key="section">
                                 <label class="lms-choice"><input type="checkbox" :value="section"
-                                    x-model="selectedSections" checked><span
-                                    x-text="'Section' + section"></span></label>
+                                        x-model="selectedSections" checked><span
+                                        x-text="'Section' + section"></span></label>
                             </template>
                             <button class="lms-btn" type="button" @click="postAnnouncement()">Post Announcement</button>
                         </div>
@@ -606,6 +615,8 @@
                 showAnnouncements: true,
                 selectedAnnouncement: {},
                 selectedManagement: {},
+                modules: [],
+                modulesLoading: false,
 
 
                 // Initialize by loading class details and teacher classes
@@ -684,6 +695,7 @@
 
                         await this.loadKPIs();
                         await this.load_announcement();
+                        await this.load_modules();
 
                     } catch (err) {
                         console.error('Init error', err);
@@ -726,7 +738,6 @@
 
                 normalizeAnnouncement(announcement) {
                     const status = announcement.status || 'Published';
-                    const teacher = announcement.teacher_name || announcement.name || 'Teacher';
                     const sections = Array.isArray(announcement.sections) ? announcement.sections.filter(Boolean) : [];
 
                     return {
@@ -735,6 +746,17 @@
                         sections,
                         badgeClass: status.toLowerCase() === 'published' ? 'good' : 'warn',
                         date: `${this.formatAnnouncementDate(announcement.publish_date)}`,
+                        visibility: this.formatAnnouncementVisibility(sections)
+                    };
+                },
+                normalizeModule(module) {
+                    const sections = Array.isArray(module.sections)
+                        ? module.sections.filter(Boolean)
+                        : [];
+
+                    return {
+                        ...module,
+                        sections,
                         visibility: this.formatAnnouncementVisibility(sections)
                     };
                 },
@@ -896,7 +918,39 @@
                         alert('Module upload failed: ' + (err.message || err));
                     }
                 },
+                async load_modules() {
+                    const targetClassId = this.getTargetClassId();
 
+                    if (!targetClassId) {
+                        console.warn('Cannot load modules: class_id is missing.');
+                        this.modules = [];
+                        return;
+                    }
+
+                    this.currentClassId = targetClassId;
+                    this.modulesLoading = true;
+
+                    try {
+                        const res = await fetch(
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/load_modules`
+                        );
+
+                        if (!res.ok) {
+                            throw new Error(await res.text());
+                        }
+
+                        const data = await res.json();
+                        this.modules = Array.isArray(data)
+                            ? data.map(module => this.normalizeModule(module))
+                            : [];
+
+                    } catch (err) {
+                        console.error('Failed to load modules:', err);
+                        this.modules = [];
+                    } finally {
+                        this.modulesLoading = false;
+                    }
+                },
                 // Similar to uploadModule but with activity-specific fields
                 // Implement validation, target class finding, and API call for activity upload
                 async uploadActivity() {
@@ -1061,6 +1115,7 @@
                         this.announcements = Array.isArray(data)
                             ? data.map(announcement => this.normalizeAnnouncement(announcement))
                             : [];
+                        console.log("Announcements:", this.announcements);
 
                     } catch (err) {
                         console.error('Failed to load announcements:', err);
@@ -1069,6 +1124,7 @@
                         this.announcementsLoading = false;
                     }
                 }
+
             };
         }
     </script>

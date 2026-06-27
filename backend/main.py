@@ -48,7 +48,14 @@ app.include_router(subject_router)
 
 # ============= SERVE STATIC FILES =============
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR.parent / "static"
+
+STATIC_DIR = BASE_DIR.parent / "static"      # or "static" if your folder is lowercase
+UPLOADS_DIR = BASE_DIR / "uploads"
+
+print(STATIC_DIR)
+print(UPLOADS_DIR)
+
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
