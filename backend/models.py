@@ -1,6 +1,8 @@
 """Pydantic models for request/response validation (like Java POJOs)"""
+from datetime import date
+
 from pydantic import BaseModel, EmailStr
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 # ============= AUTH MODELS =============
 class LoginRequest(BaseModel):
@@ -86,3 +88,19 @@ class SubjectKPIsResponse(BaseModel):
     total_modules: int
     total_activities: int
     total_quizzes: int
+
+# ========== ANNOUNCENT ===============
+class AnnouncementCreate(BaseModel):
+    title: str
+    message: str
+    sections: List[str]
+
+class AnnouncementResponse(BaseModel):
+    announcement_id: int
+    title: str
+    message: str
+    status: str
+    publish_date: date | None = None
+    teacher_name: str | None = None
+    sections: List[str]
+    

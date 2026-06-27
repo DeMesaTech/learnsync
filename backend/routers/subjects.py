@@ -1,5 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Body, UploadFile
-from models import SubjectKPIsResponse
+from typing import Optional
+
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Body
+from models import AnnouncementCreate, AnnouncementResponse, SubjectKPIsResponse
 import psycopg2
 import json 
 import os
@@ -68,7 +70,6 @@ async def get_teacher_dashboard(class_id: str):
         conn.close()
 
 # ===========================================================
-
 # Enroll students into a specific class
 @subject_router.post("/{class_id}/enroll")
 async def enroll_students(class_id: str, payload: dict = Body(...)):
@@ -109,7 +110,6 @@ async def enroll_students(class_id: str, payload: dict = Body(...)):
         conn.close()
 
 # ===========================================================
-
 # Upload Module into a specific class
 @subject_router.post("/{class_id}/up_module")
 async def upload_module(
@@ -257,7 +257,9 @@ async def upload_module(
     finally:
         cursor.close()
         conn.close()
-        
+
+# ===========================================================
+# Upload Activity        
 @subject_router.post("/{class_id}/up_activity")
 async def upload_activity(
     class_id: str,
@@ -266,7 +268,7 @@ async def upload_activity(
     instruction: str = Form(""),
     deadline: str = Form(""),
     points: int = Form(0),
-    file: UploadFile = File(...)
+    file: Optional[UploadFile] = File(None)
 ):
     """
     Upload Activity for the class
@@ -279,11 +281,16 @@ async def upload_activity(
         # Convert sections JSON string back to Python list
         sections_list = json.loads(sections)
 
-        # Save file
-        upload_dir = "uploads/activities"
-        os.makedirs(upload_dir, exist_ok=True)
+        file_location = None
 
-        file_location = f"{upload_dir}/{file.filename}"
+        if file and file.filename:
+            upload_dir = "uploads/activities"
+            os.makedirs(upload_dir, exist_ok=True)
+
+            file_location = f"{upload_dir}/{file.filename}"
+
+            with open(file_location, "wb") as buffer:
+                buffer.write(await file.read())
 
         print(
             f"Received title: {title}, "
@@ -294,9 +301,6 @@ async def upload_activity(
             f"class_id: {class_id}"
             f"sections: {sections_list}"
         )
-
-        with open(file_location, "wb") as buffer:
-            buffer.write(await file.read())
 
         # Get teacher assigned to this class
         cursor.execute(
@@ -406,4 +410,189 @@ async def upload_activity(
         )
     finally:
         cursor.close()
+        conn.close()
+
+# ===========================================================
+# Post Announcement
+@subject_router.post("/{class_id}/announcement", response_model=AnnouncementResponse)
+async def post_Announcement(class_id: int, request: AnnouncementCreate):
+    """
+    Post Announcements
+    """
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Convert sections JSON string back to Python list
+        sections_list = request.sections
+
+        # Get teacher assigned to this class
+        cursor.execute(
+            """
+            SELECT employee_id
+            FROM class
+            WHERE class_id = %s
+            """,
+            (class_id,)
+        )
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="Class not found"
+            )
+        employee_id = row[0]
+        # Verify
+        print(f"Employee ID= {employee_id}")
+
+        cursor.execute(
+            """
+            INSERT INTO announcement (
+                class_id, employee_id, title, message
+                )
+            VALUES (%s, %s, %s, %s)
+            RETURNING announcement_id
+            """,
+            (class_id, employee_id, request.title, request.message)
+        )
+        announcement_id = cursor.fetchone()[0]
+        print(f"announcement id: {announcement_id}")
+
+        # Insert module-section mappings
+        for section_code in sections_list:
+
+            cursor.execute(
+                """
+                SELECT section_id
+                FROM section
+                WHERE section = %s
+                """,
+                (section_code,)
+            )
+
+            row = cursor.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Section {section_code} not found"
+                )
+
+            section_id = row[0]
+            print(f"sections for activity={section_id}")
+
+            cursor.execute(
+                """
+                INSERT INTO announcement_section (
+                    announcement_id,
+                    section_id
+                )
+                VALUES (%s, %s)
+                """,
+                (announcement_id, section_id)
+            )
+
+        conn.commit()
+        
+        return {
+            "announcement_id": announcement_id,
+            "title": request.title,
+            "message": request.message,
+            "status": "Published",
+            "sections": request.sections 
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+# ===========================================================
+# LOAD Announcements
+@subject_router.get("/{class_id}/announcement")
+async def load_Announcements(class_id: int):
+    """Load announcements for a specific class."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            '''SELECT
+                a.announcement_id,
+                a.title,
+                a.message,
+                a.status,
+                a.publish_date,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.section), NULL) AS sections
+            FROM announcement a
+            JOIN teacher t
+                ON a.employee_id = t.employee_id
+            LEFT JOIN announcement_section ans
+                ON a.announcement_id = ans.announcement_id
+            LEFT JOIN section s
+                ON ans.section_id = s.section_id
+            WHERE a.class_id = %s
+            GROUP BY
+                a.announcement_id
+            ORDER BY a.publish_date DESC;''',
+            (class_id,)
+        )
+
+        announcement_data = cur.fetchall()
+        print(f"announcements:\n{announcement_data}")
+
+        return announcement_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
+# LOAD modules
+@subject_router.get("/{class_id}/load_modules")
+async def load_Modules(class_id: int):
+    """Load modules for a specific class."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            '''SELECT
+                a.module_id,
+                a.title,
+                a.message,
+                a.status,
+                a.publish_date,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.section), NULL) AS sections
+            FROM announcement a
+            JOIN teacher t
+                ON a.employee_id = t.employee_id
+            LEFT JOIN announcement_section ans
+                ON a.announcement_id = ans.announcement_id
+            LEFT JOIN section s
+                ON ans.section_id = s.section_id
+            WHERE a.class_id = %s
+            GROUP BY
+                a.announcement_id
+            ORDER BY a.publish_date DESC;''',
+            (class_id,)
+        )
+
+        module_data = cur.fetchall()
+        print(f"Modules:\n{module_data}")
+
+        return module_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
         conn.close()

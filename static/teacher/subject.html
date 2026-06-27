@@ -117,20 +117,22 @@
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
-                        </svg></span><strong x-text="nums.modules || '0'"></strong><span>Modules</span><button class="lms-btn lms-btn-small"
-                        type="button" @click="modal = 'classModule'">Add Module</button></div>
+                        </svg></span><strong x-text="nums.modules || '0'"></strong><span>Modules</span><button
+                        class="lms-btn lms-btn-small" type="button" @click="modal = 'classModule'">Add Module</button>
+                </div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
-                        </svg></span><strong x-text="nums.activities || '0'"></strong><span>Activities</span><button class="lms-btn lms-btn-small"
-                        type="button" @click="modal = 'classActivity'">Add Activity</button></div>
+                        </svg></span><strong x-text="nums.activities || '0'"></strong><span>Activities</span><button
+                        class="lms-btn lms-btn-small" type="button" @click="modal = 'classActivity'">Add
+                        Activity</button></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
-                        </svg></span><strong x-text="nums.quizzes || '0'"></strong><span>Quizzes</span><button class="lms-btn lms-btn-small"
-                        type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
+                        </svg></span><strong x-text="nums.quizzes || '0'"></strong><span>Quizzes</span><button
+                        class="lms-btn lms-btn-small" type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
             </section>
 
             <section class="lms-toolbar"><!-- Section Selector -->
@@ -143,6 +145,7 @@
             </section>
 
             <section class="lms-panel"><!-- Announcements -->
+                <!-- TITLE/HEADER -->
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
                     <span class="lms-inline-actions">
@@ -157,14 +160,17 @@
                         </button>
                     </span>
                 </div>
+                <!-- BODY -->
                 <div class="lms-list" x-show="showAnnouncements" x-transition>
-                    <template x-for="announcement in announcements" :key="announcement.title">
+                    <p class="lms-meta m-0" x-show="announcementsLoading">Loading announcements...</p>
+                    <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements yet.</p>
+                    <template x-for="announcement in announcements" :key="announcement.announcement_id">
                         <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
                             <span class="lms-badge" :class="announcement.badgeClass"
-                                x-text="announcement.subject"></span>
+                                x-text="announcement.title"></span>
                             <div class="lms-announcement-content">
-                                <strong x-text="announcement.title"></strong>
-                                <span class="lms-meta" x-text="announcement.meta"></span>
+                                <strong x-text="announcement.message"></strong>
+                                <span class="lms-meta" x-text="announcement.date"></span>
                                 <span class="lms-meta" x-text="announcement.visibility"></span>
                             </div>
                             <span class="lms-inline-actions">
@@ -184,10 +190,10 @@
                 <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
                     @click="activeTab = 'quizzes'">Quizzes</button>
             </section>
-
+            <!-- MODULES -->
             <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
                 <div class="lms-task-top">
-                    <h3>Modules</h3><span class="lms-badge good">Multi-section visibility</span>
+                    <h3>Modules</h3>
                 </div>
                 <ul class="lms-list">
                     <li x-show="visibleFor(['3A', '3B'])">
@@ -268,22 +274,28 @@
             @keydown.escape.window="modal = null">
             <section class="lms-modal" role="dialog" aria-modal="true">
                 <div class="lms-modal-head">
-                    <h3 x-show="modal === 'classModule'">Upload Module</h3>
-                    <h3 x-show="modal === 'classPost'">Create Announcement</h3>
-                    <h3 x-show="modal === 'classQuiz'">Create AI Quiz</h3>
-                    <h3 x-show="modal === 'classActivity'">Create Activity</h3>
+                    <!-- WITH KIPs-->
                     <h3 x-show="modal === 'enrollment'">Enroll Students</h3>
+                    <h3 x-show="modal === 'classModule'">Upload Module</h3>
+                    <h3 x-show="modal === 'classActivity'">Create Activity</h3>
+                    <h3 x-show="modal === 'classQuiz'">Create AI Quiz</h3>
+
+                    <!-- ANNOUNCEMENT -->
+                    <h3 x-show="modal === 'classPost'">Create Announcement</h3>
                     <h3 x-show="modal === 'manageAnnouncement'">Manage Announcement</h3>
+
+                    <!-- TABS -->
                     <h3 x-show="modal === 'manageModule'">Manage Module</h3>
                     <h3 x-show="modal === 'manageActivity'">Manage Activity</h3>
                     <h3 x-show="modal === 'manageQuiz'">Manage Quiz</h3>
+
                     <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup"><svg
                             class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18 18 6M6 6l12 12" />
                         </svg></button>
                 </div>
-
+                <!-- MODALS -->
                 <div class="lms-grid">
                     <!-- KPI-->
                     <template x-if="modal === 'enrollment'">
@@ -306,22 +318,20 @@
                         <div class="lms-grid">
                             <input class="lms-input" x-ref="moduleTitle" placeholder="Module title">
                             <label class="lms-input file-input">
-                                <input
-                                    type="file"
-                                    x-ref="moduleFile"
+                                <input type="file" x-ref="moduleFile"
                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                                    @change="handleFileChange()"
-                                    hidden>
+                                    @change="handleFileChange()" hidden>
                                 <span x-text="fileName ? fileName : 'Choose file'"></span>
                             </label>
                             <textarea class="lms-input" x-ref="moduleSummary" rows="3"
                                 placeholder="Module summary or lesson notes"></textarea>
                             <div class="lms-list">
                                 <span class="lms-meta">Visible sections</span>
-                                
+
                                 <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :value="section" x-model="selectedSections"
-                                            checked><span x-text="'Section' + section"></span></label>
+                                    <label class="lms-choice"><input type="checkbox" :value="section"
+                                            x-model="selectedSections" checked><span
+                                            x-text="'Section' + section"></span></label>
                                 </template>
 
                             </div>
@@ -333,24 +343,25 @@
                         <div class="lms-grid">
                             <input class="lms-input" placeholder="Activity title" x-ref="activityTitle">
                             <label class="lms-input file-input">
-                                <input
-                                    type="file"
-                                    x-ref="activityFile"
+                                <input type="file" x-ref="activityFile"
                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                                    @change="handleFileChange()"
-                                    hidden>
-                                <span x-text="fileName ? fileName : 'Choose file'"></span>
+                                    @change="handleFileChange()" hidden>
+                                <span
+                                    x-text="fileName && fileName !== 'Choose file' ? fileName : 'Choose file (optional)'"></span>
                             </label>
-                            <textarea class="lms-input" rows="4"
-                                placeholder="Instructions and submission requirements" x-ref="activityInstructions"></textarea>
-                            <input class="lms-input" type="date" placeholder="Activity deadline" x-ref="activityDeadline" aria-label="Activity deadline">
-                            <input class="lms-input" type="number" min="1" placeholder="Total points" x-ref="activityPoints">
+                            <textarea class="lms-input" rows="4" placeholder="Instructions and submission requirements"
+                                x-ref="activityInstructions"></textarea>
+                            <input class="lms-input" type="date" placeholder="Activity deadline"
+                                x-ref="activityDeadline" aria-label="Activity deadline">
+                            <input class="lms-input" type="number" min="1" placeholder="Total points"
+                                x-ref="activityPoints">
                             <div class="lms-list">
                                 <span class="lms-meta">Visible sections</span>
-                                
+
                                 <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :value="section" x-model="selectedSections"
-                                            checked><span x-text="'Section' + section"></span></label>
+                                    <label class="lms-choice"><input type="checkbox" :value="section"
+                                            x-model="selectedSections" checked><span
+                                            x-text="'Section' + section"></span></label>
                                 </template>
 
                             </div>
@@ -366,18 +377,47 @@
                                 <option>Source module: Review of Related Literature</option>
                                 <option>Use multiple modules</option>
                             </select>
-                            <div class="lms-list">
-                                <label class="lms-choice"><input type="checkbox" checked><span>Multiple
-                                        choice</span></label>
-                                <label class="lms-choice"><input type="checkbox" checked><span>True or
-                                        false</span></label>
-                                <label class="lms-choice"><input type="checkbox"><span>Short answer</span></label>
-                                <label class="lms-choice"><input type="checkbox"><span>Essay</span></label>
-                            </div>
-                            <div class="lms-grid lms-grid-2">
-                                <input class="lms-input" type="number" min="1" max="100"
-                                    placeholder="Number of questions">
-                                <input class="lms-input" type="number" min="1" placeholder="Points per question">
+                            <!-- QUIZ TYPES -->
+                            <div class="lms-grid" x-data="{ types: {
+                                                        multipleChoice: false,
+                                                        trueFalse: false,
+                                                        modTrueFalse: false,
+                                                        fillInTheBlank: false,
+                                                        matching: false,
+                                                        shortAnswer: false,
+                                                        essay: false,
+                                                        problemSolving: false,
+                                                        enumeration: false
+                                                    },
+
+                                                    quizTypes: [
+                                                        ['multipleChoice', 'Multiple choice'],
+                                                        ['trueFalse', 'True or false'],
+                                                        ['modTrueFalse', 'Modified true or false'],
+                                                        ['fillInTheBlank', 'Fill in the blank'],
+                                                        ['matching', 'Matching'],
+                                                        ['shortAnswer', 'Short answer'],
+                                                        ['essay', 'Essay'],
+                                                        ['problemSolving', 'Problem solving'],
+                                                        ['enumeration', 'Enumeration']
+                                                    ]}">
+                                <template x-for="[key, label] in quizTypes" :key="key">
+                                    <div>
+                                        <label class="lms-choice">
+                                            <input type="checkbox" x-model="types[key]">
+                                            <span x-text="label"></span>
+                                        </label>
+
+                                        <div class="lms-grid lms-grid-2" x-show="types[key]">
+                                            <input class="lms-input" type="number" min="1" max="100"
+                                                placeholder="Number of questions">
+
+                                            <input class="lms-input" type="number" min="1"
+                                                placeholder="Points per question">
+                                        </div>
+                                    </div>
+                                </template>
+
                             </div>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
@@ -394,44 +434,45 @@
                                 placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
                             <input class="lms-input" type="date" aria-label="Quiz deadline">
                             <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
-                                            checked><span x-text="'Section' + section"></span></label>
-                                </template>
+                                <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
+                                        checked><span x-text="'Section' + section"></span></label>
+                            </template>
                             <button class="lms-btn" type="button">Generate Quiz Draft</button>
                         </div>
                     </template>
 
                     <template x-if="modal === 'classPost'">
                         <div class="lms-grid">
-                            <input class="lms-input" placeholder="Announcement title">
-                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"></textarea>
+                            <input class="lms-input" placeholder="Announcement title" x-ref="announcementTitle">
+                            <textarea class="lms-input" rows="5" placeholder="Detailed announcement message" x-ref="announcementMessage"></textarea>
                             <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
-                                            checked><span x-text="'Section' + section"></span></label>
-                                </template>
-                            <button class="lms-btn" type="button">Post Announcement</button>
+                                <label class="lms-choice"><input type="checkbox" :value="section"
+                                    x-model="selectedSections" checked><span
+                                    x-text="'Section' + section"></span></label>
+                            </template>
+                            <button class="lms-btn" type="button" @click="postAnnouncement()">Post Announcement</button>
                         </div>
                     </template>
 
                     <!-- Manage -->
                     <template x-if="modal === 'manageAnnouncement'">
                         <div class="lms-grid">
-                            <p class="lms-meta m-0" x-text="selectedAnnouncement.meta"></p>
+                            <p class="lms-meta m-0" x-text="selectedAnnouncement.date"></p>
                             <input class="lms-input" placeholder="Announcement title"
-                                :value="selectedAnnouncement.title">
-                            <textarea class="lms-input" rows="5" placeholder="Revise announcement message"></textarea>
+                                x-model="selectedAnnouncement.title">
+                            <textarea class="lms-input" rows="5" placeholder="Revise announcement message"
+                                x-model="selectedAnnouncement.message"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
                                     <option>Status: Published</option>
                                     <option>Status: Draft</option>
                                     <option>Status: Hidden</option>
                                 </select>
-                                <input class="lms-input" type="date" aria-label="Announcement publish date">
                             </div>
                             <template x-for="section in sections" :key="section">
-                                    <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
-                                            checked><span x-text="'Section' + section"></span></label>
-                                </template>
+                                <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
+                                        checked><span x-text="'Section' + section"></span></label>
+                            </template>
                             <div class="lms-inline-actions">
                                 <button class="lms-btn" type="button">Save Announcement</button>
                                 <button class="lms-btn lms-btn-danger" type="button">Delete Announcement</button>
@@ -541,43 +582,30 @@
     </div>
     <script>
         function teacherSubjectApp() {
-            const announcements = [
-                {
-                    subject: 'Capstone',
-                    badgeClass: 'warn',
-                    title: 'Bring printed Chapter 1 outline next meeting',
-                    meta: 'Posted Oct 18, 2026 by Prof. Gilda Taupa',
-                    visibility: 'Visible to Sections ' + ['3A ', '3B ', '3C'],
-                    sections: ['3A', '3B', '3C']
-                },
-                {
-                    subject: 'Capstone',
-                    badgeClass: 'good',
-                    title: 'Group consultation schedule has been updated',
-                    meta: 'Posted Oct 16, 2026 by Prof. Gilda Taupa',
-                    visibility: 'Visible to Section 3B',
-                    sections: ['3B']
-                }
-            ];
 
             return {
                 open: false,
                 modal: null,
                 activeTab: 'modules',
-                showAnnouncements: true,
                 sectionFilter: 'all',
                 sections: [],
                 teacherClasses: [],
-                nums: { students: 0, modules: 0, activities: 0, quizzes: 0 },
+                nums: { students: null, modules: null, activities: null, quizzes: null },
                 currentClassId: null,
                 group_id: null,
                 subjectTitle: '',
                 enrollSection: '',
                 fileName: 'Choose file',
-                announcements,
-                selectedAnnouncement: announcements[0],
-                selectedManagement: { type: '', title: '' },
                 selectedSections: [],
+                announcementTitle: '',
+                announcementMessage: '',
+                announcementDate: '',
+                teacherName: '',
+                announcements: [],
+                announcementsLoading: false,
+                showAnnouncements: true,
+                selectedAnnouncement: {},
+                selectedManagement: {},
 
 
                 // Initialize by loading class details and teacher classes
@@ -655,21 +683,70 @@
                         }
 
                         await this.loadKPIs();
+                        await this.load_announcement();
 
                     } catch (err) {
                         console.error('Init error', err);
                     }
                 },
+
+                visibleFor(sections) {
+                    const visibleSections = Array.isArray(sections) ? sections : [];
+                    return this.sectionFilter === 'all' || visibleSections.includes(this.sectionFilter);
+                },
+
+                getTargetClassId() {
+                    return this.currentClassId
+                        || this.teacherClasses.find(c =>
+                            c.class_code === this.group_id ||
+                            c.subject === this.group_id ||
+                            String(c.class_id) === String(this.group_id)
+                        )?.class_id;
+                },
+
+                formatAnnouncementDate(value) {
+                    if (!value) return 'Posted date unavailable';
+
+                    const date = new Date(value);
+                    if (Number.isNaN(date.getTime())) return 'Posted date unavailable';
+
+                    return `Posted ${date.toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    })}`;
+                },
+
+                formatAnnouncementVisibility(sections) {
+                    const visibleSections = Array.isArray(sections) ? sections.filter(Boolean) : [];
+                    if (!visibleSections.length) return 'Visible to all sections';
+                    if (visibleSections.length === 1) return `Visible to Section ${visibleSections[0]}`;
+                    return `Visible to Sections ${visibleSections.join(', ')}`;
+                },
+
+                normalizeAnnouncement(announcement) {
+                    const status = announcement.status || 'Published';
+                    const teacher = announcement.teacher_name || announcement.name || 'Teacher';
+                    const sections = Array.isArray(announcement.sections) ? announcement.sections.filter(Boolean) : [];
+
+                    return {
+                        ...announcement,
+                        status,
+                        sections,
+                        badgeClass: status.toLowerCase() === 'published' ? 'good' : 'warn',
+                        date: `${this.formatAnnouncementDate(announcement.publish_date)}`,
+                        visibility: this.formatAnnouncementVisibility(sections)
+                    };
+                },
+
                 openAnnouncementManagement(announcement) {
-                    this.selectedAnnouncement = announcement;
+                    this.selectedAnnouncement = announcement || {};
                     this.modal = 'manageAnnouncement';
                 },
-                openManagement(type, title) {
-                    this.selectedManagement = { type, title };
+
+                openManagement(type, title, message) {
+                    this.selectedManagement = { type, title, message };
                     this.modal = `manage${type.charAt(0).toUpperCase()}${type.slice(1)}`;
-                },
-                visibleFor(sections) {
-                    return this.sectionFilter === 'all' || sections.includes(this.sectionFilter);
                 },
 
                 // load KPIs for the current subject class
@@ -745,14 +822,13 @@
                     const file = moduleFile || activityFile;
                     this.fileName = file ? file.name : 'Choose file'
                 },
-
                 // Upload module with file to backend
                 async uploadModule() {
                     const title = this.$refs.moduleTitle?.value || '';
                     const file = this.$refs.moduleFile?.files?.[0];
                     const summary = this.$refs.moduleSummary?.value || '';
                     const selectedSections = this.selectedSections;
-                    
+
                     console.log('Selected sections:', selectedSections);
                     // Validation
                     if (!title.trim()) {
@@ -763,7 +839,6 @@
                         alert('Please select a file to upload');
                         return;
                     }
-                    
 
                     // Find target class for upload
                     const target = this.teacherClasses.find(c =>
@@ -773,7 +848,7 @@
                     console.log('group_id:', this.group_id);
                     console.log('teacherClasses:', this.teacherClasses);
                     console.log('filtered sections:', this.sections);
-                    
+
                     if (!target) {
                         alert('Target class not found');
                         return;
@@ -787,7 +862,7 @@
                         formData.append('file', file);
                         formData.append('summary', summary);
                         formData.append('sections', JSON.stringify(selectedSections));
-                        
+
                         for (const [key, value] of formData.entries()) {
                             console.log(key, value);
                         }
@@ -799,7 +874,7 @@
 
                         console.log('Status:', res.status);
                         console.log('OK:', res.ok);
-                        
+
                         if (!res.ok) {
                             const txt = await res.text();
                             throw new Error(txt || `HTTP ${res.status}`);
@@ -831,18 +906,13 @@
                     const deadline = this.$refs.activityDeadline?.value || '';
                     const points = this.$refs.activityPoints?.value || '';
                     const selectedSections = this.selectedSections;
-                    
+
                     console.log('Selected sections:', selectedSections);
                     // Validation
                     if (!title.trim()) {
                         alert('Please enter a activity title');
                         return;
                     }
-                    if (!file) {
-                        alert('Please select a file to upload');
-                        return;
-                    }
-                    
 
                     // Find target class for upload
                     const target = this.teacherClasses.find(c =>
@@ -852,7 +922,7 @@
                     console.log('group_id:', this.group_id);
                     console.log('teacherClasses:', this.teacherClasses);
                     console.log('filtered sections:', this.sections);
-                    
+
                     if (!target) {
                         alert('Target class not found');
                         return;
@@ -863,12 +933,14 @@
 
                         const formData = new FormData();
                         formData.append('title', title);
-                        formData.append('file', file);
+                        if (file) {
+                            formData.append('file', file);
+                        }
                         formData.append('instruction', instruction);
                         formData.append('deadline', deadline);
                         formData.append('points', points);
                         formData.append('sections', JSON.stringify(selectedSections));
-                        
+
                         for (const [key, value] of formData.entries()) {
                             console.log(key, value);
                         }
@@ -880,7 +952,7 @@
 
                         console.log('Status:', res.status);
                         console.log('OK:', res.ok);
-                        
+
                         if (!res.ok) {
                             const txt = await res.text();
                             throw new Error(txt || `HTTP ${res.status}`);
@@ -904,6 +976,99 @@
                         alert('Activity upload failed: ' + (err.message || err));
                     }
                 },
+
+                // Announcement
+                async postAnnouncement() {
+                    const title = this.$refs.announcementTitle?.value || '';
+                    const message = this.$refs.announcementMessage?.value || '';
+                    const selectedSections = this.selectedSections;
+
+                    if (!title.trim()) {
+                        alert('Please enter an announcement title');
+                        return;
+                    }
+
+                    if (!message.trim()) {
+                        alert('Please enter an announcement message');
+                        return;
+                    }
+
+                    const targetClassId = this.getTargetClassId();
+
+                    if (!targetClassId) {
+                        alert('Target class not found');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(
+                            `/api/subjects/${targetClassId}/announcement`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    title,
+                                    message,
+                                    sections: selectedSections
+                                })
+                            }
+                        );
+
+                        if (!res.ok) {
+                            const txt = await res.text();
+                            throw new Error(txt);
+                        }
+
+                        const data = await res.json();
+
+                        alert('Announcement posted successfully');
+
+                        this.$refs.announcementTitle.value = '';
+                        this.$refs.announcementMessage.value = '';
+                        this.selectedSections = [];
+                        this.modal = null;
+                        await this.load_announcement();
+
+                    } catch (err) {
+                        console.error(err);
+                        alert('Failed to post announcement');
+                    }
+                },
+                async load_announcement() {
+                    const targetClassId = this.getTargetClassId();
+
+                    if (!targetClassId) {
+                        console.warn('Cannot load announcements: class_id is missing.');
+                        this.announcements = [];
+                        return;
+                    }
+
+                    this.currentClassId = targetClassId;
+                    this.announcementsLoading = true;
+
+                    try {
+                        const res = await fetch(
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/announcement`
+                        );
+
+                        if (!res.ok) {
+                            throw new Error(await res.text());
+                        }
+
+                        const data = await res.json();
+                        this.announcements = Array.isArray(data)
+                            ? data.map(announcement => this.normalizeAnnouncement(announcement))
+                            : [];
+
+                    } catch (err) {
+                        console.error('Failed to load announcements:', err);
+                        this.announcements = [];
+                    } finally {
+                        this.announcementsLoading = false;
+                    }
+                }
             };
         }
     </script>
