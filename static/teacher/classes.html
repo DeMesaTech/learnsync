@@ -15,7 +15,7 @@
 
 <body class="lms-shell teacher-accent font-sans text-sm">
     <div class="pt-20 flex min-h-screen"
-        x-data="{ open: false, modal: null, activeTab: 'modules', selectedClass: { id: 'CLS-001', subject: 'Capstone Research Project 1', section: '3B', teacher: 'Prof. Gilda Taupa' } }">
+        x-data="{ open: false, modal: null, activeTab: 'modules', teacher_id: localStorage.getItem('teacher_id') || null }">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu">
                 <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">

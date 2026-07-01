@@ -149,19 +149,18 @@
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
                     <span class="lms-inline-actions">
-                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add
-                            Announcement</button>
-                        <button class="lms-icon-btn" type="button" @click="showAnnouncements = !showAnnouncements"
-                            :aria-expanded="showAnnouncements.toString()" aria-label="Toggle announcements">
-                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">
+                            Add Announcement</button>
+                        <button class="lms-icon-btn" type="button" @click="announcementsOpen = !announcementsOpen"
+                            :aria-expanded="announcementsOpen.toString()" aria-label="Toggle announcements">
+                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="announcementsOpen ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
                             </svg>
                         </button>
                     </span>
                 </div>
                 <!-- BODY -->
-                <div class="lms-list" x-show="showAnnouncements" x-transition>
+                <div class="lms-list" x-show="announcementsOpen" x-transition>
                     <p class="lms-meta m-0" x-show="announcementsLoading">Loading announcements...</p>
                     <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements
                         yet.</p>
@@ -225,6 +224,43 @@
             </section>
 
             <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
+                <div class="lms-task-top">
+                    <h3>Activities</h3>
+                </div>
+                <ul class="lms-list">
+                    <template x-if="activitiesLoading">
+                        <li>Loading activities...</li>
+                    </template>
+                    <template x-if="!activitiesLoading && activities.length === 0">
+                        <li>No activities uploaded.</li>
+                    </template>
+                    <template x-for="activity in activities" :key="activity.activity_id">
+                        <li x-show="visibleFor(activity.sections)">
+                            <article class="lms-clickable">
+                                <span class="lms-badge warn" x-text="'Due ' + activity.date">
+                                </span>
+                                <strong class="block mt-2" x-text="activity.title">
+                                </strong>
+                                <p class="m-0" x-text="activity.visibility">
+                                </p>
+                                <template x-if="activity.file_path">
+                                    <a :href="'/' + activity.file_path" target="_blank">
+                                        View Activity
+                                    </a>
+                                </template>
+                                <span class="lms-inline-actions mt-2">
+                                    <button class="lms-btn lms-btn-small" type="button"
+                                        @click.prevent="openManagement('activity', activity.title)">
+                                        Manage
+                                    </button>
+                                </span>
+                            </article>
+                        </li>
+                    </template>
+                </ul>
+
+
+
                 <div class="lms-task-top">
                     <h3>Activities</h3><span class="lms-badge warn">1 due soon</span>
                 </div>
@@ -359,7 +395,7 @@
                             </label>
                             <textarea class="lms-input" rows="4" placeholder="Instructions and submission requirements"
                                 x-ref="activityInstructions"></textarea>
-                            <input class="lms-input" type="date" placeholder="Activity deadline"
+                            <input class="lms-input" type="datetime-local" placeholder="Activity deadline"
                                 x-ref="activityDeadline" aria-label="Activity deadline">
                             <input class="lms-input" type="number" min="1" placeholder="Total points"
                                 x-ref="activityPoints">
@@ -454,6 +490,13 @@
                             <input class="lms-input" placeholder="Announcement title" x-ref="announcementTitle">
                             <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"
                                 x-ref="announcementMessage"></textarea>
+                            <div class="lms-grid lms-grid-2">
+                                <select class="lms-select" x-model="selectedStatus">
+                                    <template x-for="status in activityStatuses" :key="status">
+                                        <option :value="status" x-text="'Status: ' + status"></option>
+                                    </template>
+                                </select>
+                            </div>
                             <template x-for="section in sections" :key="section">
                                 <label class="lms-choice"><input type="checkbox" :value="section"
                                         x-model="selectedSections" checked><span
@@ -472,10 +515,10 @@
                             <textarea class="lms-input" rows="5" placeholder="Revise announcement message"
                                 x-model="selectedAnnouncement.message"></textarea>
                             <div class="lms-grid lms-grid-2">
-                                <select class="lms-select">
-                                    <option>Status: Published</option>
-                                    <option>Status: Draft</option>
-                                    <option>Status: Hidden</option>
+                                <select class="lms-select" x-model="selectedStatus">
+                                    <template x-for="status in announcementStatuses" :key="status">
+                                        <option :value="status" x-text="'Status: ' + status"></option>
+                                    </template>
                                 </select>
                             </div>
                             <template x-for="section in sections" :key="section">
@@ -610,13 +653,29 @@
                 announcementMessage: '',
                 announcementDate: '',
                 teacherName: '',
+                activityStatuses: [
+                    "Draft",
+                    "Published",
+                    "Accepting Submissions",
+                    "Deadline Reach",
+                    "Teacher Grades",
+                    "Scored"
+                ],
+                announcementStatuses: [
+                    "Draft",
+                    "Published"
+                ],
+                selectedStatus: "Draft",
+                announcementStatus: "Published",
                 announcements: [],
                 announcementsLoading: false,
-                showAnnouncements: true,
+                announcementsOpen: true,
                 selectedAnnouncement: {},
                 selectedManagement: {},
                 modules: [],
                 modulesLoading: false,
+                activities: [],
+                activitiesLoading: false,
 
 
                 // Initialize by loading class details and teacher classes
@@ -696,6 +755,7 @@
                         await this.loadKPIs();
                         await this.load_announcement();
                         await this.load_modules();
+                        await this.load_act();
 
                     } catch (err) {
                         console.error('Init error', err);
@@ -716,20 +776,35 @@
                         )?.class_id;
                 },
 
-                formatAnnouncementDate(value) {
-                    if (!value) return 'Posted date unavailable';
+                formatDate(value) {
+                    if (!value) return 'date unavailable';
 
                     const date = new Date(value);
-                    if (Number.isNaN(date.getTime())) return 'Posted date unavailable';
+                    if (Number.isNaN(date.getTime())) return 'date unavailable';
 
-                    return `Posted ${date.toLocaleDateString(undefined, {
+                    return `${date.toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
-                        year: 'numeric'
+                        year: 'numeric',
+
+                    })}`;
+                },
+                formatDateTime(value) {
+                    if (!value) return 'date unavailable';
+
+                    const date = new Date(value);
+                    if (Number.isNaN(date.getTime())) return 'date unavailable';
+
+                    return `${date.toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric'
                     })}`;
                 },
 
-                formatAnnouncementVisibility(sections) {
+                formatSectionVisibility(sections) {
                     const visibleSections = Array.isArray(sections) ? sections.filter(Boolean) : [];
                     if (!visibleSections.length) return 'Visible to all sections';
                     if (visibleSections.length === 1) return `Visible to Section ${visibleSections[0]}`;
@@ -738,15 +813,17 @@
 
                 normalizeAnnouncement(announcement) {
                     const status = announcement.status || 'Published';
-                    const sections = Array.isArray(announcement.sections) ? announcement.sections.filter(Boolean) : [];
+                    const sections = Array.isArray(announcement.sections)
+                        ? announcement.sections.filter(Boolean)
+                        : [];
 
                     return {
                         ...announcement,
                         status,
                         sections,
                         badgeClass: status.toLowerCase() === 'published' ? 'good' : 'warn',
-                        date: `${this.formatAnnouncementDate(announcement.publish_date)}`,
-                        visibility: this.formatAnnouncementVisibility(sections)
+                        date: `Posted on ${this.formatDate(announcement.publish_date)}`,
+                        visibility: this.formatSectionVisibility(sections)
                     };
                 },
                 normalizeModule(module) {
@@ -757,8 +834,21 @@
                     return {
                         ...module,
                         sections,
-                        visibility: this.formatAnnouncementVisibility(sections)
+                        visibility: this.formatSectionVisibility(sections)
                     };
+                },
+                normalizeAct(activity) {
+                    const sections = Array.isArray(activity.sections)
+                        ? activity.sections.filter(Boolean)
+                        : [];
+
+                    return {
+                        ...activity,
+                        sections,
+                        visibility: this.formatSectionVisibility(sections),
+                        date: `${this.formatDateTime(activity.due_date)}`
+                    };
+                    console.log(date);
                 },
 
                 openAnnouncementManagement(announcement) {
@@ -1030,6 +1120,40 @@
                         alert('Activity upload failed: ' + (err.message || err));
                     }
                 },
+                async load_act() {
+                    const targetClassId = this.getTargetClassId();
+
+                    if (!targetClassId) {
+                        console.warn('Cannot load activities: class_id is missing.');
+                        this.activities = [];
+                        return;
+                    }
+
+                    this.currentClassId = targetClassId;
+                    this.activitiesLoading = true;
+
+                    try {
+                        const res = await fetch(
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/load_act`
+                        );
+
+                        if (!res.ok) {
+                            throw new Error(await res.text());
+                        }
+
+                        const data = await res.json();
+                        this.activities = Array.isArray(data)
+                            ? data.map(activity => this.normalizeAct(activity))
+                            : [];
+                        console.log("Activities:", this.activities);
+
+                    } catch (err) {
+                        console.error('Failed to load announcements:', err);
+                        this.activities = [];
+                    } finally {
+                        this.activitiesLoading = false;
+                    }
+                },
 
                 // Announcement
                 async postAnnouncement() {
@@ -1065,6 +1189,7 @@
                                 body: JSON.stringify({
                                     title,
                                     message,
+                                    status: this.announcementStatus,
                                     sections: selectedSections
                                 })
                             }
@@ -1123,8 +1248,36 @@
                     } finally {
                         this.announcementsLoading = false;
                     }
-                }
+                },
+                async delete_announcement() {
+                    if (!confirm("Delete this announcement?")) return;
 
+                    try {
+                        const res = await fetch(
+                            `/api/subjects/announcement/${this.selectedAnnouncement.announcement_id}`,
+                            {
+                                method: "DELETE"
+                            }
+                        );
+
+                        if (!res.ok) {
+                            throw new Error(await res.text());
+                        }
+
+                        // remove from Alpine array
+                        this.announcements = this.announcements.filter(
+                            announcement =>
+                                announcement.announcement_id !==
+                                this.selectedAnnouncement.announcement_id
+                        );
+
+                        this.modal = null;
+
+                    } catch (err) {
+                        console.error(err);
+                        alert("Failed to delete announcement");
+                    }
+                },
             };
         }
     </script>

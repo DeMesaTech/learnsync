@@ -1,9 +1,10 @@
 """Class management endpoints"""
 from fastapi import APIRouter, HTTPException, Body
+from httpx import request
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from models import CreateClassRequest, ClassResponse, TeacherDashboardResponse
+from models import CreateClassRequest, ClassResponse, StudentDashboardResponse, TeacherDashboardResponse
 from db import get_db_connection
 
 classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
@@ -243,6 +244,110 @@ async def get_teacher_dashboard(teacher_id: int):
             quiz_count=quiz_count,
             module_count=module_count,
             activity_count=submission_count
+        )
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
+# Student Dashboard Endpoint
+@classes_router.get("/student/{student_id}/dashboard")
+async def get_student_dashboard(student_id: int):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # KPIs
+        #1. Verify student exists
+        cur.execute(
+            '''SELECT s.student_id, u.name
+               FROM student s
+               JOIN "user" u ON s.user_id = u.user_id
+               WHERE s.student_id = %s AND u.role = %s''',
+            (student_id, 'student')
+        )
+        student = cur.fetchone()
+        if not student:
+            raise HTTPException(status_code=400, detail="Student not found")
+        
+        #2. Count existing classes for this student
+        cur.execute(
+            '''SELECT COUNT(*) AS Enrolled_classes
+                FROM enrollment
+                WHERE student_id =  %s''',
+            (student_id,)
+        )
+        enrolled_classes = cur.fetchone()['Enrolled_classes'] or 0
+        
+        #3. Count modules in all subjects
+        cur.execute(
+            '''SELECT COUNT(m.module_id) AS total_modules
+                FROM enrollment e
+                JOIN module m
+                ON e.class_id = m.class_id
+                WHERE e.student_id = %s''',
+            (student_id,)
+        )
+        module_count = cur.fetchone()['total_modules'] or 0
+        #4. Pending works (activities and quizzes not yet submitted)
+        cur.execute(
+            '''SELECT
+                (
+                    -- Pending Activities
+                    SELECT COUNT(*)
+                    FROM enrollment e
+                    JOIN activity a
+                        ON e.class_id = a.class_id
+                    LEFT JOIN act_submission s
+                        ON s.activity_id = a.activity_id
+                    AND s.student_id = e.student_id
+                    WHERE e.student_id = %s
+                    AND s.act_submission_id IS NULL
+                )
+                +
+                (
+                    -- Pending Quizzes
+                    SELECT COUNT(*)
+                    FROM enrollment e
+                    JOIN quiz q
+                        ON e.class_id = q.class_id
+                    LEFT JOIN quiz_score qs
+                        ON qs.quiz_id = q.quiz_id
+                    AND qs.student_id = e.student_id
+                    WHERE e.student_id = %s
+                    AND qs.quiz_score_id IS NULL
+                ) AS pending_works''',
+            (student_id, student_id)
+        )
+        pending_works = cur.fetchone()['pending_works'] or 0
+    #4. Count completed works (activities and quizzes submitted)    
+        cur.execute(
+            '''SELECT
+                (
+                    SELECT COUNT(*)
+                    FROM act_submission
+                    WHERE student_id = %s
+                )
+                +
+                (
+                    SELECT COUNT(*)
+                    FROM quiz_score
+                    WHERE student_id = %s
+                ) AS completed_works''',
+            (student_id, student_id)
+        )
+        completed_works = cur.fetchone()['completed_works'] or 0
+
+        print(f"Student Dashboard: {student_id}, \nEnrolled Classes: {enrolled_classes}, \nModules: {module_count}, \nPending Works: {pending_works}, \nSubmitted Work: {completed_works}")
+        return StudentDashboardResponse(
+            student_id=student_id,
+            enrolled_classes=enrolled_classes,
+            module_count=module_count, 
+            pending_works=pending_works,
+            submitted_work=completed_works
         )
     except psycopg2.Error as e:
         conn.rollback()

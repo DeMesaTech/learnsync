@@ -115,7 +115,7 @@ async def signup(request: SignupRequest):
         user_id = cur.fetchone()['user_id']
         
         if request.role == 'student':
-            cur.execute(
+            cur.execute( 
                 'INSERT INTO student (user_id, student_id) VALUES (%s, %s)',
                 (user_id, request.idNumber)
             )

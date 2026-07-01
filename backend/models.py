@@ -75,11 +75,10 @@ class TeacherDashboardResponse(BaseModel):
 # ========= STUDENT DASHBOARD ===========
 class StudentDashboardResponse(BaseModel):
     student_id: Optional[int] = None
-    classes_count: int
-    submission_count: int
-    quiz_count: int
+    enrolled_classes: int
     module_count: int
-    activity_count: int
+    pending_works: int
+    submitted_work: int
 
 # ========== SUBJECT KPIs ===========
 class SubjectKPIsResponse(BaseModel):
@@ -93,6 +92,7 @@ class SubjectKPIsResponse(BaseModel):
 class AnnouncementCreate(BaseModel):
     title: str
     message: str
+    status: str
     sections: List[str]
 
 class AnnouncementResponse(BaseModel):

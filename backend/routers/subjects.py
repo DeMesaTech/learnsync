@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Body
-from models import AnnouncementCreate, AnnouncementResponse, SubjectKPIsResponse
+from models import AnnouncementCreate, AnnouncementResponse, SubjectKPIsResponse, StudentDashboardResponse
 import psycopg2
 import json 
 import os
@@ -449,12 +449,12 @@ async def post_Announcement(class_id: int, request: AnnouncementCreate):
         cursor.execute(
             """
             INSERT INTO announcement (
-                class_id, employee_id, title, message
+                class_id, employee_id, title, message, status
                 )
-            VALUES (%s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING announcement_id
             """,
-            (class_id, employee_id, request.title, request.message)
+            (class_id, employee_id, request.title, request.message, request.status)
         )
         announcement_id = cursor.fetchone()[0]
         print(f"announcement id: {announcement_id}")
@@ -512,7 +512,49 @@ async def post_Announcement(class_id: int, request: AnnouncementCreate):
     finally:
         cursor.close()
         conn.close()
+# ===========================================================
+#DELETE Announcement
+@subject_router.delete("/announcement/{announcement_id}")
+async def delete_announcement(class_id: int, announcement_id: int):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
+        # 1. Does the announcement exist?
+        # SELECT ...
+        cursor.execute(
+            """
+            SELECT employee_id
+            FROM class
+            WHERE class_id = %s
+            """,
+            (class_id,)
+        )
+        row = cursor.fetchone()
+        # if not found:
+        #     raise HTTPException(...)
+
+        # 2. Delete from announcement_section
+        # DELETE ...
+
+        # 3. Delete from announcement
+        # DELETE ...
+
+        # 4. Commit
+        conn.commit()
+        return {
+            "message": "...",
+            "announcement_id": announcement_id
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    finally:
+        cursor.close()
+        conn.close()
 # ===========================================================
 # LOAD Announcements
 @subject_router.get("/{class_id}/announcement")
@@ -591,6 +633,184 @@ async def load_Modules(class_id: int):
     except psycopg2.Error as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
+# LOAD modules
+@subject_router.get("/{class_id}/load_act")
+async def load_Activities(class_id: int):
+    """Load activities for a specific class."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            '''SELECT
+                a.activity_id,
+                a.title,
+                a.file_path,
+                a.status,
+                a.due_date,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.section), NULL) AS sections
+            FROM activity a
+            JOIN teacher t
+                ON a.employee_id = t.employee_id
+            LEFT JOIN activity_sections acts
+                ON a.activity_id = acts.activity_id
+            LEFT JOIN section s
+                ON acts.section_id = s.section_id
+            WHERE a.class_id = %s
+            GROUP BY
+                a.activity_id
+            ORDER BY a.publish_date DESC;''',
+            (class_id,)
+        )
+
+        activity_data = cur.fetchall()
+        print(f"activities:\n{activity_data}")
+
+        return activity_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+"""
+Overall logic
+
+Think of each activity as moving through states.
+
+Draft
+   ↓
+Published
+   ↓
+Accepting submissions
+   ↓
+Deadline reached
+   ↓
+Teacher grades
+   ↓
+Scored
+
+Depending on the state, the summary changes.
+
+State	What the card displays
+Draft	Not published yet
+Published	Due date, submitted, pending
+Deadline passed	Submitted count, late submissions
+Grading	"Grading in progress"
+Scored	Average score, highest score, etc.
+Backend logic
+
+When the frontend requests activities, the backend can determine what summary to return.
+
+Pseudo-logic:
+
+for activity in activities:
+
+    if activity.is_scored:
+        show_average_score()
+
+    elif activity.has_due_date:
+        show_submission_counts()
+
+    else:
+        show_basic_information()
+
+or even better, have the backend compute a summary object:
+
+{
+    "title": "Chapter 1 Draft",
+    "status": "active",
+    "summary": {
+        "submitted": 18,
+        "pending": 14
+    }
+}
+
+Another activity might return
+
+{
+    "title": "Problem Statement Worksheet",
+    "status": "scored",
+    "summary": {
+        "average": 91
+    }
+}
+
+The frontend then simply checks the status and renders the appropriate information.
+"""
+
+# ===========================================================
+# Student Dashboard Endpoint
+@subject_router.get("/subject/{class_id}/kpis", response_model=StudentDashboardResponse)
+async def get_student_dashboard(class_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # KPIs
+        # 1. Count enrolled students in the subject
+        cur.execute(
+            '''SELECT COUNT(e.enrollment_id) AS student_count
+            FROM class c JOIN enrollment e ON e.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        student_count = cur.fetchone()['student_count'] or 0
+
+        # 2. Count Activity Submissions in the subject
+        cur.execute(
+            '''SELECT COUNT(s.submission_id) AS submission_count
+            FROM class c JOIN activity a ON a.class_id = c.class_id
+            JOIN submission s ON s.activity_id = a.activity_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        submission_count = cur.fetchone()['submission_count'] or 0
+
+        # 3. Count Quizzes taken in the subject
+        cur.execute(
+            '''SELECT COUNT(q.quiz_id) AS quiz_count
+            FROM class c JOIN quiz q ON q.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        quiz_count = cur.fetchone()['quiz_count'] or 0
+        # 4. Count modules created in the subject
+        cur.execute(
+            '''SELECT COUNT(m.module_id) AS module_count
+            FROM class c JOIN module m ON m.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        module_count = cur.fetchone()['module_count'] or 0
+        # 5. Count activities created in the subject
+        cur.execute(
+            '''SELECT COUNT(a.activity_id) AS activity_count
+            FROM class c JOIN activity a ON a.class_id = c.class_id
+            WHERE c.class_id = %s''',
+            (class_id,)
+        )
+        activity_count = cur.fetchone()['activity_count'] or 0
+
+        print(f"KPIs for class_id={class_id}: \nstudents={student_count}, \nsubmissions={submission_count}, \nquizzes={quiz_count}, \nmodules={module_count}, \nactivities={activity_count}")
+        return StudentDashboardResponse(
+            student_id=None,  # Use the provided class_id
+            classes_count=1,  # Assuming this is for a single class
+            submission_count=submission_count,
+            quiz_count=quiz_count,
+            module_count=module_count,
+            activity_count=activity_count
+        )
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
     finally:
         cur.close()
         conn.close()

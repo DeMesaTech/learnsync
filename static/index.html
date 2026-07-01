@@ -211,8 +211,11 @@
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
                         localStorage.setItem('name', data.name);
-                        if (data.teacher_id) {
+                        if (data.role === 'teacher') {
                             localStorage.setItem('teacher_id', data.teacher_id);
+                        }
+                        else if (data.role === 'student') {
+                            localStorage.setItem('student_id', data.student_id);
                         }
                         
 
