@@ -153,8 +153,10 @@
                             Add Announcement</button>
                         <button class="lms-icon-btn" type="button" @click="announcementsOpen = !announcementsOpen"
                             :aria-expanded="announcementsOpen.toString()" aria-label="Toggle announcements">
-                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="announcementsOpen ? 'rotate-180' : ''">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
+                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                :class="announcementsOpen ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="m6 9 6 6 6-6" />
                             </svg>
                         </button>
                     </span>
@@ -739,6 +741,12 @@
                             );
 
                             this.sections = [...new Set(filtered.map(c => c.section))];
+                            console.log("Before default:", this.enrollSection);
+                            if (!this.enrollSection && this.sections.length > 0) {
+                                this.enrollSection = this.sections[0];
+                            }
+
+                            console.log("After default:", this.enrollSection);
 
                             if (!this.currentClassId && filtered.length) {
                                 this.currentClassId = filtered[0].class_id;
@@ -898,6 +906,7 @@
                 // Parse textarea and call enroll endpoint
                 async enrollStudents() {
                     const text = this.$refs.enrollInput ? this.$refs.enrollInput.value : '';
+
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
                     const student_ids = lines.map(l => {
                         const first = l.split(',')[0].trim();
@@ -907,14 +916,32 @@
 
                     if (!student_ids.length) { alert('No valid student IDs found'); return; }
 
+                    // 👇 Add these logs
+                    console.log("Selected section:", JSON.stringify(this.enrollSection));
+
+                    this.teacherClasses.forEach(c => {
+                        console.log({
+                            class_id: c.class_id,
+                            class_code: c.class_code,
+                            section: c.section
+                        });
+                    });
+
                     const target = this.teacherClasses.find(c => (c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id)) && c.section === this.enrollSection);
                     if (!target) { alert('Target class not found for selected section'); return; }
+
+                    const payload = {
+                        student_ids,
+                        section: this.enrollSection
+                    };
+                    console.log("Sending payload:", payload);
+                    console.log("JSON:", JSON.stringify(payload));
 
                     try {
                         const res = await fetch(`/api/subjects/${target.class_id}/enroll`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ student_ids })
+                            body: JSON.stringify(payload)
                         });
                         if (!res.ok) { const txt = await res.text(); throw new Error(txt); }
                         const data = await res.json();

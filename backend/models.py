@@ -82,7 +82,7 @@ class StudentDashboardResponse(BaseModel):
 
 # ========== SUBJECT KPIs ===========
 class SubjectKPIsResponse(BaseModel):
-    class_id: str
+    class_id: int
     total_students: int
     total_modules: int
     total_activities: int
@@ -104,3 +104,7 @@ class AnnouncementResponse(BaseModel):
     teacher_name: str | None = None
     sections: List[str]
     
+class StudentClassResponse(BaseModel):
+    subject: str
+    section: str
+    teacher_name: str

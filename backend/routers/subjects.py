@@ -15,7 +15,7 @@ subject_router = APIRouter(prefix="/api/subjects", tags=["subjects"])
 # ===========================================================
 # Teacher Dashboard Endpoint
 @subject_router.get("/subject/{class_id}/kpis", response_model=SubjectKPIsResponse)
-async def get_teacher_dashboard(class_id: str):
+async def get_teacher_dashboard(class_id: int):
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -84,6 +84,15 @@ async def enroll_students(class_id: str, payload: dict = Body(...)):
     conn = get_db_connection()
     try:
         cur = conn.cursor()
+
+        # get section_id for the given section code
+        section_code = payload.get('section')
+        cur.execute('SELECT section_id FROM section WHERE section = %s', (section_code,))
+        section_id = cur.fetchone()
+        if not section_id:
+            raise HTTPException(status_code=400, detail="Invalid section")
+        section_id = section_id[0]
+
         enrolled = 0
         for sid in student_ids:
             try:
@@ -96,8 +105,14 @@ async def enroll_students(class_id: str, payload: dict = Body(...)):
 
             # check existing enrollment
             cur.execute('SELECT 1 FROM enrollment WHERE student_id = %s AND class_id = %s', (sid_int, class_id))
+            existing = cur.fetchone()
+
+            # Skip duplicates
+            if existing:
+                continue
+
             if not cur.fetchone():
-                cur.execute('INSERT INTO enrollment (student_id, class_id) VALUES (%s, %s)', (sid_int, class_id))
+                cur.execute('INSERT INTO enrollment (student_id, class_id, section_id) VALUES (%s, %s, %s)', (sid_int, class_id, section_id))
                 enrolled += 1
 
         conn.commit()

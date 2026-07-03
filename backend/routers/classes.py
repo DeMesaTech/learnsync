@@ -4,7 +4,7 @@ from httpx import request
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from models import CreateClassRequest, ClassResponse, StudentDashboardResponse, TeacherDashboardResponse
+from models import CreateClassRequest, ClassResponse, StudentClassResponse, StudentDashboardResponse, TeacherDashboardResponse
 from db import get_db_connection
 
 classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
@@ -275,12 +275,12 @@ async def get_student_dashboard(student_id: int):
         
         #2. Count existing classes for this student
         cur.execute(
-            '''SELECT COUNT(*) AS Enrolled_classes
+            '''SELECT COUNT(*) AS enrolled_classes
                 FROM enrollment
                 WHERE student_id =  %s''',
             (student_id,)
         )
-        enrolled_classes = cur.fetchone()['Enrolled_classes'] or 0
+        enrolled_classes = cur.fetchone()['enrolled_classes'] or 0
         
         #3. Count modules in all subjects
         cur.execute(
@@ -318,7 +318,7 @@ async def get_student_dashboard(student_id: int):
                         ON qs.quiz_id = q.quiz_id
                     AND qs.student_id = e.student_id
                     WHERE e.student_id = %s
-                    AND qs.quiz_score_id IS NULL
+                    AND qs.score_id IS NULL
                 ) AS pending_works''',
             (student_id, student_id)
         )
@@ -356,3 +356,37 @@ async def get_student_dashboard(student_id: int):
         cur.close()
         conn.close()
 
+# ===========================================================
+# Get all classes for a student
+@classes_router.get("/student/{student_id}", response_model=list[StudentClassResponse])
+async def get_student_classes(student_id: int):
+    """Get details of a specific class"""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            '''SELECT c.subject, sc.section, u.name AS teacher_name
+                FROM CLASS c
+                JOIN teacher t ON t.employee_id = c.employee_id
+                JOIN section sc ON c.class_id = sc.class_id
+                JOIN enrollment e ON e.section_id = sc.section_id
+                JOIN student s ON s.student_id = e.student_id
+                JOIN "user" u ON u.user_id = t.user_id
+                WHERE s.student_id = %s''',
+            (student_id,)
+        )
+
+        class_data = cur.fetchall()
+        print(f"Student Classes for student_id \n{class_data}")
+        return class_data
+        if not class_data:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        return class_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
