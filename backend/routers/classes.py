@@ -34,7 +34,7 @@ async def create_class(request: CreateClassRequest):
         cur.execute(
             '''SELECT t.employee_id, u.name
                FROM teacher t
-               JOIN "user" u ON t.user_id = u.user_id
+               JOIN account u ON t.user_id = u.user_id
                WHERE u.user_id = %s AND u.role = %s''',
             (request.teacher_id, 'teacher')
         )
@@ -129,7 +129,7 @@ async def get_class_details(class_id: str):
                FROM class c
                JOIN section s ON s.class_id = c.class_id
                JOIN teacher t ON c.employee_id = t.employee_id
-               JOIN "user" u ON t.user_id = u.user_id
+               JOIN account u ON t.user_id = u.user_id
                LEFT JOIN grading_policy gp ON gp.class_id = c.class_id
                WHERE c.class_id = %s''',
             (class_id,)
@@ -265,7 +265,7 @@ async def get_student_dashboard(student_id: int):
         cur.execute(
             '''SELECT s.student_id, u.name
                FROM student s
-               JOIN "user" u ON s.user_id = u.user_id
+               JOIN account u ON s.user_id = u.user_id
                WHERE s.student_id = %s AND u.role = %s''',
             (student_id, 'student')
         )
@@ -366,13 +366,13 @@ async def get_student_classes(student_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         cur.execute(
-            '''SELECT c.subject, sc.section, u.name AS teacher_name
+            '''SELECT c.subject, c.class_id, sc.section, u.name AS teacher_name
                 FROM CLASS c
                 JOIN teacher t ON t.employee_id = c.employee_id
                 JOIN section sc ON c.class_id = sc.class_id
                 JOIN enrollment e ON e.section_id = sc.section_id
                 JOIN student s ON s.student_id = e.student_id
-                JOIN "user" u ON u.user_id = t.user_id
+                JOIN account u ON u.user_id = t.user_id
                 WHERE s.student_id = %s''',
             (student_id,)
         )

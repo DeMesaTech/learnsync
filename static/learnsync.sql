@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS public.teacher
     CONSTRAINT teacher_user_id_key UNIQUE (user_id)
 );
 
-CREATE TABLE IF NOT EXISTS public."user"
+CREATE TABLE IF NOT EXISTS public.account
 (
     user_id serial NOT NULL,
     name character varying(100) COLLATE pg_catalog."default",
@@ -315,7 +315,7 @@ ALTER TABLE IF EXISTS public.activity_sections
 
 ALTER TABLE IF EXISTS public.ai_query
     ADD CONSTRAINT ai_query_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."user" (user_id) MATCH SIMPLE
+    REFERENCES public.account (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
@@ -499,7 +499,7 @@ ALTER TABLE IF EXISTS public.section
 
 ALTER TABLE IF EXISTS public.student
     ADD CONSTRAINT student_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."user" (user_id) MATCH SIMPLE
+    REFERENCES public.account (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS student_user_id_key
@@ -522,7 +522,7 @@ ALTER TABLE IF EXISTS public.student_answer
 
 ALTER TABLE IF EXISTS public.teacher
     ADD CONSTRAINT teacher_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public."user" (user_id) MATCH SIMPLE
+    REFERENCES public.account (user_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS teacher_user_id_key

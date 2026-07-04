@@ -106,5 +106,6 @@ class AnnouncementResponse(BaseModel):
     
 class StudentClassResponse(BaseModel):
     subject: str
+    class_id: int
     section: str
     teacher_name: str
