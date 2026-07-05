@@ -571,8 +571,8 @@ async def delete_announcement(class_id: int, announcement_id: int):
         cursor.close()
         conn.close()
 # ===========================================================
-# LOAD Announcements
-@subject_router.get("/{class_id}/announcement")
+# LOAD TEACHER Announcements
+@subject_router.get("/{class_id}/teacher/announcement")
 async def load_Announcements(class_id: int):
     """Load announcements for a specific class."""
     conn = get_db_connection()
@@ -614,7 +614,7 @@ async def load_Announcements(class_id: int):
 
 # ===========================================================
 # LOAD modules
-@subject_router.get("/{class_id}/load_modules")
+@subject_router.get("/{class_id}/teacher/load_modules")
 async def load_Modules(class_id: int):
     """Load modules for a specific class."""
     conn = get_db_connection()
@@ -654,7 +654,7 @@ async def load_Modules(class_id: int):
 
 # ===========================================================
 # LOAD modules
-@subject_router.get("/{class_id}/load_act")
+@subject_router.get("/{class_id}/teacher/load_act")
 async def load_Activities(class_id: int):
     """Load activities for a specific class."""
     conn = get_db_connection()
@@ -762,7 +762,7 @@ The frontend then simply checks the status and renders the appropriate informati
 
 # ===========================================================
 # Student Dashboard Endpoint
-@subject_router.get("/subject/{class_id}/kpis", response_model=StudentDashboardResponse)
+@subject_router.get("/{class_id}/kpis", response_model=StudentDashboardResponse)
 async def get_student_dashboard(class_id: str):
     try:
         conn = get_db_connection()
@@ -822,6 +822,78 @@ async def get_student_dashboard(class_id: str):
             module_count=module_count,
             activity_count=activity_count
         )
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
+# Student Class Title Endpoint
+@subject_router.get("/{class_id}/{student_id}/student")
+async def get_student_announcements(class_id: str, student_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Fetch title and section for the class
+        cur.execute(
+            '''SELECT
+                s.section,
+                c.subject
+                FROM enrollment e
+                JOIN section s ON e.section_id = s.section_id
+                JOIN class c ON e.class_id = c.class_id
+                WHERE e.student_id = %s AND e.class_id = %s''',
+            (student_id, class_id)
+        )
+        class_data = cur.fetchone()
+        print(f"Class Data:\n{class_data}")
+
+        return class_data
+
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
+# Student Class Announcements Endpoint
+@subject_router.get("/subject/{student_id}/{class_id}/student/announcements")
+async def get_student_announcements(student_id: str, class_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Fetch announcements for the class
+        cur.execute(
+            '''SELECT
+                a.announcement_id,
+                a.title,
+                a.message,
+                a.status,
+                a.publish_date
+            FROM announcement a
+            JOIN enrollment e ON e.class_id = a.class_id
+            JOIN student st ON st.student_id = e.student_id
+            LEFT JOIN announcement_section ans ON a.announcement_id = ans.announcement_id
+            LEFT JOIN section s ON ans.section_id = s.section_id
+            WHERE e.student_id = %s AND a.class_id = %s
+            GROUP BY a.announcement_id, e.section_id
+            ORDER BY a.publish_date DESC;''',
+            (student_id, class_id)
+        )
+
+        announcements = cur.fetchall()
+        print(f"Student Announcements:\n{announcements}")
+
+        return announcements
+
     except psycopg2.Error as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
