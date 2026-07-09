@@ -135,18 +135,19 @@
                 <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
                     <div class="lms-task-top">
                         <h3>Modules</h3>
-                        <span class="lms-badge">2 files</span>
+                        <span class="lms-badge" x-text="modules.length + ' files'"></span>
                     </div>
-                    <ul class="lms-list">
-                        <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true"
-                            @keydown.space.prevent="true"><strong>Research Problem and Objectives</strong>
-                            <p class="m-0">PDF module uploaded Oct 2, with text chunks available for AI context.</p>
-                        </li>
-                        <li role="button" tabindex="0" @click="true" @keydown.enter.prevent="true"
-                            @keydown.space.prevent="true"><strong>Review of Related Literature</strong>
-                            <p class="m-0">Reference notes and class discussion file.</p>
-                        </li>
-                    </ul>
+
+                    <template x-for="module in modules" :key="module.title">
+                        <ul class="lms-list">
+                            <li>
+                                <a :href="'/' + module.file_path" target="_blank" class="lms-module-link">
+                                    <strong x-text="module.title"></strong>
+                                    <p class="m-0" x-text="module.summary"></p>
+                                </a>
+                            </li>
+                        </ul>
+                    </template>
                 </section>
 
                 <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
@@ -278,7 +279,8 @@
                 classTitle: '',
                 classSection: '',
                 announcements: [],
-                
+                modules: [],
+
                 openAnnouncement(announcement) {
                     this.announcementModal = announcement;
                 },
@@ -333,6 +335,7 @@
                         console.error("Unable to load class title:", err);
                     }
                     await this.loadAnnouncements(classId, student_id);
+                    await this.loadModules(classId, student_id);
                 },
                 async loadAnnouncements(classId, student_id) {
                     try {
@@ -347,6 +350,19 @@
                         console.error("Error loading announcements:", err);
                     }
                 },
+                async loadModules(classId, student_id) {
+                    try {
+                        const res = await fetch(`/api/subjects/${encodeURIComponent(student_id)}/${encodeURIComponent(classId)}/student/modules`);
+                        if (!res.ok) {
+                            console.error("Failed to load modules:", await res.text());
+                            return;
+                        }
+                        this.modules = await res.json();
+                        console.log("Modules loaded:", this.modules);
+                    } catch (err) {
+                        console.error("Error loading modules:", err);
+                    }
+                }
             };
 
         }
