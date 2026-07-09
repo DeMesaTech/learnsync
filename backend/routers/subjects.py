@@ -864,7 +864,7 @@ async def get_student_announcements(class_id: str, student_id: str):
 
 # ===========================================================
 # Student Class Announcements Endpoint
-@subject_router.get("/subject/{student_id}/{class_id}/student/announcements")
+@subject_router.get("/{student_id}/{class_id}/student/announcements")
 async def get_student_announcements(student_id: str, class_id: str):
     try:
         conn = get_db_connection()
@@ -890,7 +890,9 @@ async def get_student_announcements(student_id: str, class_id: str):
         )
 
         announcements = cur.fetchall()
-        print(f"Student Announcements:\n{announcements}")
+        print("Student Announcements:\n")
+        for announcement in announcements:
+            print(f"title: {announcement['title']}, \n message: {announcement['message']}, \n status: {announcement['status']}, \n publish_date: {announcement['publish_date']}")
 
         return announcements
 

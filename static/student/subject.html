@@ -115,10 +115,9 @@
                     <template x-for="announcement in announcements" :key="announcement.title">
                         <button class="lms-row lms-announcement-button" type="button"
                             @click="openAnnouncement(announcement)">
-                            <span class="lms-badge" :class="announcement.badgeClass"
-                                x-text="announcement.subject"></span>
                             <strong x-text="announcement.title"></strong>
-                            <span class="lms-meta" x-text="announcement.meta"></span>
+                            <span class="lms-meta" x-text="announcement.message"></span>
+                            <span class="lms-meta" x-text="announcement.publish_date"></span>
                         </button>
                     </template>
                 </div>
@@ -270,24 +269,16 @@
     </div>
     <script>
         function subjectApp() {
-            const announcements = [
-                {
-                    subject: 'Capstone',
-                    badgeClass: 'warn',
-                    title: 'Bring printed Chapter 1 outline next meeting',
-                    meta: 'Posted Oct 18, 2026 by Prof. Gilda Taupa',
-                    details: 'Prepare a one-page outline with your title, background, problem statement, objectives, scope, and significance. Bring one printed copy for checking and keep a digital copy for your next Chapter 1 draft submission.'
-                }];
-
             return {
                 open: false,
                 activeTab: 'modules',
                 announcementsOpen: false,
-                announcements,
                 announcementModal: null,
                 class_data: '',
                 classTitle: '',
                 classSection: '',
+                announcements: [],
+                
                 openAnnouncement(announcement) {
                     this.announcementModal = announcement;
                 },
@@ -320,6 +311,7 @@
                     }
                     const classId = urlParams.get('class_id');
                     console.log("ClassID: " + classId);
+                    console.log("StudentID: " + student_id);
 
                     try {
                         const res = await fetch(`/api/subjects/${encodeURIComponent(classId)}/${encodeURIComponent(student_id)}/student`);
@@ -340,46 +332,23 @@
                     } catch (err) {
                         console.error("Unable to load class title:", err);
                     }
+                    await this.loadAnnouncements(classId, student_id);
                 },
-            };
-
-        }
-
-        function subjectContentApp() {
-            return {
-                classTitle: '',
-                async init() {
-                    const student_id = localStorage.getItem("student_id");
-                    const urlParams = new URLSearchParams(window.location.search);
-
-                    if (!student_id) {
-                        console.warn("Student ID not found.");
-                        return;
-                    }
-                    if (!urlParams.get('class_id')) {
-                        console.warn("Class ID not found.");
-                        return;
-                    }
-                    const classId = urlParams.get('class_id');
-                    console.log("ClassID: " + classId);
-
+                async loadAnnouncements(classId, student_id) {
                     try {
-                        const res = await fetch(`/api/subject/${encodeURIComponent(classId)}/student`);
+                        const res = await fetch(`/api/subjects/${encodeURIComponent(student_id)}/${encodeURIComponent(classId)}/student/announcements`);
                         if (!res.ok) {
-                            console.error("Request failed:", await res.text());
+                            console.error("Failed to load announcements:", await res.text());
                             return;
                         }
-
-                        this.classTitle = await res.json();
-
-                        console.log("Class title loaded:", await this.classTitle);
-
+                        this.announcements = await res.json();
+                        console.log("Announcements loaded:", this.announcements);
                     } catch (err) {
-                        console.error("Unable to load class title:", err);
+                        console.error("Error loading announcements:", err);
                     }
-                    await this.fetchClasses();
                 },
             };
+
         }
     </script>
 </body>
