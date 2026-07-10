@@ -3,6 +3,18 @@
 BEGIN;
 
 
+CREATE TABLE IF NOT EXISTS public.account
+(
+    user_id integer NOT NULL DEFAULT nextval('user_user_id_seq'::regclass),
+    name character varying(100) COLLATE pg_catalog."default",
+    email character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    password character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    role character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_pkey PRIMARY KEY (user_id),
+    CONSTRAINT user_email_key UNIQUE (email)
+);
+
 CREATE TABLE IF NOT EXISTS public.act_recitation
 (
     act_recitation_id serial NOT NULL,
@@ -114,6 +126,7 @@ CREATE TABLE IF NOT EXISTS public.enrollment
     enrollment_id serial NOT NULL,
     student_id integer,
     class_id bigint,
+    section_id integer,
     CONSTRAINT enrollment_pkey PRIMARY KEY (enrollment_id),
     CONSTRAINT enrollment_student_id_class_id_key UNIQUE (student_id, class_id)
 );
@@ -244,19 +257,6 @@ CREATE TABLE IF NOT EXISTS public.teacher
     CONSTRAINT teacher_user_id_key UNIQUE (user_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.account
-(
-    user_id serial NOT NULL,
-    name character varying(100) COLLATE pg_catalog."default",
-    email character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    username character varying(100) COLLATE pg_catalog."default",
-    password character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    role character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT user_pkey PRIMARY KEY (user_id),
-    CONSTRAINT user_email_key UNIQUE (email)
-);
-
 ALTER TABLE IF EXISTS public.act_recitation
     ADD CONSTRAINT act_recitation_class_id_fkey FOREIGN KEY (class_id)
     REFERENCES public.class (class_id) MATCH SIMPLE
@@ -372,6 +372,13 @@ ALTER TABLE IF EXISTS public.class
 ALTER TABLE IF EXISTS public.enrollment
     ADD CONSTRAINT enrollment_class_id_fkey FOREIGN KEY (class_id)
     REFERENCES public.class (class_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.enrollment
+    ADD CONSTRAINT enrollment_section_id_fkey FOREIGN KEY (section_id)
+    REFERENCES public.section (section_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 

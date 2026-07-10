@@ -98,7 +98,7 @@
                 <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section>
 
-
+            <!-- Announcements -->
             <section class="lms-panel">
                 <div class="lms-task-top">
                     <h3>Announcements</h3>
@@ -122,6 +122,7 @@
                     </template>
                 </div>
             </section>
+            <!-- Subject Tabs -->
             <section class="lms-panel mt-4">
                 <section class="lms-tabs mt-4" aria-label="Subject tabs">
                     <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
@@ -131,7 +132,7 @@
                     <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
                         @click="activeTab = 'quizzes'">Quizzes</button>
                 </section>
-
+                <!-- Modules Section -->
                 <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
                     <div class="lms-task-top">
                         <h3>Modules</h3>
@@ -149,11 +150,11 @@
                         </ul>
                     </template>
                 </section>
-
+                <!-- Activities Section -->
                 <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
                     <div class="lms-task-top">
                         <h3>Activities</h3>
-                        <span class="lms-badge">2 items</span>
+                        <span class="lms-badge" x-text="activities.length + ' items'"></span>
                     </div>
                     <ul class="lms-list">
                         <li role="button" tabindex="0" @click="openStudentItem('activity', 'chapter-1-draft')"
@@ -166,14 +167,25 @@
                         <li role="button" tabindex="0"
                             @click="openStudentItem('activity', 'problem-statement-worksheet')"
                             @keydown.enter.prevent="openStudentItem('activity', 'problem-statement-worksheet')"
-                            @keydown.space.prevent="openStudentItem('activity', 'problem-statement-worksheet')"><span
-                                class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
+                            @keydown.space.prevent="openStudentItem('activity', 'problem-statement-worksheet')">
+                            <span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
                                 Worksheet</strong>
                             <p class="m-0">Submitted Oct 10, 2026.</p>
                         </li>
+                        <template x-for="activity in activities" :key="activity.title">
+                            <li role="button" tabindex="0" @click="openStudentItem('activity', activity.slug)"
+                                @keydown.enter.prevent="openStudentItem('activity', activity.slug)"
+                                @keydown.space.prevent="openStudentItem('activity', activity.slug)">
+                                <span class="lms-badge" 
+                                        :class="`lms-badge ${activity.badgeClass}`"
+                                        x-text="activity.submissionStatus"></span>
+                                <strong class="block mt-2" x-text="activity.title"></strong>
+                                <p class="m-0" x-text="activity.description"></p>
+                            </li>
+                        </template>
                     </ul>
                 </section>
-
+                <!-- Quizzes Section -->
                 <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
                     <div class="lms-task-top">
                         <h3>Quizzes</h3>
@@ -196,7 +208,7 @@
                     </ul>
                 </section>
             </section>
-
+            <!-- AI Study Context -->
             <section class="lms-panel mt-4">
                 <h3>AI Study Context</h3>
                 <p>Saved AI queries can connect to module content through query context records, helping students review
@@ -280,6 +292,9 @@
                 classSection: '',
                 announcements: [],
                 modules: [],
+                activities: [],
+                submissionStatus: '',
+                badgeClass: '',
 
                 openAnnouncement(announcement) {
                     this.announcementModal = announcement;
@@ -336,6 +351,7 @@
                     }
                     await this.loadAnnouncements(classId, student_id);
                     await this.loadModules(classId, student_id);
+                    await this.loadActivity(classId, student_id);
                 },
                 async loadAnnouncements(classId, student_id) {
                     try {
@@ -362,6 +378,54 @@
                     } catch (err) {
                         console.error("Error loading modules:", err);
                     }
+                },
+                async loadActivity(classId, student_id) {
+                    try {
+                        const res = await fetch(`/api/subjects/${encodeURIComponent(student_id)}/${encodeURIComponent(classId)}/student/activities`);
+                        if (!res.ok) {
+                            console.error("Failed to load activities:", await res.text());
+                            return;
+                        }
+                        this.activities = await res.json();
+                        console.log("Activities loaded:", this.activities);
+
+                        const dateNow = new Date();
+                        const dueDate = this.activities.map(activity => new Date(activity.due_date));
+                        console.log("Current date:", dateNow);
+                        console.log("Activity due dates:", dueDate);
+
+
+                        this.activities.forEach(activity => {
+                            const dueDate = new Date(activity.due_date);
+
+                            if (dateNow > dueDate) {
+                                const daysOverdue = Math.ceil((dateNow - dueDate) / (1000 * 60 * 60 * 24));
+                                activity.submissionStatus = `${daysOverdue} day/s overdue`;
+                                activity.badgeClass = "bad";
+                                console.log(activity.title + ": " + activity.submissionStatus);
+
+                            } else if (dateNow < dueDate) {
+                                activity.submissionStatus = `Due ${this.formatDateTime(activity.due_date)}`;
+                                activity.badgeClass = "";
+                                console.log(activity.title + ": " + activity.submissionStatus);
+                            }
+                        });
+
+                    } catch (err) {
+                        console.error("Error loading activities:", err);
+                    }
+                },
+                formatDateTime(value) {
+                    if (!value) return "";
+
+                    const date = new Date(value);
+
+                    return date.toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit"
+                    });
                 }
             };
 

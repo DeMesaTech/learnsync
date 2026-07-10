@@ -945,3 +945,43 @@ async def get_student_modules(student_id: str, class_id: str):
     finally:
         cur.close()
         conn.close()
+
+# ===========================================================
+# Student Class ACTIVITY Endpoint
+@subject_router.get("/{student_id}/{class_id}/student/activities")
+async def get_student_activities(student_id: str, class_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Fetch activities for the class
+        cur.execute(
+            '''SELECT
+                a.activity_id,
+                a.title,
+                a.description,
+                file_path,
+                a.due_date
+            FROM activity a
+            JOIN enrollment e ON e.class_id = a.class_id
+            JOIN student st ON st.student_id = e.student_id
+            WHERE e.student_id = 121243 AND a.class_id = 1
+            ORDER BY a.due_date DESC;''',
+            (student_id, class_id)
+        )
+
+        activities = cur.fetchall()
+
+        print("Student Activities:\n")
+        for activity in activities:
+            print(f"title: {activity['title']}, \n description: {activity['description']}, \n due_date: {activity['due_date']}")
+
+        return activities
+
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        cur.close()
+        conn.close()

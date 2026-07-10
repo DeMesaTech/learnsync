@@ -170,7 +170,7 @@
                         <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
                             <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.title"></span>
                             <div class="lms-announcement-content">
-                                <strong x-text="announcement.message"></strong>
+                                <strong x-text="announcement.message"></strong><br>
                                 <span class="lms-meta" x-text="announcement.date"></span>
                                 <span class="lms-meta" x-text="announcement.visibility"></span>
                             </div>
@@ -259,32 +259,6 @@
                             </article>
                         </li>
                     </template>
-                </ul>
-
-
-
-                <div class="lms-task-top">
-                    <h3>Activities</h3><span class="lms-badge warn">1 due soon</span>
-                </div>
-                <ul class="lms-list">
-                    <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable">
-                            <span class="lms-badge warn">Due Oct 25</span>
-                            <strong class="block mt-2">Chapter 1 Draft</strong>
-                            <p class="m-0">18 submitted | 14 pending | visible to Sections 3A and 3B.</p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('activity','Chapter 1 Draft')">Manage</button></span>
-                        </article>
-                    </li>
-                    <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable">
-                            <span class="lms-badge good">Scored</span>
-                            <strong class="block mt-2">Problem Statement Worksheet</strong>
-                            <p class="m-0">Average score: 91 / 100. Deadline Oct 10, 2026.</p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('activity','Problem Statement Worksheet')">Manage</button></span>
-                        </article>
-                    </li>
                 </ul>
             </section>
 
@@ -1049,7 +1023,7 @@
 
                     try {
                         const res = await fetch(
-                            `/api/subjects/${encodeURIComponent(targetClassId)}/load_modules`
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/teacher/load_modules`
                         );
 
                         if (!res.ok) {
@@ -1161,7 +1135,7 @@
 
                     try {
                         const res = await fetch(
-                            `/api/subjects/${encodeURIComponent(targetClassId)}/load_act`
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/teacher/load_act`
                         );
 
                         if (!res.ok) {
@@ -1175,7 +1149,7 @@
                         console.log("Activities:", this.activities);
 
                     } catch (err) {
-                        console.error('Failed to load announcements:', err);
+                        console.error('Failed to load activities:', err);
                         this.activities = [];
                     } finally {
                         this.activitiesLoading = false;
@@ -1256,7 +1230,7 @@
 
                     try {
                         const res = await fetch(
-                            `/api/subjects/${encodeURIComponent(targetClassId)}/announcement`
+                            `/api/subjects/${encodeURIComponent(targetClassId)}/teacher/announcement`
                         );
 
                         if (!res.ok) {
