@@ -165,15 +165,16 @@ async def get_teacher_classes(teacher_id: int):
             '''SELECT c.class_id,
                       c.class_code,
                       c.subject,
-                      s.section,
+                      ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.section), NULL) AS sections,
                       COALESCE((SELECT COUNT(*) FROM enrollment e WHERE e.class_id = c.class_id), 0) AS student_count,
-                      COALESCE((SELECT COUNT(*) FROM module m WHERE m.employee_id = c.employee_id), 0) AS module_count,
+                      COALESCE((SELECT COUNT(*) FROM module m WHERE m.class_id = c.class_id), 0) AS module_count,
                       COALESCE((SELECT COUNT(*) FROM activity a WHERE a.class_id = c.class_id), 0) AS activity_count,
                       COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
                FROM class c
                JOIN section s ON s.class_id = c.class_id
-               WHERE c.employee_id = %s
-               ORDER BY c.subject, s.section''',
+               WHERE c.employee_id = 1
+               GROUP BY c.class_id
+               ORDER BY c.subject''',
             (teacher_id,)
         )
         
@@ -230,7 +231,7 @@ async def get_teacher_dashboard(teacher_id: int):
         #4. Count modules created
         cur.execute(
             '''SELECT COUNT(m.module_id) AS module_count
-            FROM class c JOIN module m ON m.employee_id = c.employee_id
+            FROM module m JOIN class c ON c.class_id = m.class_id
             WHERE c.employee_id = %s''',
             (teacher_id,)
         )

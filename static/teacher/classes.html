@@ -184,10 +184,10 @@
                                         placeholder="Number of sections">
 
                                     <div class="grid gap-3 sm:grid-cols-2">
-                                            <template x-for="(section, i) in sections" :key="i">
-                                                <input class="lms-input" x-model="sections[i]"
-                                                    :placeholder="`Section ${i + 1}`">
-                                            </template>
+                                        <template x-for="(section, i) in sections" :key="i">
+                                            <input class="lms-input" x-model="sections[i]"
+                                                :placeholder="`Section ${i + 1}`">
+                                        </template>
                                     </div>
 
                                     <div class="lms-grid lms-grid-4">
@@ -305,20 +305,13 @@
                         const data = await res.json();
                         this.classes = data.classes || [];
                         const groups = {};
-                        this.classes.forEach(cls => {
-                            const key = cls.class_code || cls.subject;
-                            if (!groups[key]) {
-                                groups[key] = { class_code: cls.class_code, subject: cls.subject, sections: [], students: 0, modules: 0, activities: 0, quizzes: 0 };
-                            }
-                            const g = groups[key];
-                            if (cls.section && !g.sections.includes(cls.section)) g.sections.push(cls.section);
-                            g.students += Number(cls.student_count || 0);
-                            g.modules += Number(cls.module_count || 0);
-                            g.activities += Number(cls.activity_count || 0);
-                            g.quizzes += Number(cls.quiz_count || 0);
-                        });
-                        Object.values(groups).forEach(g => g.sections.sort());
-                        this.groupedClasses = Object.values(groups);
+                        this.groupedClasses = data.classes.map(cls => ({
+                            ...cls,
+                            students: cls.student_count,
+                            modules: cls.module_count,
+                            activities: cls.activity_count,
+                            quizzes: cls.quiz_count
+                        }));
                     } catch (err) { console.error(err); }
                     // The "New Class" button dispatches this event; setting modal to 'class' makes the class modal appear.
                     window.addEventListener('open-class-modal', () => { this.modal = 'class'; });
@@ -342,15 +335,17 @@
                     for (let i = 0; i < this.sections.length; i++) {
                         sectionNames[`section_${i + 1}`] = `${this.year}${this.sections[i].trim().toUpperCase()}`;
                     }
-                    const payload = { teacher_id, 
-                                subject: this.subject, 
-                                class_code: this.class_code, 
-                                year: this.year, 
-                                sections: sectionNames, 
-                                attendance: this.attendance, 
-                                quizzes: this.quizzes, 
-                                activities: this.activities, 
-                                exam: this.exam };
+                    const payload = {
+                        teacher_id,
+                        subject: this.subject,
+                        class_code: this.class_code,
+                        year: this.year,
+                        sections: sectionNames,
+                        attendance: this.attendance,
+                        quizzes: this.quizzes,
+                        activities: this.activities,
+                        exam: this.exam
+                    };
                     try {
                         // JSON.stringify turns the payload object into JSON text for the POST request body.
                         // Content-Type tells the backend to read that body as JSON.
