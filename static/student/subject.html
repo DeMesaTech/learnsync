@@ -157,21 +157,6 @@
                         <span class="lms-badge" x-text="activities.length + ' items'"></span>
                     </div>
                     <ul class="lms-list">
-                        <li role="button" tabindex="0" @click="openStudentItem('activity', 'chapter-1-draft')"
-                            @keydown.enter.prevent="openStudentItem('activity', 'chapter-1-draft')"
-                            @keydown.space.prevent="openStudentItem('activity', 'chapter-1-draft')"><span
-                                class="lms-badge warn">Due Oct 25</span><strong class="block mt-2">Chapter 1
-                                Draft</strong>
-                            <p class="m-0">Submit a file path record and wait for teacher score.</p>
-                        </li>
-                        <li role="button" tabindex="0"
-                            @click="openStudentItem('activity', 'problem-statement-worksheet')"
-                            @keydown.enter.prevent="openStudentItem('activity', 'problem-statement-worksheet')"
-                            @keydown.space.prevent="openStudentItem('activity', 'problem-statement-worksheet')">
-                            <span class="lms-badge good">Scored 92</span><strong class="block mt-2">Problem Statement
-                                Worksheet</strong>
-                            <p class="m-0">Submitted Oct 10, 2026.</p>
-                        </li>
                         <template x-for="activity in activities" :key="activity.title">
                             <li role="button" tabindex="0" @click="openStudentItem('activity', activity.slug)"
                                 @keydown.enter.prevent="openStudentItem('activity', activity.slug)"
