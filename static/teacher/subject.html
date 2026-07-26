@@ -714,7 +714,7 @@
                                 String(c.class_code).trim() === String(this.group_id).trim()
                             );
 
-                            this.sections = [...new Set(filtered.map(c => c.section))];
+                            this.sections = [...new Set(filtered.flatMap(c => c.sections || []))];
                             console.log("Before default:", this.enrollSection);
                             if (!this.enrollSection && this.sections.length > 0) {
                                 this.enrollSection = this.sections[0];
@@ -901,8 +901,11 @@
                         });
                     });
 
-                    const target = this.teacherClasses.find(c => (c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id)) && c.section === this.enrollSection);
-                    if (!target) { alert('Target class not found for selected section'); return; }
+                    const target = this.teacherClasses.find(c =>
+                        (c.class_code === this.group_id || c.subject === this.group_id || String(c.class_id) === String(this.group_id))
+                        && Array.isArray(c.sections)
+                        && c.sections.includes(this.enrollSection)
+                    ); if (!target) { alert('Target class not found for selected section'); return; }
 
                     const payload = {
                         student_ids,

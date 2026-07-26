@@ -58,30 +58,30 @@ async def create_class(request: CreateClassRequest):
 
         section_ids = []
         
-        for section_value in section_values:
-            cur.execute(
-                '''INSERT INTO class (class_code, employee_id, subject)
-                    VALUES (%s, %s, %s)
-                    RETURNING class_code, class_id''',
-                (request.class_code, teacher_employee_id, request.subject)
-            )
-            class_id = cur.fetchone()['class_id']
+        # create class once
+        cur.execute(
+            '''INSERT INTO class (class_code, employee_id, subject)
+               VALUES (%s, %s, %s)
+               RETURNING class_id''',
+            (request.class_code, teacher_employee_id, request.subject)
+        )
+        class_id = cur.fetchone()['class_id']
 
+        # create one section row for each section
+        for section_value in section_values:
             cur.execute(
                 '''INSERT INTO section (employee_id, section, class_id)
                    VALUES (%s, %s, %s)
                    RETURNING section_id''',
                 (teacher_employee_id, section_value, class_id)
             )
-            section_id = cur.fetchone()['section_id']
-            section_ids.append(section_id)
+            section_ids.append(cur.fetchone()['section_id'])
 
-#
-
-            cur.execute("""
+        # insert grading policy once
+        cur.execute("""
             INSERT INTO grading_policy (class_id, attendance_weight, recit_weight, quizzes_weight, exam_weight)
             VALUES (%s, %s, %s, %s, %s)
-            """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
+        """, (class_id, request.attendance, request.activities, request.quizzes, request.exam))
 
         conn.commit()
         
@@ -172,7 +172,7 @@ async def get_teacher_classes(teacher_id: int):
                       COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
                FROM class c
                JOIN section s ON s.class_id = c.class_id
-               WHERE c.employee_id = 1
+               WHERE c.employee_id = %s
                GROUP BY c.class_id
                ORDER BY c.subject''',
             (teacher_id,)

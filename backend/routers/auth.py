@@ -180,6 +180,14 @@ async def get_user_profile(user_id: int):
             student = cur.fetchone()
             if student:
                 student_number = str(student.get('student_id')) if student.get('student_id') else None
+        elif user['role'] == 'teacher':
+            cur.execute(
+                'SELECT employee_id FROM Teacher WHERE user_id = %s',
+                (user_id,)
+            )
+            teacher = cur.fetchone()
+            if teacher:
+                employee_id = str(teacher.get('employee_id')) if teacher.get('employee_id') else None
 
         return UserProfileResponse(
             user_id=user['user_id'],
@@ -187,6 +195,7 @@ async def get_user_profile(user_id: int):
             email=user['email'],
             role=user['role'],
             student_number=student_number,
+            employee_id=employee_id
         )
 
     except psycopg2.Error as e:

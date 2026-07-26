@@ -34,6 +34,7 @@ class UserProfileResponse(BaseModel):
     email: str
     role: str
     student_number: Optional[str] = None
+    employee_id: Optional[str] = None
     grade_level: Optional[str] = None
 
 
