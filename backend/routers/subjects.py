@@ -960,13 +960,14 @@ async def get_student_activities(student_id: str, class_id: str):
                 a.activity_id,
                 a.title,
                 a.description,
-                file_path,
+                a.file_path,
                 a.due_date
             FROM activity a
             JOIN enrollment e ON e.class_id = a.class_id
             JOIN student st ON st.student_id = e.student_id
-            WHERE e.student_id = 121243 AND a.class_id = 1
+            WHERE e.student_id = %s AND a.class_id = %s
             ORDER BY a.due_date DESC;''',
+            # Use parameterized SQL to avoid SQL injection and properly substitute runtime values
             (student_id, class_id)
         )
 
@@ -974,7 +975,7 @@ async def get_student_activities(student_id: str, class_id: str):
 
         print("Student Activities:\n")
         for activity in activities:
-            print(f"title: {activity['title']}, \n description: {activity['description']}, \n due_date: {activity['due_date']}")
+            print(f"title: {activity['title']}, \n description: {activity['description']}, \n file_path: {activity['file_path']}, \n due_date: {activity['due_date']}")
 
         return activities
 

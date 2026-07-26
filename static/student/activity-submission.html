@@ -14,7 +14,7 @@
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="activitySubmissionApp()">
+    <div class="pt-20 flex min-h-screen" x-data="activitySubmissionApp()" x-init="init()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
@@ -44,8 +44,8 @@
         <main class="lms-page">
             <section class="lms-hero">
                 <div>
-                    <h2 class="lms-title" x-text="activity.title">Activity Submission</h2>
-                    <p class="lms-subtitle" x-text="activity.className + ' | Due ' + formatDate(activity.date)"></p>
+                    <h2 class="lms-title" x-text="activity?.title || 'Activity Submission'">Activity Submission</h2>
+                    <p class="lms-subtitle" x-text="activity ? activity.class_name + ' | Due ' + formatDate(activity.due_date) : ''"></p>
                 </div>
             </section>
 
@@ -53,17 +53,25 @@
                 <div class="lms-panel">
                     <div class="lms-task-top">
                         <h3>Instructions</h3>
-                        <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
+                        <span class="lms-badge warn" x-text="activity ? 'Due ' + formatDate(activity.due_date) : ''"></span><!--Due Date, bound to backend due_date field -->
                     </div>
                     <ol class="lms-instruction-list">
-                        <template x-for="step in activity.instructions" :key="step">
+                        <template x-for="step in activity?.instructions || []" :key="step"><!--Instruction Steps -->
                             <li x-text="step"></li>
                         </template>
                     </ol>
-                    <div class="lms-file-box mt-4">
-                        <strong>Attached instruction file</strong>
-                        <span class="lms-meta" x-text="activity.attachment"></span>
-                    </div>
+                        <span class="lms-meta" x-text="activity.description"></span>
+                        <div class="lms-file-box mt-4">
+                            <strong>Attached instruction file</strong>
+                            <span class="lms-meta">
+                                <template x-if="activity?.attachment">
+                                    <a :href="'/' + activity.attachment" target="_blank" class="lms-link" x-text="activity.attachment"></a>
+                                </template>
+                                <template x-if="!activity?.attachment">
+                                    <span class="text-slate-500">No attachment available</span>
+                                </template>
+                            </span><!--Instruction File pdf, docx, ppt, etc. -->
+                        </div>
                 </div>
 
                 <form class="lms-panel" @submit.prevent="submitted = true">
@@ -87,6 +95,8 @@
                         <button class="lms-btn" type="submit">Submit Work</button>
                     </div>
                     <p class="lms-empty mt-4" x-show="submitted" x-cloak>Your submission preview is saved on this screen. Backend saving can be connected later.</p>
+                    <p class="lms-empty mt-4 text-red-600" x-show="error" x-text="error" x-cloak></p>
+                    <p class="lms-empty mt-4" x-show="loading && !error" x-text="'Loading activity details...'" x-cloak></p>
                 </form>
             </section>
         </main>
@@ -94,61 +104,48 @@
 
     <script>
         function activitySubmissionApp() {
-            const activities = {
-                'chapter-1-draft': {
-                    title: 'Chapter 1 Draft',
-                    className: 'Capstone Research Project 1',
-                    date: '2026-10-25',
-                    attachment: 'chapter-1-draft-instructions.pdf',
-                    instructions: [
-                        'Submit one PDF or DOCX file containing your title, background, objectives, scope, and significance.',
-                        'Use the filename format Lastname_Chapter1_Draft.',
-                        'Include citations for any source used in the background section.'
-                    ]
-                },
-                'final-project-proposal': {
-                    title: 'Final Project Proposal',
-                    className: 'Web Development',
-                    date: '2026-10-20',
-                    attachment: 'web-project-proposal-guide.pdf',
-                    instructions: [
-                        'Attach one proposal document and one wireframe file.',
-                        'List at least three user roles and five core pages.',
-                        'Add a short paragraph explaining the problem your project solves.'
-                    ]
-                },
-                'normalization-exercise': {
-                    title: 'Normalization Exercise',
-                    className: 'Database Management 2',
-                    date: '2026-10-30',
-                    attachment: 'normalization-worksheet.docx',
-                    instructions: [
-                        'Normalize the sample table up to third normal form.',
-                        'Attach the updated ERD screenshot or diagram file.',
-                        'Explain each table split in two to three sentences.'
-                    ]
-                },
-                'problem-statement-worksheet': {
-                    title: 'Problem Statement Worksheet',
-                    className: 'Capstone Research Project 1',
-                    date: '2026-10-10',
-                    attachment: 'problem-statement-template.docx',
-                    instructions: [
-                        'Review your submitted worksheet and teacher comments.',
-                        'Keep a copy of the revised problem statement for Chapter 1.',
-                        'Resubmit only if your teacher requests revision.'
-                    ]
-                }
-            };
-
-            const slug = new URLSearchParams(window.location.search).get('activity') || 'chapter-1-draft';
-
             return {
                 open: false,
                 submitted: false,
                 filePath: '',
                 notes: '',
-                activity: activities[slug] || activities['chapter-1-draft'],
+                activity: null,
+                loading: true,
+                error: null,
+                async init() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const student_id = localStorage.getItem('student_id');
+                    const class_id = urlParams.get('class_id');
+                    const activity_id = urlParams.get('activity_id');
+
+                    if (!student_id) {
+                        this.error = 'Missing student identifier.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    if (!class_id || !activity_id) {
+                        this.error = 'Missing class or activity identifier. Please open submissions from a valid class page.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/api/submissions/student/${encodeURIComponent(student_id)}/class/${encodeURIComponent(class_id)}/activity/${encodeURIComponent(activity_id)}`);
+                        if (!res.ok) {
+                            const message = await res.text();
+                            throw new Error(message || 'Failed to load activity submission details.');
+                        }
+
+                        this.activity = await res.json();
+                        this.submitted = this.activity.submission_status === 'Submitted';
+                    } catch (err) {
+                        this.error = err.message;
+                        console.error('Unable to load activity submission:', err);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
                 formatDate(value) {
                     return new Date(value + 'T00:00:00').toLocaleDateString('en-US', {
                         month: 'short',

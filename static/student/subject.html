@@ -158,9 +158,9 @@
                     </div>
                     <ul class="lms-list">
                         <template x-for="activity in activities" :key="activity.title">
-                            <li role="button" tabindex="0" @click="openStudentItem('activity', activity.slug)"
-                                @keydown.enter.prevent="openStudentItem('activity', activity.slug)"
-                                @keydown.space.prevent="openStudentItem('activity', activity.slug)">
+                            <li role="button" tabindex="0" @click="openStudentItem('activity', activity.activity_id)"
+                                @keydown.enter.prevent="openStudentItem('activity', activity.activity_id)"
+                                @keydown.space.prevent="openStudentItem('activity', activity.activity_id)">
                                 <span class="lms-badge" 
                                         :class="`lms-badge ${activity.badgeClass}`"
                                         x-text="activity.submissionStatus"></span>
@@ -284,14 +284,18 @@
                 openAnnouncement(announcement) {
                     this.announcementModal = announcement;
                 },
-                openStudentItem(type, slug) {
+                openStudentItem(type, activityId) {
                     if (type === 'activity') {
-                        window.location.href = `activity-submission.html?activity=${slug}`;
+                        // Use the preserved classId stored during init() so activity-submission
+                        // opens with the correct class context for the student.
+                        window.location.href = `activity-submission.html?class_id=${this.classId}&activity_id=${activityId}`;
+                        return;
                     }
                     if (type === 'quiz') {
-                        window.location.href = `quiz-take.html?quiz=${slug}`;
+                        window.location.href = `quiz-take.html?quiz=${activityId}`;
                     }
                 },
+                classId: null,
                 finalGrade: {
                     grade: 91.86,
                     midterm: 88.50,
@@ -312,6 +316,7 @@
                         return;
                     }
                     const classId = urlParams.get('class_id');
+                    this.classId = classId; // preserve classId for activity navigation
                     console.log("ClassID: " + classId);
                     console.log("StudentID: " + student_id);
 
