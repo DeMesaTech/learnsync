@@ -246,8 +246,7 @@
                                 <p class="m-0" x-text="activity.visibility">
                                 </p>
                                 <template x-if="activity.file_path">
-                                    <a :href="'/' + activity.file_path" target="_blank">
-                                        View Activity
+                                    <a :href="'/' + activity.file_path" target="_blank" x-text="'View Attachment'">
                                     </a>
                                 </template>
                                 <span class="lms-inline-actions mt-2">
@@ -255,6 +254,7 @@
                                         @click.prevent="openManagement('activity', activity.title)">
                                         Manage
                                     </button>
+                                    <a class="lms-btn lms-btn-small" :href="'/teacher/activity-submissions.html?class_id=' + currentClassId + '&activity_id=' + activity.activity_id">View Submissions</a>
                                 </span>
                             </article>
                         </li>

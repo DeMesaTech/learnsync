@@ -1,4 +1,5 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body
+import os
 from psycopg2.extras import RealDictCursor
 
 from db import get_db_connection
@@ -57,6 +58,145 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+    finally:
+        cur.close()
+        conn.close()
+
+
+# Student submission upload
+@submit_router.post("/student/{student_id}/class/{class_id}/activity/{activity_id}/submit")
+async def submit_activity(student_id: int, class_id: int, activity_id: int, file: UploadFile = File(None), file_path: str = Form(None), notes: str = Form(None)):
+    """Receive a student submission: file or file_path (link)."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        upload_location = None
+
+        # Save uploaded file if provided
+        if file is not None and getattr(file, 'filename', None):
+            os.makedirs("uploads/submissions", exist_ok=True)
+            upload_location = f"uploads/submissions/{file.filename}"
+            with open(upload_location, "wb") as buffer:
+                buffer.write(await file.read())
+
+        # prefer explicit file_path param if provided
+        path_to_store = file_path or upload_location
+
+        # Insert submission record
+        cur.execute(
+            """
+            INSERT INTO act_submission (
+                student_id,
+                activity_id,
+                file_path,
+                submission_date,
+                submission_status,
+                feedback,
+                score,
+                attempt_number
+            ) VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s)
+            RETURNING act_submission_id
+            """,
+            (
+                student_id,
+                activity_id,
+                path_to_store,
+                'Submitted',
+                None,
+                None,
+                1
+            )
+        )
+
+        submission_id = cur.fetchone()[0]
+        conn.commit()
+
+        return {"act_submission_id": submission_id, "file_path": path_to_store}
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# Teacher: list submissions for an activity (optional section filter)
+@submit_router.get("/class/{class_id}/activity/{activity_id}")
+async def list_activity_submissions(class_id: int, activity_id: int, section: str = None):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        query = '''
+            SELECT s.act_submission_id, s.student_id, s.file_path AS submission_file_path,
+                   s.submission_date, s.score, s.submission_status, s.feedback, s.attempt_number,
+                   acc.name AS student_name, sec.section
+            FROM act_submission s
+            JOIN student st ON st.student_id = s.student_id
+            LEFT JOIN account acc ON acc.user_id = st.user_id
+            LEFT JOIN enrollment e ON e.student_id = st.student_id
+            LEFT JOIN section sec ON sec.section_id = e.section_id
+            WHERE s.activity_id = %s
+        '''
+
+        params = [activity_id]
+        if section:
+            query += ' AND sec.section = %s'
+            params.append(section)
+
+        query += ' ORDER BY s.submission_date DESC'
+
+        cur.execute(query, tuple(params))
+        rows = cur.fetchall()
+
+        return rows
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# Teacher: grade a submission
+@submit_router.put("/{submission_id}/grade")
+async def grade_submission(submission_id: int, payload: dict = Body(...)):
+    score = payload.get('score')
+    feedback = payload.get('feedback')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            UPDATE act_submission
+            SET score = %s,
+                feedback = %s,
+                graded_at= NOW()
+            WHERE act_submission_id = %s
+            RETURNING act_submission_id, student_id, activity_id, score, feedback
+            """,
+            (score, feedback, submission_id)
+        )
+
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail='Submission not found')
+
+        conn.commit()
+        return {
+            'act_submission_id': row[0],
+            'student_id': row[1],
+            'activity_id': row[2],
+            'score': row[3],
+            'feedback': row[4]
+    }
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cur.close()
         conn.close()

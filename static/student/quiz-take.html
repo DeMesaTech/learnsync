@@ -61,7 +61,7 @@
             <section class="lms-grid lms-grid-2">
                 <aside class="lms-panel">
                     <h3>Quiz Instructions</h3>
-                    <p x-text="quiz.description"></p>
+                    <p x-text="quiz?.description"></p>
                     <ol class="lms-instruction-list">
                         <template x-for="instruction in quiz.instructions" :key="instruction">
                             <li x-text="instruction"></li>

@@ -97,7 +97,7 @@
                                 <p class="lms-task-title" x-text="activity.title"></p>
                                 <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
                             </div>
-                            <p class="m-0" x-text="activity.description"></p>
+                            <p class="m-0" x-text="activity?.description"></p>
                             <span class="lms-meta" x-text="activity.className"></span>
                         </article>
                     </template>
@@ -117,7 +117,7 @@
                                 <p class="lms-task-title" x-text="quiz.title"></p>
                                 <span class="lms-badge" x-text="quiz.mode"></span>
                             </div>
-                            <p class="m-0" x-text="quiz.description"></p>
+                            <p class="m-0" x-text="quiz?.description"></p>
                             <span class="lms-meta" x-text="quiz.className + ' | Due ' + formatDate(quiz.date)"></span>
                         </article>
                     </template>
@@ -137,7 +137,7 @@
                                 <p class="lms-task-title" x-text="module.title"></p>
                                 <span class="lms-badge good" x-text="formatDate(module.date)"></span>
                             </div>
-                            <p class="m-0" x-text="module.description"></p>
+                            <p class="m-0" x-text="module?.description"></p>
                             <span class="lms-meta" x-text="module.className + ' | Uploaded by ' + module.teacher"></span>
                         </article>
                     </template>

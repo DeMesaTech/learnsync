@@ -60,7 +60,7 @@
                             <li x-text="step"></li>
                         </template>
                     </ol>
-                        <span class="lms-meta" x-text="activity.description"></span>
+                        <span class="lms-meta" x-text="activity?.description"></span>
                         <div class="lms-file-box mt-4">
                             <strong>Attached instruction file</strong>
                             <span class="lms-meta">
@@ -74,7 +74,7 @@
                         </div>
                 </div>
 
-                <form class="lms-panel" @submit.prevent="submitted = true">
+                <form class="lms-panel" @submit.prevent="submit()">
                     <div class="lms-task-top">
                         <h3>Submit Activity</h3>
                         <span class="lms-badge" :class="submitted ? 'good' : 'warn'" x-text="submitted ? 'Ready for review' : 'Pending'"></span>
@@ -82,7 +82,7 @@
                     <div class="lms-list">
                         <label>
                             <span class="lms-meta">Submission file</span>
-                            <input class="lms-input mt-2" type="file">
+                            <input class="lms-input mt-2" type="file" x-ref="submissionFile">
                         </label>
                         <label>
                             <span class="lms-meta">File path or link</span>
@@ -95,6 +95,11 @@
                         <button class="lms-btn" type="submit">Submit Work</button>
                     </div>
                     <p class="lms-empty mt-4" x-show="submitted" x-cloak>Your submission preview is saved on this screen. Backend saving can be connected later.</p>
+                    <div class="lms-empty mt-4" x-show="activity && activity.submission_status === 'Graded'" x-cloak>
+                        <p class="m-0">Your submission has been graded.</p>
+                        <p>Score: <strong x-text="activity?.score"></strong></p>
+                        <p x-show="activity?.feedback">Feedback: <span x-text="activity?.feedback"></span></p>
+                    </div>
                     <p class="lms-empty mt-4 text-red-600" x-show="error" x-text="error" x-cloak></p>
                     <p class="lms-empty mt-4" x-show="loading && !error" x-text="'Loading activity details...'" x-cloak></p>
                 </form>
@@ -147,11 +152,58 @@
                     }
                 },
                 formatDate(value) {
-                    return new Date(value + 'T00:00:00').toLocaleDateString('en-US', {
+                    if (!value) return 'date unavailable';
+                    const d = new Date(value);
+                    if (Number.isNaN(d.getTime())) return 'date unavailable';
+                    return d.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
                     });
+                }
+                ,
+                async submit() {
+                    this.error = null;
+                    this.loading = true;
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const class_id = urlParams.get('class_id');
+                    const activity_id = urlParams.get('activity_id');
+                    const student_id = localStorage.getItem('student_id');
+
+                    if (!student_id) {
+                        this.error = 'Missing student identifier.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const fd = new FormData();
+                        const file = this.$refs.submissionFile?.files?.[0];
+                        if (file) fd.append('file', file);
+                        if (this.filePath) fd.append('file_path', this.filePath);
+                        if (this.notes) fd.append('notes', this.notes);
+
+                        const res = await fetch(`/api/submissions/student/${encodeURIComponent(student_id)}/class/${encodeURIComponent(class_id)}/activity/${encodeURIComponent(activity_id)}/submit`, {
+                            method: 'POST',
+                            body: fd
+                        });
+
+                        if (!res.ok) {
+                            const txt = await res.text();
+                            throw new Error(txt || 'Submission failed');
+                        }
+
+                        const data = await res.json();
+                        this.submitted = true;
+                        this.activity.submission_file_path = data.file_path || this.filePath || null;
+
+                    } catch (err) {
+                        this.error = err.message || 'Submission error';
+                        console.error(err);
+                    } finally {
+                        this.loading = false;
+                    }
                 }
             };
         }
