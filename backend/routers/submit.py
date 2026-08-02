@@ -122,7 +122,7 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
         conn.close()
 
 
-# Teacher: list submissions for an activity (optional section filter)
+# Teacher: list enrolled students for an activity with optional section filter
 @submit_router.get("/class/{class_id}/activity/{activity_id}")
 async def list_activity_submissions(class_id: int, activity_id: int, section: str = None):
     conn = get_db_connection()
@@ -130,23 +130,47 @@ async def list_activity_submissions(class_id: int, activity_id: int, section: st
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         query = '''
-            SELECT s.act_submission_id, s.student_id, s.file_path AS submission_file_path,
-                   s.submission_date, s.score, s.submission_status, s.feedback, s.attempt_number,
-                   acc.name AS student_name, sec.section
-            FROM act_submission s
-            JOIN student st ON st.student_id = s.student_id
+            SELECT
+                e.student_id,
+                acc.name AS student_name,
+                sec.section,
+                latest.act_submission_id,
+                latest.file_path AS submission_file_path,
+                latest.submission_date,
+                latest.score,
+                latest.submission_status,
+                latest.feedback,
+                latest.attempt_number,
+                CASE WHEN latest.act_submission_id IS NULL THEN FALSE ELSE TRUE END AS has_submission
+            FROM enrollment e
+            JOIN activity a ON a.class_id = e.class_id
+            JOIN student st ON st.student_id = e.student_id
             LEFT JOIN account acc ON acc.user_id = st.user_id
-            LEFT JOIN enrollment e ON e.student_id = st.student_id
             LEFT JOIN section sec ON sec.section_id = e.section_id
-            WHERE s.activity_id = %s
+            LEFT JOIN (
+                SELECT DISTINCT ON (student_id)
+                    student_id,
+                    act_submission_id,
+                    file_path,
+                    submission_date,
+                    score,
+                    submission_status,
+                    feedback,
+                    attempt_number
+                FROM act_submission
+                WHERE activity_id = %s
+                ORDER BY student_id, submission_date DESC NULLS LAST, act_submission_id DESC
+            ) latest ON latest.student_id = st.student_id
+            WHERE a.class_id = %s
+              AND a.activity_id = %s
         '''
 
-        params = [activity_id]
+        params = [activity_id, class_id, activity_id]
         if section:
             query += ' AND sec.section = %s'
             params.append(section)
 
-        query += ' ORDER BY s.submission_date DESC'
+        query += ' ORDER BY sec.section, acc.name'
 
         cur.execute(query, tuple(params))
         rows = cur.fetchall()

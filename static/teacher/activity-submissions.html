@@ -98,50 +98,65 @@
                     </template>
 
                     <template x-if="!loading && submissions.length === 0">
-                        <p>No submissions yet.</p>
+                        <p>No enrolled students found.</p>
                     </template>
 
-                    <template x-for="s in submissions" :key="s.act_submission_id">
-                        <article class="lms-row">
-                            <div>
-                                <strong x-text="s.student_name || ('Student ' + s.student_id)"></strong>
-                                <div class="lms-meta">Section: <span x-text="s.section || 'n/a'"></span></div>
-                                <div class="lms-meta">Submitted: <span
-                                        x-text="formatDateTime(s.submission_date)"></span></div>
-                                <div class="lms-meta">Status: <span x-text="s.submission_status"></span></div>
-                                <div class="lms-meta">Score: <span x-text="s.score !== null ? s.score : '-' "></span>
-                                </div>
-                                <div class="lms-meta" x-show="s.submission_file_path">
-                                    <a :href="'/' + s.submission_file_path" target="_blank">View Submission</a>
-                                </div>
-                            </div>
-                            <div class="lms-inline-actions">
-                                <button class="lms-btn" @click="openGrade(s)">Grade</button>
-                            </div>
-                        </article>
+                    <template x-if="!loading && submissions.length > 0">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
+                                <thead class="bg-slate-50 text-left">
+                                    <tr>
+                                        <th class="px-3 py-2 font-semibold">Student</th>
+                                        <th class="px-3 py-2 font-semibold">Section</th>
+                                        <th class="px-3 py-2 font-semibold">Submission</th>
+                                        <th class="px-3 py-2 font-semibold">Submitted</th>
+                                        <th class="px-3 py-2 font-semibold">Grade</th>
+                                        <th class="px-3 py-2 font-semibold">Feedback</th>
+                                        <th class="px-3 py-2 font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="s in submissions" :key="s.act_submission_id || s.student_id">
+                                        <tr class="border-t border-slate-200 align-top transition-colors duration-150"
+                                            :class="s.submission_file_path ? 'cursor-pointer hover:bg-blue-50' : ''"
+                                            @click="if (s.submission_file_path) window.open('/' + s.submission_file_path, '_blank')">
+                                            <td class="px-3 py-2">
+                                                <div class="font-semibold" x-text="s.student_name || ('Student ' + s.student_id)"></div>
+                                            </td>
+                                            <td class="px-3 py-2" x-text="s.section || 'N/A'"></td>
+                                            <td class="px-3 py-2">
+                                                <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold"
+                                                    :class="s.has_submission ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                                                    <span class="h-2.5 w-2.5 rounded-full"
+                                                        :class="s.has_submission ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                                                    <span x-text="s.has_submission ? (s.submission_status || 'Submitted') : 'No submission'"></span>
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-2" x-text="formatDateTime(s.submission_date)"></td>
+                                            <td class="px-3 py-2">
+                                                <div class="space-y-2" @click.stop>
+                                                    <input class="lms-input w-full" type="number" x-model.number="s.tempScore" :disabled="!s.has_submission" placeholder="Enter score">
+                                                </div>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <div class="space-y-2" @click.stop>
+                                                    <input class="lms-input w-full" rows="1" x-model="s.tempFeedback" :disabled="!s.has_submission" placeholder="Add feedback">
+                                                </div>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <div class="space-y-2">
+                                                    <button class="lms-btn" @click.stop="saveRowGrade(s)" :disabled="!s.has_submission">Save</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </template>
                 </div>
             </section>
         </main>
-
-        <div class="lms-modal-backdrop" x-show="gradingModal" x-cloak @click.self="gradingModal = false">
-            <section class="lms-modal" role="dialog" aria-modal="true">
-                <div class="lms-modal-head">
-                    <h3>Grade Submission</h3>
-                    <button class="lms-icon-btn" @click="gradingModal=false">Close</button>
-                </div>
-                <div class="lms-grid">
-                    <p class="lms-meta"
-                        x-text="selectedSubmission.student_name || ('Student ' + selectedSubmission.student_id)"></p>
-                    <input class="lms-input" type="number" x-model="gradeValue" placeholder="Score">
-                    <textarea class="lms-input" x-model="gradeFeedback" placeholder="Feedback"></textarea>
-                    <div class="lms-inline-actions">
-                        <button class="lms-btn" @click="submitGrade()">Save Grade</button>
-                        <button class="lms-btn lms-btn-secondary" @click="gradingModal=false">Cancel</button>
-                    </div>
-                </div>
-            </section>
-        </div>
 
     </div>
 
@@ -152,10 +167,6 @@
                 sections: [],
                 sectionFilter: 'all',
                 loading: false,
-                gradingModal: false,
-                selectedSubmission: {},
-                gradeValue: null,
-                gradeFeedback: '',
                 activityTitle: '',
 
                 async init() {
@@ -185,7 +196,11 @@
                         const res = await fetch(`/api/submissions/class/${encodeURIComponent(this.class_id)}/activity/${encodeURIComponent(this.activity_id)}${query}`);
                         if (!res.ok) throw new Error(await res.text());
                         const data = await res.json();
-                        this.submissions = Array.isArray(data) ? data : [];
+                        this.submissions = Array.isArray(data) ? data.map(item => ({
+                            ...item,
+                            tempScore: item.score ?? '',
+                            tempFeedback: item.feedback || ''
+                        })) : [];
 
                         // build unique sections
                         const secs = [...new Set(this.submissions.map(s => s.section).filter(Boolean))];
@@ -199,27 +214,19 @@
                     }
                 },
 
-                openGrade(sub) {
-                    this.selectedSubmission = sub;
-                    this.gradeValue = sub.score;
-                    this.gradeFeedback = sub.feedback || '';
-                    this.gradingModal = true;
-                },
-
-                async submitGrade() {
-                    if (!this.selectedSubmission.act_submission_id) return;
+                async saveRowGrade(sub) {
+                    if (!sub.has_submission || !sub.act_submission_id) return;
                     try {
-                        const id = this.selectedSubmission.act_submission_id;
-                        const res = await fetch(`/api/submissions/${encodeURIComponent(id)}/grade`, {
+                        const res = await fetch(`/api/submissions/${encodeURIComponent(sub.act_submission_id)}/grade`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ score: this.gradeValue, feedback: this.gradeFeedback })
+                            body: JSON.stringify({
+                                score: sub.tempScore === '' ? null : sub.tempScore,
+                                feedback: sub.tempFeedback || ''
+                            })
                         });
                         if (!res.ok) throw new Error(await res.text());
-                        const updated = await res.json();
-                        // refresh list
                         await this.load();
-                        this.gradingModal = false;
                         alert('Grade saved');
                     } catch (err) {
                         console.error(err);
