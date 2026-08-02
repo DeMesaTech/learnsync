@@ -1,10 +1,53 @@
 ﻿from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body
 import os
+from datetime import datetime, timezone
 from psycopg2.extras import RealDictCursor
 
 from db import get_db_connection
 
 submit_router = APIRouter(prefix="/api/submissions", tags=["submissions"])
+
+ALLOWED_SUBMISSION_STATUSES = ["Submitted", "Late", "Returned", "Missing"]
+
+
+def get_submission_status_for_activity(activity_due_date: object | None = None) -> str:
+    """Return the submission status based on the activity deadline."""
+    if activity_due_date is None:
+        return "Submitted"
+
+    if isinstance(activity_due_date, str):
+        activity_due_date = activity_due_date.replace("Z", "+00:00")
+        activity_due_date = datetime.fromisoformat(activity_due_date)
+
+    if isinstance(activity_due_date, datetime):
+        now = datetime.now(activity_due_date.tzinfo or timezone.utc)
+        return "Late" if now > activity_due_date else "Submitted"
+
+    return "Submitted"
+
+
+def ensure_submission_notes_column(conn):
+    """Create the st_notes column when the database schema is missing it."""
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = 'act_submission' AND column_name = 'st_notes'
+                ) THEN
+                    ALTER TABLE act_submission ADD COLUMN st_notes text;
+                END IF;
+            END
+            $$;
+            """
+        )
+        conn.commit()
+    finally:
+        cur.close()
 
 
 @submit_router.get("/student/{student_id}/class/{class_id}/activity/{activity_id}")
@@ -12,6 +55,7 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
     """Return student activity and any existing submission details."""
     conn = get_db_connection()
     try:
+        ensure_submission_notes_column(conn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # SQL query uses parameterized values for safety and clarity.
@@ -32,7 +76,8 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
                 s.score,
                 s.submission_status,
                 s.feedback,
-                s.attempt_number
+                s.attempt_number,
+                s.st_notes
             FROM activity a
             JOIN enrollment e ON e.class_id = a.class_id
             JOIN student st ON st.student_id = e.student_id
@@ -71,6 +116,7 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
     cur = conn.cursor()
 
     try:
+        ensure_submission_notes_column(conn)
         upload_location = None
 
         # Save uploaded file if provided
@@ -83,6 +129,14 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
         # prefer explicit file_path param if provided
         path_to_store = file_path or upload_location
 
+        cur.execute(
+            "SELECT due_date FROM activity WHERE activity_id = %s AND class_id = %s",
+            (activity_id, class_id),
+        )
+        activity_row = cur.fetchone()
+        due_date = activity_row[0] if activity_row else None
+        submission_status = get_submission_status_for_activity(due_date)
+
         # Insert submission record
         cur.execute(
             """
@@ -94,18 +148,20 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
                 submission_status,
                 feedback,
                 score,
-                attempt_number
-            ) VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s)
+                attempt_number,
+                st_notes
+            ) VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s)
             RETURNING act_submission_id
             """,
             (
                 student_id,
                 activity_id,
                 path_to_store,
-                'Submitted',
+                submission_status,
                 None,
                 None,
-                1
+                1,
+                notes
             )
         )
 
@@ -121,6 +177,45 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
         cur.close()
         conn.close()
 
+# Student unsubmit activity
+@submit_router.delete("/student/{student_id}/class/{class_id}/activity/{activity_id}/unsubmit")
+async def unsubmit_activity(student_id: int, class_id: int, activity_id: int):
+    """Allow a student to unsubmit their activity submission."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        # Check if the submission exists
+        cur.execute(
+            """
+            SELECT act_submission_id FROM act_submission
+            WHERE student_id = %s AND activity_id = %s
+            """,
+            (student_id, activity_id)
+        )
+        submission = cur.fetchone()
+
+        if not submission:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        # Delete the submission
+        cur.execute(
+            """
+            DELETE FROM act_submission
+            WHERE act_submission_id = %s
+            """,
+            (submission[0],)
+        )
+
+        conn.commit()
+        return {"message": "Submission successfully removed."}
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
 
 # Teacher: list enrolled students for an activity with optional section filter
 @submit_router.get("/class/{class_id}/activity/{activity_id}")

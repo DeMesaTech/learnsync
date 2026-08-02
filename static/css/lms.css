@@ -119,6 +119,16 @@ body.lms-shell {
     padding: clamp(1rem, 2vw, 1.5rem);
 }
 
+.lms-panel {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.lms-panel .lms-btn {
+    justify-self: start;
+    margin-top: 0.2rem;
+}
+
 .lms-card {
     display: block;
     color: inherit;
@@ -301,9 +311,11 @@ body.lms-shell {
 }
 
 .lms-meta {
+    display: block;
     color: var(--brand-muted);
     font-size: 0.84rem;
     font-weight: 700;
+    line-height: 1.65;
 }
 
 .lms-badge {

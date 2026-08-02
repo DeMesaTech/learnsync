@@ -16,28 +16,76 @@
 <body class="lms-shell student-shell font-sans text-sm">
     <div class="pt-20 flex min-h-screen" x-data="activitySubmissionApp()" x-init="init()">
         <header class="app-header">
-            <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+            <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
-            <button class="header-icon-btn" aria-label="Notifications"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" /></svg></button>
-            <button class="header-icon-btn" aria-label="Profile"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" /></svg></button>
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span
+                    class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <button class="header-icon-btn" aria-label="Notifications"><svg class="header-action-icon" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg></button>
+            <button class="header-icon-btn" aria-label="Profile"><svg class="header-action-icon" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg></button>
         </header>
 
         <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
         <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
             <ul class="sidebar-list">
                 <div class="sidebar-logo">
-                    <div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" /></svg></div>
+                    <div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5ZM7 9h4M7 13h4M16 9h1M16 13h1" />
+                        </svg></div>
                     <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Student LMS</span></div>
                 </div>
-                <li><a href="AI.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" /></svg><span>AI Assistant</span></a></li>
-                <li><a href="dashboard.html" @click="open=false" class="sidebar-btn-active"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" /></svg><span>My Classes</span></a></li>
-                <li><a href="final-grades.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3 3v-6m-6 9h12M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" /></svg><span>Final Grades</span></a></li>
-                <li><a href="To-Do.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg><span>To Do</span></a></li>
-                <li><a href="Account.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" /></svg><span>Account Information</span></a></li>
-                <li><a href="about.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" /></svg><span>About</span></a></li>
-                <li><a href="report-bug.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" /></svg><span>Report Bug</span></a></li>
-                <li><a href="/" @click="localStorage.clear(); open = false" class="sidebar-btn"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
+                <li><a href="AI.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v3m-5 4h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3Zm3-4h4m-7 8h.01M17 14h.01M9 18h6" />
+                        </svg><span>AI Assistant</span></a></li>
+                <li><a href="dashboard.html" @click="open=false" class="sidebar-btn-active"><svg class="sidebar-icon"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5h16v11H4V5Zm3 14h10M9 16l-2 3m8-3 2 3M8 9h8M8 12h5" />
+                        </svg><span>My Classes</span></a></li>
+                <li><a href="final-grades.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-3 3v-6m-6 9h12M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                        </svg><span>Final Grades</span></a></li>
+                <li><a href="To-Do.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg><span>To Do</span></a></li>
+                <li><a href="Account.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
+                        </svg><span>Account Information</span></a></li>
+                <li><a href="about.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
+                        </svg><span>About</span></a></li>
+                <li><a href="report-bug.html" @click="open=false" class="sidebar-btn"><svg class="sidebar-icon"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
+                        </svg><span>Report Bug</span></a></li>
+                <li><a href="/" @click="localStorage.clear(); open = false" class="sidebar-btn"><svg
+                            class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
+                        </svg><span>Logout</span></a></li>
             </ul>
         </nav>
 
@@ -45,39 +93,64 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title" x-text="activity?.title || 'Activity Submission'">Activity Submission</h2>
-                    <p class="lms-subtitle" x-text="activity ? activity.class_name + ' | Due ' + formatDate(activity.due_date) : ''"></p>
+                    <p class="lms-subtitle"
+                        x-text="activity ? activity.class_name + ' | Due ' + formatDate(activity.due_date) : ''"></p>
                 </div>
             </section>
 
             <section class="lms-grid lms-grid-2">
-                <div class="lms-panel">
-                    <div class="lms-task-top">
-                        <h3>Instructions</h3>
-                        <span class="lms-badge warn" x-text="activity ? 'Due ' + formatDate(activity.due_date) : ''"></span><!--Due Date, bound to backend due_date field -->
-                    </div>
-                    <ol class="lms-instruction-list">
-                        <template x-for="step in activity?.instructions || []" :key="step"><!--Instruction Steps -->
-                            <li x-text="step"></li>
-                        </template>
-                    </ol>
+                <div class="lms-grid">
+                    <!-- Instructions Panel -->
+                    <div class="lms-panel">
+                        <div class="lms-task-top">
+                            <h3>Instructions</h3>
+                            <span class="lms-badge warn"
+                                x-text="activity ? 'Due ' + formatDate(activity.due_date) : ''"></span><!--Due Date, bound to backend due_date field -->
+                        </div>
                         <span class="lms-meta" x-text="activity?.description"></span>
                         <div class="lms-file-box mt-4">
                             <strong>Attached instruction file</strong>
                             <span class="lms-meta">
                                 <template x-if="activity?.attachment">
-                                    <a :href="'/' + activity.attachment" target="_blank" class="lms-link" x-text="activity.attachment"></a>
+                                    <a :href="'/' + activity.attachment" target="_blank" class="lms-link"
+                                        x-text="activity.attachment"></a>
                                 </template>
                                 <template x-if="!activity?.attachment">
                                     <span class="text-slate-500">No attachment available</span>
                                 </template>
                             </span><!--Instruction File pdf, docx, ppt, etc. -->
                         </div>
+                    </div>
+                </div>
+                <!-- Submitted File Panel -->
+                <div class="lms-panel" x-show="!loading && (submitted || Boolean(activity?.submission_file_path))">
+                    <div class="lms-task-top">
+                        <h3>Submitted File</h3>
+                    </div>
+                    <span class="lms-meta" x-text="activity?.st_notes"></span>
+                    <div class="lms-file-box mt-4">
+                        <strong>Attached submitted file</strong>
+                        <span class="lms-meta">
+                            <template x-if="activity?.submission_file_path">
+                                <a :href="'/' + activity.submission_file_path" target="_blank" class="lms-link"
+                                    x-text="activity.submission_file_path"></a>
+                            </template>
+                            <template x-if="!activity?.submission_file_path">
+                                <span class="text-slate-500">No attachment available</span>
+                            </template>
+                        </span><!--Submitted File pdf, docx, ppt, etc. -->
+                    </div>
+                    <div class="lms-btn-box mt-4">
+                        <button class="lms-btn" type="button" @click="showUnsubmitModal = true">Unsubmit</button>
+                    </div>
                 </div>
 
-                <form class="lms-panel" @submit.prevent="submit()">
+                <!-- Submission Form -->
+                <form class="lms-panel" x-show="!loading && !submitted && !activity?.submission_file_path" @submit.prevent="submit()">
                     <div class="lms-task-top">
                         <h3>Submit Activity</h3>
-                        <span class="lms-badge" :class="submitted ? 'good' : 'warn'" x-text="submitted ? 'Ready for review' : 'Pending'"></span>
+                        <span class="lms-badge" :class="submitted ? 'good' : 'warn'"
+                            x-text="submitted ? 'Ready for review' : 'Pending'"></span>
                     </div>
                     <div class="lms-list">
                         <label>
@@ -86,25 +159,51 @@
                         </label>
                         <label>
                             <span class="lms-meta">File path or link</span>
-                            <input class="lms-input mt-2" x-model="filePath" placeholder="Paste file path or cloud link">
+                            <input class="lms-input mt-2" x-model="filePath"
+                                placeholder="Paste file path or cloud link">
                         </label>
                         <label>
                             <span class="lms-meta">Student notes</span>
-                            <textarea class="lms-input mt-2" x-model="notes" placeholder="Add comments for your teacher"></textarea>
+                            <textarea class="lms-input mt-2" x-model="notes"
+                                placeholder="Add comments for your teacher"></textarea>
                         </label>
                         <button class="lms-btn" type="submit">Submit Work</button>
                     </div>
-                    <p class="lms-empty mt-4" x-show="submitted" x-cloak>Your submission preview is saved on this screen. Backend saving can be connected later.</p>
+                    <p class="lms-empty mt-4" x-show="submitted" x-cloak>Your submission preview is saved on this
+                        screen. Backend saving can be connected later.</p>
                     <div class="lms-empty mt-4" x-show="activity && activity.submission_status === 'Graded'" x-cloak>
                         <p class="m-0">Your submission has been graded.</p>
                         <p>Score: <strong x-text="activity?.score"></strong></p>
                         <p x-show="activity?.feedback">Feedback: <span x-text="activity?.feedback"></span></p>
                     </div>
                     <p class="lms-empty mt-4 text-red-600" x-show="error" x-text="error" x-cloak></p>
-                    <p class="lms-empty mt-4" x-show="loading && !error" x-text="'Loading activity details...'" x-cloak></p>
+                    <p class="lms-empty mt-4" x-show="loading && !error" x-text="'Loading activity details...'" x-cloak>
+                    </p>
                 </form>
             </section>
         </main>
+
+        <div x-show="showUnsubmitModal" x-transition
+            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            @click.self="showUnsubmitModal = false">
+            <div class="bg-white rounded-lg p-6 w-96 shadow-xl">
+                <h3 class="text-lg font-semibold">
+                    Confirm Unsubmit
+                </h3>
+                <p class="mt-2 text-gray-600">
+                    Are you sure you want to unsubmit this activity? You may not be able to submit again if the deadline
+                    has passed.
+                </p>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button class="lms-btn lms-btn-secondary" @click="showUnsubmitModal = false">
+                        Cancel
+                    </button>
+                    <button class="lms-btn bg-red-600 text-white" @click="confirmUnsubmit()">
+                        Unsubmit
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -117,6 +216,13 @@
                 activity: null,
                 loading: true,
                 error: null,
+                showUnsubmitModal: false,
+
+                async confirmUnsubmit() {
+                    this.showUnsubmitModal = false;
+                    await this.unsubmit();
+                },
+
                 async init() {
                     const urlParams = new URLSearchParams(window.location.search);
                     const student_id = localStorage.getItem('student_id');
@@ -200,6 +306,43 @@
 
                     } catch (err) {
                         this.error = err.message || 'Submission error';
+                        console.error(err);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async unsubmit() {
+                    this.error = null;
+                    this.loading = true;
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const class_id = urlParams.get('class_id');
+                    const activity_id = urlParams.get('activity_id');
+                    const student_id = localStorage.getItem('student_id');
+
+                    if (!student_id) {
+                        this.error = 'Missing student identifier.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/api/submissions/student/${encodeURIComponent(student_id)}/class/${encodeURIComponent(class_id)}/activity/${encodeURIComponent(activity_id)}/unsubmit`, {
+                            method: 'DELETE'
+                        });
+
+                        if (!res.ok) {
+                            const txt = await res.text();
+                            throw new Error(txt || 'Unsubmission failed');
+                        }
+
+                        this.submitted = false;
+                        this.activity.submission_file_path = null;
+                        this.filePath = '';
+                        this.notes = '';
+
+                    } catch (err) {
+                        this.error = err.message || 'Unsubmission error';
                         console.error(err);
                     } finally {
                         this.loading = false;
