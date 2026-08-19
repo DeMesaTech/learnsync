@@ -115,7 +115,7 @@
                         <option :value="period" x-text="period"></option>
                     </template>
                 </select>
-                <a class="lms-btn" href="final-grades.html">Final Grades</a>
+                <a class="lms-btn" :href="finalGradesUrl()">Final Grades</a>
             </section>
 
             <section class="lms-tabs" aria-label="Grading table tabs">
@@ -146,35 +146,27 @@
                             <tr>
                                 <th rowspan="2">No.</th>
                                 <th rowspan="2">Student's Name</th>
-                                <th>1</th>
-                                <th>1</th>
-                                <th>1</th>
-                                <th>1</th>
+                                <template x-for="column in attendanceColumns" :key="column.key">
+                                    <th x-text="column.total"></th>
+                                </template>
                             </tr>
                             <tr>
-                                <th>Oct 3</th>
-                                <th>Oct 10</th>
-                                <th>Oct 17</th>
-                                <th>Oct 24</th>
+                                <template x-for="column in attendanceColumns" :key="column.key">
+                                    <th x-text="column.label"></th>
+                                </template>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Juan Dela Cruz</td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="0" :disabled="!editMode.attendance"></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Maria Santos</td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                                <td><input class="lms-input" type="number" min="0" max="1" value="1" :disabled="!editMode.attendance"></td>
-                            </tr>
+                            <template x-for="(student, index) in students" :key="student.student_id">
+                                <tr>
+                                    <td x-text="index + 1"></td>
+                                    <td x-text="student.name"></td>
+                                    <template x-for="column in attendanceColumns" :key="column.key">
+                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('attendance', student.student_id, column.key)" :disabled="!editMode.attendance"></td>
+                                    </template>
+                                </tr>
+                            </template>
+                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -199,35 +191,27 @@
                             <tr>
                                 <th rowspan="2">No.</th>
                                 <th rowspan="2">Student's Name</th>
-                                <th>10</th>
-                                <th>10</th>
-                                <th>20</th>
-                                <th>20</th>
+                                <template x-for="column in quizColumns" :key="column.key">
+                                    <th x-text="column.total"></th>
+                                </template>
                             </tr>
                             <tr>
-                                <th>Quiz 1</th>
-                                <th>Quiz 2</th>
-                                <th>Research Ethics</th>
-                                <th>Citation Drill</th>
+                                <template x-for="column in quizColumns" :key="column.key">
+                                    <th x-text="column.label"></th>
+                                </template>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Juan Dela Cruz</td>
-                                <td><input class="lms-input" type="number" min="0" max="10" value="9" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="10" value="8" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="20" value="18" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="20" value="17" :disabled="!editMode.quiz"></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Maria Santos</td>
-                                <td><input class="lms-input" type="number" min="0" max="10" value="10" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="10" value="9" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="20" value="20" :disabled="!editMode.quiz"></td>
-                                <td><input class="lms-input" type="number" min="0" max="20" value="19" :disabled="!editMode.quiz"></td>
-                            </tr>
+                            <template x-for="(student, index) in students" :key="student.student_id">
+                                <tr>
+                                    <td x-text="index + 1"></td>
+                                    <td x-text="student.name"></td>
+                                    <template x-for="column in quizColumns" :key="column.key">
+                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('quiz', student.student_id, column.key)" :disabled="!editMode.quiz"></td>
+                                    </template>
+                                </tr>
+                            </template>
+                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -252,35 +236,27 @@
                             <tr>
                                 <th rowspan="2">No.</th>
                                 <th rowspan="2">Student's Name</th>
-                                <th>100</th>
-                                <th>100</th>
-                                <th>50</th>
-                                <th>100</th>
+                                <template x-for="column in activityColumns" :key="column.key">
+                                    <th x-text="column.total"></th>
+                                </template>
                             </tr>
                             <tr>
-                                <th>Chapter 1 Draft</th>
-                                <th>Worksheet</th>
-                                <th>Class Participation</th>
-                                <th>Programming Project</th>
+                                <template x-for="column in activityColumns" :key="column.key">
+                                    <th x-text="column.label"></th>
+                                </template>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Juan Dela Cruz</td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="90" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="92" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="50" value="45" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="88" :disabled="!editMode.activity"></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Maria Santos</td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="96" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="95" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="50" value="48" :disabled="!editMode.activity"></td>
-                                <td><input class="lms-input" type="number" min="0" max="100" value="94" :disabled="!editMode.activity"></td>
-                            </tr>
+                            <template x-for="(student, index) in students" :key="student.student_id">
+                                <tr>
+                                    <td x-text="index + 1"></td>
+                                    <td x-text="student.name"></td>
+                                    <template x-for="column in activityColumns" :key="column.key">
+                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('activity', student.student_id, column.key)" :disabled="!editMode.activity"></td>
+                                    </template>
+                                </tr>
+                            </template>
+                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -288,15 +264,15 @@
         </main>
 
         <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity
-            @click.self="modal === 'classSelector' && !hasOpenedGrading ? null : modal = null"
-            @keydown.escape.window="modal === 'classSelector' && !hasOpenedGrading ? null : modal = null">
+            @click.self="modal = null"
+            @keydown.escape.window="modal = null">
             <section class="lms-modal" role="dialog" aria-modal="true">
                 <div class="lms-modal-head">
                     <h3 x-show="modal === 'classSelector'">Select Class and Section</h3>
                     <h3 x-show="modal === 'addAttendance'">Add Attendance Record</h3>
                     <h3 x-show="modal === 'addActivity'">Add Activity Score Column</h3>
                     <h3 x-show="modal === 'addQuiz'">Add Quiz Score Column</h3>
-                    <button class="lms-icon-btn" type="button" x-show="modal !== 'classSelector' || hasOpenedGrading" @click="modal = null" aria-label="Close popup">
+                    <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup">
                         <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -306,9 +282,9 @@
                 <template x-if="modal === 'classSelector'">
                     <div class="lms-grid">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
-                        <select class="lms-select" x-model="selectedClass" aria-label="Class" x-ref="classSelect">
-                            <template x-for="className in classes" :key="className">
-                                <option :value="className" x-text="className"></option>
+                        <select class="lms-select" x-model="selectedClassId" aria-label="Class" x-ref="classSelect">
+                            <template x-for="classItem in classes" :key="classItem.class_id">
+                                <option :value="String(classItem.class_id)" x-text="classItem.subject"></option>
                             </template>
                         </select>
                         <select class="lms-select" x-model="selectedSection" aria-label="Section" x-ref="sectionSelect">
@@ -316,7 +292,7 @@
                                 <option :value="section" x-text="'Section ' + section"></option>
                             </template>
                         </select>
-                        <button class="lms-btn" type="button" @click="hasOpenedGrading = true; modal = null">Open Grading Page</button>
+                        <button class="lms-btn" type="button" :disabled="!selectedClassId" @click="openSelectedClass()">Open Grading Page</button>
                     </div>
                 </template>
 
@@ -364,14 +340,92 @@
                 modal: 'classSelector',
                 hasOpenedGrading: false,
                 activeTab: 'attendance',
-                selectedClass: 'Capstone Research Project 1',
-                selectedSection: '3B',
+                selectedClass: '',
+                selectedClassId: '',
+                selectedSection: '',
                 selectedTerm: 'Midterm',
-                classes: ['Capstone Research Project 1', 'Ethics', 'Web Systems and Technologies'],
-                sections: ['3A', '3B', '3C'],
+                classes: [],
+                sections: [],
                 periods: ['Midterm', 'Final'],
+                students: [],
+                attendance: [],
+                quizzes: [],
+                activities: [],
+                attendanceColumns: [1, 2, 3, 4].map(index => ({ key: `empty-attendance-${index}`, label: '-', total: '-' })),
+                quizColumns: [1, 2, 3, 4].map(index => ({ key: `empty-quiz-${index}`, label: '-', total: '-' })),
+                activityColumns: [1, 2, 3, 4].map(index => ({ key: `empty-activity-${index}`, label: '-', total: '-' })),
                 editMode: { attendance: false, activity: false, quiz: false },
                 openSelector(scope) { this.modal = 'classSelector'; this.$nextTick(() => { if (scope === 'section') { this.$refs.sectionSelect?.focus(); } else { this.$refs.classSelect?.focus(); } }); },
+                async init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.selectedClassId = params.get('class_id') || '';
+                    this.selectedSection = params.get('section') || '';
+                    await this.loadClasses();
+                    if (this.selectedClassId) {
+                        await this.loadSheet();
+                        this.hasOpenedGrading = true;
+                        this.modal = null;
+                    } else if (this.classes.length) {
+                        this.selectedClassId = String(this.classes[0].class_id);
+                        await this.loadSheet();
+                        this.modal = 'classSelector';
+                    }
+                },
+                async loadClasses() {
+                    const teacherId = localStorage.getItem('teacher_id') || localStorage.getItem('user_id');
+                    if (!teacherId) return;
+                    const response = await fetch(`/api/classes/teacher/${encodeURIComponent(teacherId)}`);
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    this.classes = data.classes || [];
+                },
+                async loadSheet() {
+                    const response = await fetch(`/api/grades/class/${encodeURIComponent(this.selectedClassId)}`);
+                    if (!response.ok) throw new Error('Unable to load grading records.');
+                    const data = await response.json();
+                    const classData = data.class || {};
+                    this.selectedClass = classData.subject || '';
+                    this.sections = classData.sections || [];
+                    this.selectedSection = this.selectedSection && this.sections.includes(this.selectedSection) ? this.selectedSection : (this.sections[0] || '');
+                    this.students = data.students || [];
+                    this.attendance = data.attendance || [];
+                    this.quizzes = data.quizzes || [];
+                    this.activities = data.activities || [];
+                    this.attendanceColumns = this.columnsFrom(this.attendance, 'record_date', 'Attendance');
+                    this.quizColumns = this.columnsFrom(this.quizzes, 'quiz_id', 'title');
+                    this.activityColumns = this.columnsFrom(this.activities, 'activity_id', 'title', 'points');
+                },
+                columnsFrom(records, keyName, labelName, totalName) {
+                    const seen = new Set();
+                    const columns = records.filter(record => {
+                        const key = String(record[keyName]);
+                        if (!record[keyName] || seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    }).slice(0, 4).map(record => ({
+                        key: String(record[keyName]),
+                        label: labelName === 'Attendance' ? String(record[keyName]) : (record[labelName] || '-'),
+                        total: totalName ? (record[totalName] ?? '-') : '-'
+                    }));
+                    while (columns.length < 4) {
+                        const index = columns.length + 1;
+                        columns.push({ key: `empty-${keyName}-${index}`, label: '-', total: '-' });
+                    }
+                    return columns;
+                },
+                recordValue(kind, studentId, key) {
+                    const source = kind === 'attendance' ? this.attendance : (kind === 'quiz' ? this.quizzes : this.activities);
+                    const record = source.find(item => String(item.student_id) === String(studentId) && String(item[kind === 'attendance' ? 'record_date' : `${kind}_id`]) === String(key));
+                    if (!record) return '';
+                    return kind === 'attendance' ? (record.score ?? (record.is_present ? 1 : 0)) : (kind === 'quiz' ? (record.total_score ?? '') : (record.score ?? ''));
+                },
+                openSelectedClass() {
+                    if (!this.selectedClassId) return;
+                    window.location.href = `grading.html?class_id=${encodeURIComponent(this.selectedClassId)}&section=${encodeURIComponent(this.selectedSection)}`;
+                },
+                finalGradesUrl() {
+                    return this.selectedClassId ? `final-grades.html?class_id=${encodeURIComponent(this.selectedClassId)}` : 'final-grades.html';
+                },
                 focusNextRow(event) {
                     const target = event.target;
                     if (!target.matches('input, select, textarea')) return;

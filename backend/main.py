@@ -15,6 +15,7 @@ from routers.auth import auth_router
 from routers.classes import classes_router
 from routers.subjects import subject_router
 from routers.submit import submit_router
+from routers.grades import grades_router
 
 # ============= APP INITIALIZATION =============
 app = FastAPI(
@@ -47,6 +48,7 @@ app.include_router(auth_router)
 app.include_router(classes_router)
 app.include_router(subject_router)
 app.include_router(submit_router)
+app.include_router(grades_router)
 
 
 # ============= SERVE STATIC FILES =============

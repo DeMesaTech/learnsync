@@ -108,7 +108,7 @@ async def create_class(request: CreateClassRequest):
 # ===========================================================
 
 # Get details of a specific class
-@classes_router.get("/{class_id}")
+@classes_router.get("/detail/{class_id}")
 async def get_class_details(class_id: str):
     """Get details of a specific class"""
     conn = get_db_connection()

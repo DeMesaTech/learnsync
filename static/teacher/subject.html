@@ -102,6 +102,9 @@
                         x-text="enrollSection ? 'Section ' + enrollSection + ' class workspace for announcements, modules, activities, quizzes, visibility, submissions, and class-level grading setup.' : 'Class workspace for announcements, modules, activities, quizzes, visibility, submissions, and class-level grading setup.'">
                     </p>
                 </div>
+                <div class="lms-actions">
+                    <a class="lms-btn" :href="currentClassId ? 'grading.html?class_id=' + encodeURIComponent(currentClassId) + '&section=' + encodeURIComponent(enrollSection) : 'grading.html'">Open Grading</a>
+                </div>
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4"><!--KPIs-->
