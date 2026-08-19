@@ -98,147 +98,148 @@
                 <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section>
 
-            <!-- Announcements -->
-            <section class="lms-panel">
-                <div class="lms-task-top">
-                    <h3>Announcements</h3>
-                    <button class="lms-icon-btn" type="button" @click="announcementsOpen = !announcementsOpen"
-                        :aria-expanded="announcementsOpen.toString()" aria-label="Toggle announcements">
-                        <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            :class="announcementsOpen ? 'rotate-180' : ''">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="lms-list" x-show="!announcementsOpen" x-transition>
-                    <span class="lms-badge" x-text="announcements.length + ' posts'"></span>
-                    <template x-for="announcement in announcements" :key="announcement.title">
-                        <button class="lms-row lms-announcement-button" type="button"
-                            @click="openAnnouncement(announcement)">
-                            <strong x-text="announcement.title"></strong>
-                            <span class="lms-meta" x-text="announcement.message"></span>
-                            <span class="lms-meta" x-text="announcement.publish_date"></span>
-                        </button>
-                    </template>
-                </div>
-            </section>
-            <!-- Subject Tabs -->
-            <section class="lms-panel mt-4">
-                <section class="lms-tabs mt-4" aria-label="Subject tabs">
-                    <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
-                        @click="activeTab = 'modules'">Modules</button>
-                    <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
-                        @click="activeTab = 'activities'">Activities</button>
-                    <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
-                        @click="activeTab = 'quizzes'">Quizzes</button>
-                </section>
-                <!-- Modules Section -->
-                <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
+            <!-- Announcements + Learning Materials: two-column layout -->
+            <section class="lms-grid lms-grid-2 gap-4">
+                <!-- Announcements -->
+                <section class="lms-panel" :class="announcementsOpen ? 'collapsed' : ''">
                     <div class="lms-task-top">
-                        <h3>Modules</h3>
-                        <span class="lms-badge" x-text="modules.length + ' files'"></span>
+                        <h3>Announcements</h3>
                     </div>
-
-                    <template x-for="module in modules" :key="module.title">
-                        <ul class="lms-list">
-                            <li>
-                                <a :href="'/' + module.file_path" target="_blank" class="lms-module-link">
-                                    <strong x-text="module.title"></strong>
-                                    <p class="m-0" x-text="module.summary"></p>
-                                </a>
-                            </li>
-                        </ul>
-                    </template>
-                </section>
-                <!-- Activities Section -->
-                <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
-                    <div class="lms-task-top">
-                        <h3>Activities</h3>
-                        <span class="lms-badge" x-text="activities.length + ' items'"></span>
-                    </div>
-                    <ul class="lms-list">
-                        <template x-for="activity in activities" :key="activity.title">
-                            <li role="button" tabindex="0" @click="openStudentItem('activity', activity.activity_id)"
-                                @keydown.enter.prevent="openStudentItem('activity', activity.activity_id)"
-                                @keydown.space.prevent="openStudentItem('activity', activity.activity_id)">
-                                <span class="lms-badge" 
-                                        :class="`lms-badge ${activity.badgeClass}`"
-                                        x-text="activity.submissionStatus"></span>
-                                <strong class="block mt-2" x-text="activity.title"></strong>
-                                <p class="m-0" x-text="activity?.description"></p>
-                            </li>
+                    <div class="lms-list">
+                        <span class="lms-badge" x-text="announcements.length + ' posts'"></span>
+                        <template x-for="announcement in announcements" :key="announcement.title">
+                            <button class="lms-row lms-announcement-button" type="button"
+                                @click="openAnnouncement(announcement)">
+                                <strong x-text="announcement.title"></strong>
+                                <span class="lms-meta" x-text="announcement.message"></span>
+                                <span class="lms-meta" x-text="announcement.publish_date"></span>
+                            </button>
                         </template>
-                    </ul>
+                    </div>
                 </section>
-                <!-- Quizzes Section -->
-                <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
+
+                <!-- Right column: stack AI + Learning materials -->
+                <div>
+                    <section class="lms-panel">
+                        <h3>AI Study Context</h3>
+                        <p>Saved AI queries connect to module content for better review context.</p>
+                        <div class="lms-list">
+                            <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span class="lms-meta">Linked to Research Problem module</span></div>
+                            <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span class="lms-meta">Linked to Research Ethics module</span></div>
+                        </div>
+                    </section>
+
+                    <section class="lms-panel mt-4">
+                        <section class="lms-tabs" aria-label="Subject tabs">
+                            <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
+                                @click="activeTab = 'modules'">Modules</button>
+                            <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
+                                @click="activeTab = 'activities'">Activities</button>
+                            <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
+                                @click="activeTab = 'quizzes'">Quizzes</button>
+                        </section>
+
+                        <!-- Modules Section -->
+                        <section class="mt-4" x-show="activeTab === 'modules'">
+                            <div class="lms-task-top">
+                                <h3>Modules</h3>
+                                <span class="lms-badge" x-text="modules.length + ' files'"></span>
+                            </div>
+
+                            <template x-for="module in modules" :key="module.title">
+                                <ul class="lms-list">
+                                    <li>
+                                        <a :href="'/' + module.file_path" target="_blank" class="lms-module-link">
+                                            <strong x-text="module.title"></strong>
+                                            <p class="m-0" x-text="module.summary"></p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </template>
+                        </section>
+
+                        <!-- Activities Section -->
+                        <section class="mt-4" x-cloak x-show="activeTab === 'activities'">
+                            <div class="lms-task-top">
+                                <h3>Activities</h3>
+                                <span class="lms-badge" x-text="activities.length + ' items'"></span>
+                            </div>
+                            <ul class="lms-list">
+                                <template x-for="activity in activities" :key="activity.title">
+                                    <li role="button" tabindex="0" @click="openStudentItem('activity', activity.activity_id)"
+                                        @keydown.enter.prevent="openStudentItem('activity', activity.activity_id)"
+                                        @keydown.space.prevent="openStudentItem('activity', activity.activity_id)">
+                                        <span class="lms-badge" 
+                                                :class="`lms-badge ${activity.badgeClass}`"
+                                                x-text="activity.submissionStatus"></span>
+                                        <strong class="block mt-2" x-text="activity.title"></strong>
+                                        <p class="m-0" x-text="activity?.description"></p>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+
+                        <!-- Quizzes Section -->
+                        <section class="mt-4" x-cloak x-show="activeTab === 'quizzes'">
+                            <div class="lms-task-top">
+                                <h3>Quizzes</h3><span class="lms-badge">2 items</span>
+                            </div>
+                            <ul class="lms-list">
+                                <li role="button" tabindex="0" @click="openStudentItem('quiz', 'research-ethics-quiz')"
+                                    @keydown.enter.prevent="openStudentItem('quiz', 'research-ethics-quiz')"
+                                    @keydown.space.prevent="openStudentItem('quiz', 'research-ethics-quiz')"><span
+                                        class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong>
+                                    <p class="m-0">10 questions. Latest score: 18 / 20.</p>
+                                </li>
+                                <li role="button" tabindex="0" @click="openStudentItem('quiz', 'citation-format-drill')"
+                                    @keydown.enter.prevent="openStudentItem('quiz', 'citation-format-drill')"
+                                    @keydown.space.prevent="openStudentItem('quiz', 'citation-format-drill')"><span
+                                        class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
+                                        Drill</strong>
+                                    <p class="m-0">Answers saved as student answer records.</p>
+                                </li>
+                            </ul>
+                        </section>
+                    </section>
+                </div>
+            </section>
+            </section>
+
+            <!-- Final Grade: full width row -->
+            <section class="mt-4">
+                <section class="lms-panel">
                     <div class="lms-task-top">
-                        <h3>Quizzes</h3>
-                        <span class="lms-badge">2 items</span>
+                        <div>
+                            <h3>Final Grade</h3>
+                            <span class="lms-meta">Your current grade for this subject</span>
+                        </div>
+                        <span class="lms-badge"
+                            :class="finalGrade.grade === null ? 'warn' : (finalGrade.grade >= 75 ? 'good' : 'bad')"
+                            x-text="finalGrade.grade === null ? 'Pending' : 'Finalized'"></span>
                     </div>
-                    <ul class="lms-list">
-                        <li role="button" tabindex="0" @click="openStudentItem('quiz', 'research-ethics-quiz')"
-                            @keydown.enter.prevent="openStudentItem('quiz', 'research-ethics-quiz')"
-                            @keydown.space.prevent="openStudentItem('quiz', 'research-ethics-quiz')"><span
-                                class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong>
-                            <p class="m-0">10 questions. Latest score: 18 / 20.</p>
-                        </li>
-                        <li role="button" tabindex="0" @click="openStudentItem('quiz', 'citation-format-drill')"
-                            @keydown.enter.prevent="openStudentItem('quiz', 'citation-format-drill')"
-                            @keydown.space.prevent="openStudentItem('quiz', 'citation-format-drill')"><span
-                                class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
-                                Drill</strong>
-                            <p class="m-0">Answers saved as student answer records.</p>
-                        </li>
-                    </ul>
+                    <div class="lms-grid lms-grid-4 gap-4">
+                        <div class="lms-card">
+                            <strong class="grade-number"
+                                x-text="finalGrade.grade === null ? 'Not available' : finalGrade.grade.toFixed(2)"></strong>
+                            <span>Course Grade</span>
+                        </div>
+                        <div class="lms-card">
+                            <strong class="grade-number" x-text="finalGrade.midterm === null ? 'N/A' : finalGrade.midterm.toFixed(2)"></strong>
+                            <span>Midterm Grade</span>
+                        </div>
+                        <div class="lms-card">
+                            <strong class="grade-number"
+                                x-text="finalGrade.finalExam === null ? 'N/A' : finalGrade.finalExam.toFixed(2)"></strong>
+                            <span>Final Exam</span>
+                        </div>
+                        <div class="lms-card">
+                            <strong class="grade-number" x-text="finalGrade.remark"></strong>
+                            <span>Remark</span>
+                        </div>
+                    </div>
+                    <p class="mt-2" x-text="finalGrade.note"></p>
                 </section>
             </section>
-            <!-- AI Study Context -->
-            <section class="lms-panel mt-4">
-                <h3>AI Study Context</h3>
-                <p>Saved AI queries can connect to module content through query context records, helping students review
-                    exact lesson materials instead of generic notes.</p>
-                <div class="lms-list">
-                    <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span class="lms-meta">Linked to
-                            Research Problem module</span></div>
-                    <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span
-                            class="lms-meta">Linked to Research Ethics module</span></div>
-                </div>
-            </section>
-
-            <section class="lms-panel mt-4">
-                <div class="lms-task-top">
-                    <div>
-                        <h3>Final Grade</h3>
-                        <span class="lms-meta">Your current grade for this subject</span>
-                    </div>
-                    <span class="lms-badge"
-                        :class="finalGrade.grade === null ? 'warn' : (finalGrade.grade >= 75 ? 'good' : 'bad')"
-                        x-text="finalGrade.grade === null ? 'Pending' : 'Finalized'"></span>
-                </div>
-                <div class="lms-grid lms-grid-4 gap-4">
-                    <div class="lms-card">
-                        <strong
-                            x-text="finalGrade.grade === null ? 'Not available' : finalGrade.grade.toFixed(2)"></strong>
-                        <span>Course Grade</span>
-                    </div>
-                    <div class="lms-card">
-                        <strong x-text="finalGrade.midterm === null ? 'N/A' : finalGrade.midterm.toFixed(2)"></strong>
-                        <span>Midterm Grade</span>
-                    </div>
-                    <div class="lms-card">
-                        <strong
-                            x-text="finalGrade.finalExam === null ? 'N/A' : finalGrade.finalExam.toFixed(2)"></strong>
-                        <span>Final Exam</span>
-                    </div>
-                    <div class="lms-card">
-                        <strong x-text="finalGrade.remark"></strong>
-                        <span>Remark</span>
-                    </div>
-                </div>
-                <p class="mt-2" x-text="finalGrade.note"></p>
-            </section>
-
         </main>
 
         <div class="lms-modal-backdrop" x-cloak x-show="announcementModal" x-transition.opacity

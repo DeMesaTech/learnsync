@@ -144,149 +144,148 @@
                 </select>
             </section>
 
-            <section class="lms-panel"><!-- Announcements -->
-                <!-- TITLE/HEADER -->
-                <div class="lms-task-top">
-                    <h3>Announcements</h3>
-                    <span class="lms-inline-actions">
-                        <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">
-                            Add Announcement</button>
-                        <button class="lms-icon-btn" type="button" @click="announcementsOpen = !announcementsOpen"
-                            :aria-expanded="announcementsOpen.toString()" aria-label="Toggle announcements">
-                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                :class="announcementsOpen ? 'rotate-180' : ''">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m6 9 6 6 6-6" />
-                            </svg>
-                        </button>
-                    </span>
-                </div>
-                <!-- BODY -->
-                <div class="lms-list" x-show="announcementsOpen" x-transition>
-                    <p class="lms-meta m-0" x-show="announcementsLoading">Loading announcements...</p>
-                    <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements
-                        yet.</p>
-                    <template x-for="announcement in announcements" :key="announcement.announcement_id">
-                        <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
-                            <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.title"></span>
-                            <div class="lms-announcement-content">
-                                <strong x-text="announcement.message"></strong><br>
-                                <span class="lms-meta" x-text="announcement.date"></span>
-                                <span class="lms-meta" x-text="announcement.visibility"></span>
-                            </div>
-                            <span class="lms-inline-actions">
-                                <button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openAnnouncementManagement(announcement)">Manage</button>
-                            </span>
-                        </article>
-                    </template>
-                </div>
-            </section>
-
-            <section class="lms-tabs mt-4" aria-label="Class workspace tabs">
-                <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
-                    @click="activeTab = 'modules'">Modules</button>
-                <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
-                    @click="activeTab = 'activities'">Activities</button>
-                <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
-                    @click="activeTab = 'quizzes'">Quizzes</button>
-            </section>
-            <!-- MODULES -->
-            <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
-                <div class="lms-task-top">
-                    <h3>Modules</h3>
-                </div>
-                <ul class="lms-list">
-                    <template x-if="modulesLoading">
-                        <li>Loading modules...</li>
-                    </template>
-                    <template x-if="!modulesLoading && modules.length === 0">
-                        <li>No modules uploaded.</li>
-                    </template>
-                    <template x-for="module in modules" :key="module.module_id">
-                        <li x-show="visibleFor(module.sections)">
-                            <article class="lms-clickable">
-                                <strong x-text="module.title"></strong>
-                                <p class="m-0">
-                                    <span x-text="module.visibility"></span>
-                                </p>
-                                <a :href="'/' + module.file_path" target="_blank">
-                                    View Module
-                                </a>
-                                <span class="lms-inline-actions mt-2">
+            <!-- Announcements + Workspace tabs: two-column layout -->
+            <section class="lms-grid lms-grid-2 gap-4">
+                <!-- Announcements -->
+                <section class="lms-panel" :class="!announcementsOpen ? 'collapsed' : ''">
+                    <!-- TITLE/HEADER -->
+                    <div class="lms-task-top">
+                        <h3>Announcements</h3>
+                        <span class="lms-inline-actions">
+                            <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Announcement</button>
+                        </span>
+                    </div>
+                    <!-- BODY -->
+                    <div class="lms-list">
+                        <p class="lms-meta m-0" x-show="announcementsLoading">Loading announcements...</p>
+                        <p class="lms-meta m-0" x-show="!announcementsLoading && !announcements.length">No announcements
+                            yet.</p>
+                        <template x-for="announcement in announcements" :key="announcement.announcement_id">
+                            <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
+                                <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.title"></span>
+                                <div class="lms-announcement-content">
+                                    <strong x-text="announcement.message"></strong><br>
+                                    <span class="lms-meta" x-text="announcement.date"></span>
+                                    <span class="lms-meta" x-text="announcement.visibility"></span>
+                                </div>
+                                <span class="lms-inline-actions">
                                     <button class="lms-btn lms-btn-small" type="button"
-                                        @click.prevent="openManagement('module', module.title)">
-                                        Manage
-                                    </button>
+                                        @click.prevent="openAnnouncementManagement(announcement)">Manage</button>
                                 </span>
                             </article>
-                        </li>
-                    </template>
-                </ul>
-            </section>
+                        </template>
+                    </div>
+                </section>
 
-            <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
-                <div class="lms-task-top">
-                    <h3>Activities</h3>
-                </div>
-                <ul class="lms-list">
-                    <template x-if="activitiesLoading">
-                        <li>Loading activities...</li>
-                    </template>
-                    <template x-if="!activitiesLoading && activities.length === 0">
-                        <li>No activities uploaded.</li>
-                    </template>
-                    <template x-for="activity in activities" :key="activity.activity_id">
-                        <li x-show="visibleFor(activity.sections)">
-                            <article class="lms-clickable">
-                                <span class="lms-badge warn" x-text="'Due ' + activity.date">
-                                </span>
-                                <strong class="block mt-2" x-text="activity.title">
-                                </strong>
-                                <p class="m-0" x-text="activity.visibility">
-                                </p>
-                                <template x-if="activity.file_path">
-                                    <a :href="'/' + activity.file_path" target="_blank" x-text="'View Attachment'">
-                                    </a>
-                                </template>
-                                <span class="lms-inline-actions mt-2">
-                                    <button class="lms-btn lms-btn-small" type="button"
-                                        @click.prevent="openManagement('activity', activity.title)">
-                                        Manage
-                                    </button>
-                                    <a class="lms-btn lms-btn-small" :href="'/teacher/activity-submissions.html?class_id=' + currentClassId + '&activity_id=' + activity.activity_id">View Submissions</a>
-                                </span>
-                            </article>
-                        </li>
-                    </template>
-                </ul>
-            </section>
+                <!-- Tabs + Modules/Activities/Quizzes stacked in right column -->
+                <div>
+                    <section class="lms-tabs mt-0" aria-label="Class workspace tabs">
+                        <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'modules'">Modules</button>
+                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'activities'">Activities</button>
+                        <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'quizzes'">Quizzes</button>
+                    </section>
 
-            <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
-                <div class="lms-task-top">
-                    <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
+                    <!-- MODULES -->
+                    <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
+                        <div class="lms-task-top">
+                            <h3>Modules</h3>
+                        </div>
+                        <ul class="lms-list">
+                            <template x-if="modulesLoading">
+                                <li>Loading modules...</li>
+                            </template>
+                            <template x-if="!modulesLoading && modules.length === 0">
+                                <li>No modules uploaded.</li>
+                            </template>
+                            <template x-for="module in modules" :key="module.module_id">
+                                <li x-show="visibleFor(module.sections)">
+                                    <article class="lms-clickable">
+                                        <strong x-text="module.title"></strong>
+                                        <p class="m-0">
+                                            <span x-text="module.visibility"></span>
+                                        </p>
+                                        <a :href="'/' + module.file_path" target="_blank">
+                                            View Module
+                                        </a>
+                                        <span class="lms-inline-actions mt-2">
+                                            <button class="lms-btn lms-btn-small" type="button"
+                                                @click.prevent="openManagement('module', module.title)">
+                                                Manage
+                                            </button>
+                                        </span>
+                                    </article>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+
+                    <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
+                        <div class="lms-task-top">
+                            <h3>Activities</h3>
+                        </div>
+                        <ul class="lms-list">
+                            <template x-if="activitiesLoading">
+                                <li>Loading activities...</li>
+                            </template>
+                            <template x-if="!activitiesLoading && activities.length === 0">
+                                <li>No activities uploaded.</li>
+                            </template>
+                            <template x-for="activity in activities" :key="activity.activity_id">
+                                <li x-show="visibleFor(activity.sections)">
+                                    <article class="lms-clickable">
+                                        <span class="lms-badge warn" x-text="'Due ' + activity.date">
+                                        </span>
+                                        <strong class="block mt-2" x-text="activity.title">
+                                        </strong>
+                                        <p class="m-0" x-text="activity.visibility">
+                                        </p>
+                                        <template x-if="activity.file_path">
+                                            <a :href="'/' + activity.file_path" target="_blank" x-text="'View Attachment'">
+                                            </a>
+                                        </template>
+                                        <span class="lms-inline-actions mt-2">
+                                            <button class="lms-btn lms-btn-small" type="button"
+                                                @click.prevent="openManagement('activity', activity.title)">
+                                                Manage
+                                            </button>
+                                            <a class="lms-btn lms-btn-small" :href="'/teacher/activity-submissions.html?class_id=' + currentClassId + '&activity_id=' + activity.activity_id">View Submissions</a>
+                                        </span>
+                                    </article>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+
+                    <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
+                        <div class="lms-task-top">
+                            <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
+                        </div>
+                        <ul class="lms-list">
+                            <li x-show="visibleFor(['3B'])">
+                                <article class="lms-clickable">
+                                    <span class="lms-badge">Online</span>
+                                    <strong class="block mt-2">Research Ethics Quiz</strong>
+                                    <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026.</p>
+                                    <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
+                                            @click.prevent="openManagement('quiz','Research Ethics Quiz')">Manage</button></span>
+                                </article>
+                            </li>
+                            <li x-show="visibleFor(['3A', '3B'])">
+                                <article class="lms-clickable">
+                                    <span class="lms-badge">Practice</span>
+                                    <strong class="block mt-2">Citation Format Drill</strong>
+                                    <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
+                                    </p>
+                                    <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
+                                            @click.prevent="openManagement('quiz','Citation Format Drill')">Manage</button></span>
+                                </article>
+                            </li>
+                        </ul>
+                    </section>
                 </div>
-                <ul class="lms-list">
-                    <li x-show="visibleFor(['3B'])">
-                        <article class="lms-clickable">
-                            <span class="lms-badge">Online</span>
-                            <strong class="block mt-2">Research Ethics Quiz</strong>
-                            <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026.</p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('quiz','Research Ethics Quiz')">Manage</button></span>
-                        </article>
-                    </li>
-                    <li x-show="visibleFor(['3A', '3B'])">
-                        <article class="lms-clickable">
-                            <span class="lms-badge">Practice</span>
-                            <strong class="block mt-2">Citation Format Drill</strong>
-                            <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
-                            </p>
-                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                    @click.prevent="openManagement('quiz','Citation Format Drill')">Manage</button></span>
-                        </article>
-                    </li>
-                </ul>
             </section>
         </main>
 

@@ -26,7 +26,7 @@ body.login-shell {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 1rem;
+    padding: 2rem 1rem;
 }
 
 .login-shell {
@@ -35,9 +35,9 @@ body.login-shell {
     display: grid;
     grid-template-columns: 1fr;
     overflow: hidden;
-    border-radius: 2rem;
+    border-radius: 1rem;
     background: var(--login-panel);
-    box-shadow: var(--login-shadow);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.28);
     border: 1px solid var(--login-border);
 }
 
@@ -49,7 +49,7 @@ body.login-shell {
 
 .login-hero,
 .login-panel {
-    padding: 3rem 2rem;
+    padding: 1.5rem 1rem;
 }
 
 .login-hero {
@@ -70,7 +70,7 @@ body.login-shell {
 
 .hero-title {
     margin: 0;
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
     font-weight: 700;
     line-height: 1.05;
     color: white;
@@ -83,9 +83,9 @@ body.login-shell {
 }
 
 .tip-card {
-    margin-top: 2.5rem;
-    padding: 1.5rem;
-    border-radius: 1.5rem;
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border-radius: 1rem;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: rgba(248, 250, 252, 0.92);
@@ -148,11 +148,11 @@ body.login-shell {
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    padding: 0.65rem 1rem;
+    padding: 0.5rem 0.85rem;
     background: #111827;
     color: #f8fafc;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     cursor: pointer;
 }
 
@@ -179,11 +179,11 @@ body.login-shell {
 .input-field,
 .select-field {
     width: 100%;
-    border-radius: 1.25rem;
+    border-radius: 0.75rem;
     border: 1px solid var(--login-input-border);
     background: var(--login-input);
     color: var(--login-text);
-    padding: 0.95rem 1rem;
+    padding: 0.7rem 0.9rem;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -206,7 +206,7 @@ body.login-shell {
 .input-field:focus,
 .select-field:focus {
     border-color: var(--login-border-focus);
-    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.16);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
 }
 
 .select-field {
@@ -221,9 +221,9 @@ body.login-shell {
 .primary-button,
 .secondary-button {
     width: 100%;
-    border-radius: 1.25rem;
-    padding: 0.95rem 1.15rem;
-    font-size: 0.9rem;
+    border-radius: 0.75rem;
+    padding: 0.7rem 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     border: none;
     cursor: pointer;
