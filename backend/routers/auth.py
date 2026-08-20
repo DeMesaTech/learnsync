@@ -1,12 +1,11 @@
 """Authentication endpoints"""
 from fastapi import APIRouter, HTTPException
-from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from models import LoginRequest, SignupRequest, LoginResponse, UserProfileResponse
+from models import LoginRequest, LoginResponse, UserProfileResponse
 from db import get_db_connection
-from utils import hash_password, verify_password
+from utils import verify_password
 
 auth_router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -25,10 +24,10 @@ async def login(request: LoginRequest):
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Query user by email and role
+            # Query user by email; the stored role determines the dashboard.
         cur.execute(
-            'SELECT user_id, email, password, role, name FROM account WHERE email = %s AND role = %s',
-            (request.email, request.role)
+                'SELECT user_id, email, password, role, name FROM account WHERE email = %s',
+                (request.email,)
         )
         user = cur.fetchone()
         
@@ -72,80 +71,6 @@ async def login(request: LoginRequest):
         )
         
     except psycopg2.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    finally:
-        cur.close()
-        conn.close()
-
-
-@auth_router.post("/signup", response_model=LoginResponse)
-async def signup(request: SignupRequest):
-    """
-    SIGNUP FLOW:
-    1. User submits form with all details
-    2. Backend validates email doesn't exist
-    3. Backend hashes password
-    4. Backend inserts new User record
-    5. Backend creates Student/Teacher record linked to User
-    6. Returns success message to frontend
-    """
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Check if email already exists
-        cur.execute('SELECT user_id FROM account WHERE email = %s', (request.email,))
-        if cur.fetchone():
-            raise HTTPException(
-                status_code=400,
-                detail="Email already registered"
-            )
-        
-        # Hash password
-        hashed_password = hash_password(request.password)
-        full_name = f"{request.firstName} {request.middleName} {request.lastName}"
-        
-        # Insert new user
-        cur.execute(
-            '''INSERT INTO account (email, name, password, role, created_at)
-               VALUES (%s, %s, %s, %s, %s)
-               RETURNING user_id''',
-            (request.email, full_name, hashed_password, request.role, datetime.now())
-        )
-        user_id = cur.fetchone()['user_id']
-        
-        if request.role == 'student':
-            cur.execute( 
-                'INSERT INTO student (user_id, student_id) VALUES (%s, %s)',
-                (user_id, request.idNumber)
-            )
-            student_id = request.idNumber
-            teacher_id = None
-        elif request.role == 'teacher':
-            cur.execute(
-                'INSERT INTO teacher (user_id) VALUES (%s) RETURNING employee_id',
-                (user_id,)
-            )
-            teacher_id = cur.fetchone().get('employee_id')
-            student_id = None
-        else:
-            teacher_id = None
-            student_id = None
-        
-        conn.commit()
-        
-        return LoginResponse(
-            success=True,
-            message="Account created successfully! You can now log in.",
-            user_id=user_id,
-            role=request.role,
-            name=full_name,
-            teacher_id=teacher_id,
-            student_id=student_id
-        )
-        
-    except psycopg2.Error as e:
-        conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
         cur.close()

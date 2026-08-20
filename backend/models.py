@@ -6,17 +6,7 @@ from typing import Dict, Optional, List
 
 # ============= AUTH MODELS =============
 class LoginRequest(BaseModel):
-    role: str
     email: str
-    password: str
-
-class SignupRequest(BaseModel):
-    role: str
-    email: str
-    firstName: str
-    middleName: str
-    lastName: str
-    idNumber: str
     password: str
 
 class LoginResponse(BaseModel):

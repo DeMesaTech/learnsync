@@ -110,7 +110,7 @@
             </section>
             
             <section class="lms-toolbar">
-                <select class="lms-select" x-model="selectedTerm" aria-label="Filter by grading period">
+                <select class="lms-select" x-model="selectedTerm" @change="loadSheet()" aria-label="Filter by grading period">
                     <template x-for="period in periods" :key="period">
                         <option :value="period" x-text="period"></option>
                     </template>
@@ -282,7 +282,7 @@
                 <template x-if="modal === 'classSelector'">
                     <div class="lms-grid">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
-                        <select class="lms-select" x-model="selectedClassId" aria-label="Class" x-ref="classSelect">
+                        <select class="lms-select" x-model="selectedClassId" @change="prepareClassSelection()" aria-label="Class" x-ref="classSelect">
                             <template x-for="classItem in classes" :key="classItem.class_id">
                                 <option :value="String(classItem.class_id)" x-text="classItem.subject"></option>
                             </template>
@@ -346,7 +346,7 @@
                 selectedTerm: 'Midterm',
                 classes: [],
                 sections: [],
-                periods: ['Midterm', 'Final'],
+                periods: ['Midterm', 'Finals'],
                 students: [],
                 attendance: [],
                 quizzes: [],
@@ -360,13 +360,19 @@
                     const params = new URLSearchParams(window.location.search);
                     this.selectedClassId = params.get('class_id') || '';
                     this.selectedSection = params.get('section') || '';
+                    this.selectedTerm = this.periods.includes(params.get('grading_period')) ? params.get('grading_period') : 'Midterm';
                     await this.loadClasses();
+                    const selectedClass = this.classes.find(classItem => String(classItem.class_id) === String(this.selectedClassId));
+                    if (!this.selectedSection && selectedClass?.sections?.length) {
+                        this.selectedSection = selectedClass.sections[0];
+                    }
                     if (this.selectedClassId) {
                         await this.loadSheet();
                         this.hasOpenedGrading = true;
                         this.modal = null;
                     } else if (this.classes.length) {
                         this.selectedClassId = String(this.classes[0].class_id);
+                        this.selectedSection = this.classes[0].sections?.[0] || '';
                         await this.loadSheet();
                         this.modal = 'classSelector';
                     }
@@ -380,7 +386,12 @@
                     this.classes = data.classes || [];
                 },
                 async loadSheet() {
-                    const response = await fetch(`/api/grades/class/${encodeURIComponent(this.selectedClassId)}`);
+                    if (!this.selectedClassId) return;
+                    const params = new URLSearchParams({
+                        grading_period: this.selectedTerm
+                    });
+                    if (this.selectedSection) params.set('section', this.selectedSection);
+                    const response = await fetch(`/api/grades/class/${encodeURIComponent(this.selectedClassId)}?${params}`);
                     if (!response.ok) throw new Error('Unable to load grading records.');
                     const data = await response.json();
                     const classData = data.class || {};
@@ -394,6 +405,16 @@
                     this.attendanceColumns = this.columnsFrom(this.attendance, 'record_date', 'Attendance');
                     this.quizColumns = this.columnsFrom(this.quizzes, 'quiz_id', 'title');
                     this.activityColumns = this.columnsFrom(this.activities, 'activity_id', 'title', 'points');
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('class_id', this.selectedClassId);
+                    url.searchParams.set('section', this.selectedSection);
+                    url.searchParams.set('grading_period', this.selectedTerm);
+                    window.history.replaceState({}, '', url);
+                },
+                prepareClassSelection() {
+                    const selectedClass = this.classes.find(classItem => String(classItem.class_id) === String(this.selectedClassId));
+                    this.sections = selectedClass?.sections || [];
+                    this.selectedSection = this.sections[0] || '';
                 },
                 columnsFrom(records, keyName, labelName, totalName) {
                     const seen = new Set();
@@ -419,9 +440,16 @@
                     if (!record) return '';
                     return kind === 'attendance' ? (record.score ?? (record.is_present ? 1 : 0)) : (kind === 'quiz' ? (record.total_score ?? '') : (record.score ?? ''));
                 },
-                openSelectedClass() {
+                async openSelectedClass() {
                     if (!this.selectedClassId) return;
-                    window.location.href = `grading.html?class_id=${encodeURIComponent(this.selectedClassId)}&section=${encodeURIComponent(this.selectedSection)}`;
+                    const selectedClass = this.classes.find(classItem => String(classItem.class_id) === String(this.selectedClassId));
+                    this.sections = selectedClass?.sections || [];
+                    if (!this.sections.includes(this.selectedSection)) {
+                        this.selectedSection = this.sections[0] || '';
+                    }
+                    await this.loadSheet();
+                    this.hasOpenedGrading = true;
+                    this.modal = null;
                 },
                 finalGradesUrl() {
                     return this.selectedClassId ? `final-grades.html?class_id=${encodeURIComponent(this.selectedClassId)}` : 'final-grades.html';

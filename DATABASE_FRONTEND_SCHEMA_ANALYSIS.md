@@ -6,15 +6,15 @@ The teacher grading sheet now loads records for a selected `class_id` through `G
 
 ## Matched data paths
 
-| Frontend surface | Database source | Result |
-| --- | --- | --- |
-| Subject title and class context | `class.class_id`, `class.subject`, `class.class_code` | Connected through the subject `class_id` URL. |
-| Sections | `section.class_id` | Returned with the selected class. |
-| Student names | `enrollment -> student -> account` | Returned only for students enrolled in the selected class. |
-| Attendance tab | `attendance.class_id`, `student_id`, `score`, `is_present`, `date_created` | Returned and grouped by record date. |
-| Quiz tab | `quiz.class_id` and `quiz_score.quiz_id/student_id/total_score` | Returned by quiz and student. |
-| Activities tab | `activity.class_id` and latest `act_submission` score | Returned by activity and student. |
-| Grading weights | `grading_policy.class_id` | Returned with the class. |
+| Frontend surface               | Database source                                           | Result                                                   |
+| ------------------------------ | --------------------------------------------------------- | -------------------------------------------------------- |
+| Subject title and class context | `class.class_id`, `class.subject`, `class.class_code`     | Connected through the subject `class_id` URL.            |
+| Sections                       | `section.class_id`                                        | Returned with the selected class.                        |
+| Student names                  | `enrollment -> student -> account`                        | Returned only for students enrolled in the selected class. |
+| Attendance tab                 | `attendance.class_id`, `student_id`, `score`, `is_present`, `date_created` | Returned and grouped by record date. |
+| Quiz tab                       | `quiz.class_id` and `quiz_score.quiz_id/student_id/total_score` | Returned by quiz and student. |
+| Activities tab                 | `activity.class_id` and latest `act_submission` score     | Returned by activity and student.                        |
+| Grading weights                | `grading_policy.class_id`                                | aReturned with the class.                                  |
 
 ## Remaining schema mismatches
 
