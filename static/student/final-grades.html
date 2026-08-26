@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" type="image/png" href="/gmvcc.png">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Final Grades</title>
@@ -58,7 +59,7 @@
             </ul>
         </nav>
 
-        <main class="lms-page">
+        <main class="lms-page" x-init="init()">
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Final Grades</h2>
@@ -114,6 +115,9 @@
                     </table>
                 </div>
             </section>
+            <p class="lms-empty" x-show="loading" x-cloak>Loading final grades...</p>
+            <p class="lms-empty text-red-600" x-show="error" x-text="error" x-cloak></p>
+            <p class="lms-empty" x-show="!loading && !error && courses.length === 0" x-cloak>No enrolled classes found.</p>
         </main>
     </div>
 
@@ -121,11 +125,29 @@
         function finalGradesApp() {
             return {
                 open: false,
-                courses: [
-                    { id: 1, name: 'Capstone Research Project 1', section: '3B', teacher: 'Prof. Gilda Taupa', grade: 91.86, remark: 'Passed' },
-                    { id: 2, name: 'System Analysis & Design', section: '2A', teacher: 'Prof. Alvin Ramos', grade: null, remark: 'Grade not available yet' },
-                    { id: 3, name: 'Web Development', section: '1C', teacher: 'Prof. Amelia Cruz', grade: 88.40, remark: 'Passed' }
-                ],
+                courses: [],
+                loading: true,
+                error: null,
+                async init() {
+                    const studentId = localStorage.getItem('student_id');
+                    if (!studentId) {
+                        this.error = 'Missing student identifier. Please log in again.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/grades/student/${encodeURIComponent(studentId)}?grading_period=Finals`);
+                        if (!response.ok) throw new Error(await response.text() || 'Unable to load final grades.');
+                        const data = await response.json();
+                        this.courses = data.courses || [];
+                    } catch (err) {
+                        this.error = err.message || 'Unable to load final grades.';
+                        console.error('Unable to load final grades:', err);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
                 hasPendingGrades() {
                     return this.courses.some(course => course.grade === null);
                 }

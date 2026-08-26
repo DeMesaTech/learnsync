@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" type="image/png" href="/gmvcc.png">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Final Grades</title>
@@ -14,7 +15,7 @@
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="{ open: false }">
+    <div class="pt-20 flex min-h-screen" x-data="finalGradesApp()" x-init="init()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu">
                 <svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,14 +105,14 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Final Grades</h2>
-                    <p class="lms-subtitle">Computed grade view for Capstone Research Project 1, Section 3B. Raw record encoding remains on the grading tables page.</p>
+                    <p class="lms-subtitle">Computed grade view for <span x-text="selectedClass"></span>, Section <span x-text="selectedSection"></span>, <span x-text="selectedTerm"></span>. Raw record encoding remains on the grading tables page.</p>
                     <div class="mt-4 flex flex-wrap items-center gap-3">
                         <label for="gradeVisibility" class="text-sm font-semibold text-slate-300">Grade visibility</label>
-                        <select id="gradeVisibility" x-model="$store.grades.visible" class="lms-select max-w-xs">
+                        <select id="gradeVisibility" x-model="visible" @change="setVisibility()" class="lms-select max-w-xs">
                             <option :value="false">Not Published</option>
                             <option :value="true">Published</option>
                         </select>
-                        <span class="lms-badge" :class="$store.grades.visible ? 'good' : 'warn'" x-text="$store.grades.visible ? 'Published' : 'Not Published'"></span>
+                        <span class="lms-badge" :class="visible ? 'good' : 'warn'" x-text="visible ? 'Published' : 'Not Published'"></span>
                     </div>
                 </div>
                 <div class="lms-actions">
@@ -123,17 +124,17 @@
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg></span><strong>10%</strong><span>Attendance</span></div>
+                        </svg></span><strong x-text="weights.attendance + '%'">0%</strong><span>Attendance</span></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
-                        </svg></span><strong>30%</strong><span>Quizzes</span></div>
+                        </svg></span><strong x-text="weights.quizzes + '%'">0%</strong><span>Quizzes</span></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
-                        </svg></span><strong>30%</strong><span>Activities</span></div>
+                        </svg></span><strong x-text="weights.activities + '%'">0%</strong><span>Activities</span></div>
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -175,36 +176,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Juan Dela Cruz</td>
-                                <td>87.50</td>
-                                <td>93.33</td>
-                                <td>91.25</td>
-                                <td>91.21</td>
-                                <td>93.75</td>
-                                <td>90.00</td>
-                                <td>94.25</td>
-                                <td>92.50</td>
-                                <td>91.86</td>
-                                <td><span class="lms-badge good">Passed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Maria Santos</td>
-                                <td>100.00</td>
-                                <td>96.67</td>
-                                <td>95.50</td>
-                                <td>96.45</td>
-                                <td>100.00</td>
-                                <td>96.00</td>
-                                <td>98.00</td>
-                                <td>97.00</td>
-                                <td>96.73</td>
-                                <td><span class="lms-badge good">Passed</span></td>
-                            </tr>
+                            <template x-for="student in students" :key="student.student_id">
+                                <tr>
+                                    <td x-text="student.name"></td>
+                                    <td x-text="displayGrade(student.midterm_attendance)"></td>
+                                    <td x-text="displayGrade(student.midterm_quiz)"></td>
+                                    <td x-text="displayGrade(student.midterm_activities)"></td>
+                                    <td x-text="displayGrade(student.midterm_grade)"></td>
+                                    <td x-text="displayGrade(student.attendance)"></td>
+                                    <td x-text="displayGrade(student.quiz)"></td>
+                                    <td x-text="displayGrade(student.activities)"></td>
+                                    <td x-text="displayGrade(student.period_grade)"></td>
+                                    <td x-text="displayGrade(student.course_grade)"></td>
+                                    <td><span class="lms-badge" :class="student.course_grade === null ? 'warn' : (student.course_grade >= 75 ? 'good' : 'bad')" x-text="student.course_grade === null ? 'Pending' : (student.course_grade >= 75 ? 'Passed' : 'Failed')"></span></td>
+                                </tr>
+                            </template>
+                            <tr x-show="!loading && !error && !students.length"><td colspan="11" class="lms-meta">No students are enrolled in this section.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
+            <p class="lms-empty" x-show="loading" x-cloak>Loading computed grades...</p>
+            <p class="lms-empty text-red-600" x-show="error" x-text="error" x-cloak></p>
 
             <section class="lms-table-card mt-4">
                 <div class="lms-table-head">
@@ -257,14 +250,78 @@
         </main>
     </div>
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('grades', {
-                visible: localStorage.getItem('gradesVisible') === 'true'
-            });
-            Alpine.effect(() => {
-                localStorage.setItem('gradesVisible', Alpine.store('grades').visible);
-            });
-        });
+        function finalGradesApp() {
+            return {
+                open: false,
+                selectedClass: '',
+                selectedSection: '',
+                selectedTerm: 'Midterm',
+                visible: false,
+                weights: { attendance: 0, quizzes: 0, activities: 0 },
+                students: [],
+                loading: true,
+                error: null,
+                async init() {
+                    const params = new URLSearchParams(window.location.search);
+                    let classId = params.get('class_id');
+                    this.selectedSection = params.get('section') || '';
+                    this.selectedTerm = ['Midterm', 'Finals'].includes(params.get('grading_period')) ? params.get('grading_period') : 'Midterm';
+                    try {
+                        const teacherId = localStorage.getItem('teacher_id') || localStorage.getItem('user_id');
+                        if (!classId && teacherId) {
+                            const classesResponse = await fetch(`/api/classes/teacher/${encodeURIComponent(teacherId)}`);
+                            if (classesResponse.ok) {
+                                const data = await classesResponse.json();
+                                const fallbackClass = (data.classes || [])[0];
+                                classId = fallbackClass?.class_id;
+                                this.selectedSection = this.selectedSection || fallbackClass?.sections?.[0] || '';
+                            }
+                        }
+                        if (!classId || !this.selectedSection) {
+                            throw new Error('Select a class and section from the grading page first.');
+                        }
+                        const query = new URLSearchParams({ section: this.selectedSection, grading_period: this.selectedTerm });
+                        const response = await fetch(`/api/grades/class/${encodeURIComponent(classId)}/summary?${query}`);
+                        if (!response.ok) throw new Error(await response.text() || 'Unable to load computed grades.');
+                        const data = await response.json();
+                        this.selectedClass = data.class?.subject || '';
+                        this.weights = data.weights || this.weights;
+                        this.visible = Boolean(data.visible);
+                        this.students = data.students || [];
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('class_id', classId);
+                        url.searchParams.set('section', this.selectedSection);
+                        url.searchParams.set('grading_period', this.selectedTerm);
+                        window.history.replaceState({}, '', url);
+                    } catch (err) {
+                        this.error = err.message || 'Unable to load computed grades.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                displayGrade(value) {
+                    return value === null || value === undefined ? 'Pending' : Number(value).toFixed(2);
+                },
+                async setVisibility() {
+                    const params = new URLSearchParams(window.location.search);
+                    try {
+                        const response = await fetch('/api/grades/visibility', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                class_id: Number(params.get('class_id')),
+                                section: this.selectedSection,
+                                grading_period: this.selectedTerm,
+                                visible: this.visible
+                            })
+                        });
+                        if (!response.ok) throw new Error(await response.text() || 'Unable to update visibility.');
+                    } catch (err) {
+                        this.error = err.message || 'Unable to update visibility.';
+                    }
+                }
+            };
+        }
     </script>
 </body>
 

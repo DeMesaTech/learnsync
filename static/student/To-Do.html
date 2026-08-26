@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" type="image/png" href="/gmvcc.png">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | To Do</title>
@@ -58,7 +59,7 @@
             </ul>
         </nav>
 
-        <main class="lms-page">
+        <main class="lms-page" x-init="init()">
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">To Do</h2>
@@ -69,7 +70,7 @@
             <section class="lms-tabs" aria-label="Task tabs">
                 <button class="lms-tab" :class="tab === 'activities' ? 'lms-tab-active' : ''" type="button" @click="tab = 'activities'">Activities</button>
                 <button class="lms-tab" :class="tab === 'quizzes' ? 'lms-tab-active' : ''" type="button" @click="tab = 'quizzes'">Quizzes</button>
-                <button class="lms-tab" :class="tab === 'modules' ? 'lms-tab-active' : ''" type="button" @click="tab = 'modules'">Compiled</button>
+                <button class="lms-tab" :class="tab === 'modules' ? 'lms-tab-active' : ''" type="button" @click="tab = 'modules'">Modules</button>
             </section>
 
             <section class="lms-toolbar">
@@ -85,6 +86,9 @@
                 </select>
             </section>
 
+            <p class="lms-empty" x-show="loading" x-cloak>Loading your To Do items...</p>
+            <p class="lms-empty text-red-600" x-show="error" x-text="error" x-cloak></p>
+
             <section class="lms-panel" x-show="tab === 'activities'">
                 <div class="lms-task-top">
                     <h3>Activities</h3>
@@ -92,13 +96,14 @@
                 </div>
                 <div class="lms-list">
                     <template x-for="activity in filteredActivities()" :key="activity.title">
-                        <article class="lms-task-card" :class="activity.priority" role="button" tabindex="0" @click="openTask('activity', activity)" @keydown.enter.prevent="openTask('activity', activity)" @keydown.space.prevent="openTask('activity', activity)">
+                        <article class="lms-task-card" :class="activity.submitted ? 'is-submitted' : ''" role="button" tabindex="0" @click="openTask('activity', activity)" @keydown.enter.prevent="openTask('activity', activity)" @keydown.space.prevent="openTask('activity', activity)">
                             <div class="lms-task-top">
                                 <p class="lms-task-title" x-text="activity.title"></p>
-                                <span class="lms-badge warn" x-text="'Due ' + formatDate(activity.date)"></span>
+                                <span class="lms-badge" :class="activity.submitted ? 'good' : 'warn'"
+                                    x-text="activity.submitted ? activity.submission_status : 'Due ' + formatDate(activity.date)"></span>
                             </div>
                             <p class="m-0" x-text="activity?.description"></p>
-                            <span class="lms-meta" x-text="activity.className"></span>
+                            <span class="lms-meta" x-text="activity.class_name"></span>
                         </article>
                     </template>
                     <p class="lms-empty" x-show="filteredActivities().length === 0">No activities for this class.</p>
@@ -112,13 +117,14 @@
                 </div>
                 <div class="lms-list">
                     <template x-for="quiz in filteredQuizzes()" :key="quiz.title">
-                        <article class="lms-task-card" :class="quiz.priority" role="button" tabindex="0" @click="openTask('quiz', quiz)" @keydown.enter.prevent="openTask('quiz', quiz)" @keydown.space.prevent="openTask('quiz', quiz)">
+                        <article class="lms-task-card" :class="quiz.submitted ? 'is-submitted' : ''" role="button" tabindex="0" @click="openTask('quiz', quiz)" @keydown.enter.prevent="openTask('quiz', quiz)" @keydown.space.prevent="openTask('quiz', quiz)">
                             <div class="lms-task-top">
                                 <p class="lms-task-title" x-text="quiz.title"></p>
-                                <span class="lms-badge" x-text="quiz.mode"></span>
+                                <span class="lms-badge" :class="quiz.submitted ? 'good' : 'warn'"
+                                    x-text="quiz.submitted ? 'Submitted' : 'Pending'"></span>
                             </div>
                             <p class="m-0" x-text="quiz?.description"></p>
-                            <span class="lms-meta" x-text="quiz.className + ' | Due ' + formatDate(quiz.date)"></span>
+                            <span class="lms-meta" x-text="quiz.class_name + ' | ' + (quiz.submitted && quiz.total_score !== null ? 'Latest score: ' + quiz.total_score : 'Added ' + formatDate(quiz.date))"></span>
                         </article>
                     </template>
                     <p class="lms-empty" x-show="filteredQuizzes().length === 0">No quizzes for this class.</p>
@@ -138,7 +144,7 @@
                                 <span class="lms-badge good" x-text="formatDate(module.date)"></span>
                             </div>
                             <p class="m-0" x-text="module?.description"></p>
-                            <span class="lms-meta" x-text="module.className + ' | Uploaded by ' + module.teacher"></span>
+                            <span class="lms-meta" x-text="module.class_name + ' | Uploaded ' + formatDate(module.date)"></span>
                         </article>
                     </template>
                     <p class="lms-empty" x-show="filteredModules().length === 0">No compiled modules for this class.</p>
@@ -154,37 +160,48 @@
                 tab: 'activities',
                 classFilter: 'all',
                 sortOrder: 'newest',
-                classes: [
-                    'Capstone Research Project 1',
-                    'System Analysis & Design',
-                    'Web Development',
-                    'Database Management 2'
-                ],
-                activities: [
-                    { slug: 'chapter-1-draft', title: 'Chapter 1 Draft', className: 'Capstone Research Project 1', date: '2026-10-25', priority: 'is-soon', description: 'Upload your draft file before the deadline.' },
-                    { slug: 'final-project-proposal', title: 'Final Project Proposal', className: 'Web Development', date: '2026-10-20', priority: 'is-urgent', description: 'Submit project scope, user roles, and initial wireframes.' },
-                    { slug: 'normalization-exercise', title: 'Normalization Exercise', className: 'Database Management 2', date: '2026-10-30', priority: '', description: 'Answer the worksheet and attach your ERD revision.' }
-                ],
-                quizzes: [
-                    { slug: 'research-ethics-quiz', title: 'Research Ethics Quiz', className: 'Capstone Research Project 1', date: '2026-10-28', mode: 'Online', priority: 'is-soon', description: 'Covers consent, citation, and plagiarism rules.' },
-                    { slug: 'html-css-fundamentals', title: 'HTML/CSS Fundamentals', className: 'Web Development', date: '2026-10-23', mode: 'Online', priority: 'is-urgent', description: 'Timed quiz with multiple choice and short answers.' },
-                    { slug: 'erd-relationships-check', title: 'ERD Relationships Check', className: 'System Analysis & Design', date: '2026-11-02', mode: 'Practice', priority: '', description: 'Review cardinality, primary keys, and foreign keys.' }
-                ],
-                modules: [
-                    { title: 'Chapter 1 Research Guide', className: 'Capstone Research Project 1', date: '2026-10-18', teacher: 'Prof. Gilda Taupa', description: 'Compiled notes for title, objectives, scope, and significance.' },
-                    { title: 'ERD and Database Normalization', className: 'System Analysis & Design', date: '2026-10-15', teacher: 'Engr. Santos', description: 'Combined slides and examples for relationship mapping.' },
-                    { title: 'Responsive UI Layouts', className: 'Web Development', date: '2026-10-22', teacher: 'Ms. Dela Cruz', description: 'Compiled module for grids, spacing, and mobile tabs.' },
-                    { title: 'SQL Constraints and Keys', className: 'Database Management 2', date: '2026-10-12', teacher: 'Mr. Reyes', description: 'Reference file for PK, FK, unique, and check constraints.' }
-                ],
+                loading: true,
+                error: null,
+                classes: [],
+                activities: [],
+                quizzes: [],
+                modules: [],
+                async init() {
+                    const studentId = localStorage.getItem('student_id');
+                    if (!studentId) {
+                        this.error = 'Missing student identifier. Please log in again.';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/subjects/todo/student/${encodeURIComponent(studentId)}`);
+                        if (!response.ok) throw new Error(await response.text() || 'Unable to load To Do items.');
+                        const data = await response.json();
+                        this.activities = data.activities || [];
+                        this.quizzes = data.quizzes || [];
+                        this.modules = data.modules || [];
+                        this.classes = [...new Set([
+                            ...this.activities,
+                            ...this.quizzes,
+                            ...this.modules
+                        ].map((item) => item.class_name).filter(Boolean))].sort();
+                    } catch (err) {
+                        this.error = err.message || 'Unable to load To Do items.';
+                        console.error('Unable to load student To Do items:', err);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
                 inClass(item) {
-                    return this.classFilter === 'all' || item.className === this.classFilter;
+                    return this.classFilter === 'all' || item.class_name === this.classFilter;
                 },
                 sorted(items) {
                     return items
                         .filter((item) => this.inClass(item))
                         .sort((a, b) => this.sortOrder === 'newest'
-                            ? new Date(b.date) - new Date(a.date)
-                            : new Date(a.date) - new Date(b.date));
+                            ? new Date(b.date || 0) - new Date(a.date || 0)
+                            : new Date(a.date || 0) - new Date(b.date || 0));
                 },
                 filteredActivities() {
                     return this.sorted(this.activities);
@@ -196,7 +213,13 @@
                     return this.sorted(this.modules);
                 },
                 formatDate(value) {
-                    return new Date(value + 'T00:00:00').toLocaleDateString('en-US', {
+                    if (!value) return 'Date unavailable';
+                    const dateValue = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+                        ? `${value}T00:00:00`
+                        : value;
+                    const date = new Date(dateValue);
+                    if (Number.isNaN(date.getTime())) return 'Date unavailable';
+                    return date.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
@@ -204,11 +227,11 @@
                 },
                 openTask(type, item) {
                     if (type === 'activity') {
-                        window.location.href = `activity-submission.html?activity=${item.slug}`;
+                        window.location.href = `activity-submission.html?class_id=${encodeURIComponent(item.class_id)}&activity_id=${encodeURIComponent(item.activity_id)}`;
                         return;
                     }
                     if (type === 'quiz') {
-                        window.location.href = `quiz-take.html?quiz=${item.slug}`;
+                        window.location.href = `quiz-take.html?quiz=${encodeURIComponent(item.quiz_id)}`;
                     }
                 }
             }

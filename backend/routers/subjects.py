@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Body
@@ -11,6 +12,83 @@ from psycopg2.extras import RealDictCursor
 from db import get_db_connection
 
 subject_router = APIRouter(prefix="/api/subjects", tags=["subjects"])
+
+
+@subject_router.get("/todo/student/{student_id}")
+async def get_student_todo(student_id: int):
+    """Return the student's enrolled activities, quizzes, and modules with progress."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            """
+            SELECT a.activity_id, a.class_id, c.subject AS class_name,
+                   a.title, a.description, a.due_date AS date,
+                   latest.submission_status,
+                   latest.submission_date,
+                   latest.score,
+                   (latest.act_submission_id IS NOT NULL) AS submitted
+            FROM activity a
+            JOIN class c ON c.class_id = a.class_id
+            JOIN enrollment e ON e.class_id = a.class_id AND e.student_id = %s
+            LEFT JOIN LATERAL (
+                SELECT s.act_submission_id, s.submission_status,
+                       s.submission_date, s.score
+                FROM act_submission s
+                WHERE s.activity_id = a.activity_id AND s.student_id = e.student_id
+                ORDER BY s.submission_date DESC NULLS LAST, s.act_submission_id DESC
+                LIMIT 1
+            ) latest ON TRUE
+            ORDER BY a.due_date DESC NULLS LAST, a.activity_id DESC
+            """,
+            (student_id,)
+        )
+        activities = cur.fetchall()
+
+        cur.execute(
+            """
+            SELECT q.quiz_id, q.class_id, c.subject AS class_name,
+                   q.title, q.date_created AS date,
+                   latest.total_score,
+                   (latest.score_id IS NOT NULL) AS submitted
+            FROM quiz q
+            JOIN class c ON c.class_id = q.class_id
+            JOIN enrollment e ON e.class_id = q.class_id AND e.student_id = %s
+            LEFT JOIN LATERAL (
+                SELECT qs.score_id, qs.total_score, qs.date_taken
+                FROM quiz_score qs
+                WHERE qs.quiz_id = q.quiz_id AND qs.student_id = e.student_id
+                ORDER BY qs.date_taken DESC NULLS LAST, qs.score_id DESC
+                LIMIT 1
+            ) latest ON TRUE
+            ORDER BY q.date_created DESC NULLS LAST, q.quiz_id DESC
+            """,
+            (student_id,)
+        )
+        quizzes = cur.fetchall()
+
+        cur.execute(
+            """
+            SELECT m.module_id, m.class_id, c.subject AS class_name,
+                   m.title, m.summary AS description, m.upload_date AS date,
+                   m.file_path
+            FROM module m
+            JOIN class c ON c.class_id = m.class_id
+            JOIN enrollment e ON e.class_id = m.class_id AND e.student_id = %s
+            ORDER BY m.upload_date DESC NULLS LAST, m.module_id DESC
+            """,
+            (student_id,)
+        )
+        modules = cur.fetchall()
+
+        return {"activities": activities, "quizzes": quizzes, "modules": modules}
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
 
 # ===========================================================
 # Teacher Dashboard Endpoint
@@ -87,7 +165,10 @@ async def enroll_students(class_id: str, payload: dict = Body(...)):
 
         # get section_id for the given section code
         section_code = payload.get('section')
-        cur.execute('SELECT section_id FROM section WHERE section = %s', (section_code,))
+        cur.execute(
+            'SELECT section_id FROM section WHERE class_id = %s AND section = %s',
+            (class_id, section_code),
+        )
         section_id = cur.fetchone()
         if not section_id:
             raise HTTPException(status_code=400, detail="Invalid section")
@@ -195,9 +276,10 @@ async def upload_module(
                 title,
                 file_path,
                 summary,
-                class_id
+                class_id,
+                date_created
             )
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING module_id
             """,
             (
@@ -205,7 +287,8 @@ async def upload_module(
                 title,
                 file_location,
                 summary,
-                class_id
+                class_id,
+                datetime.now()
             )
         )
 

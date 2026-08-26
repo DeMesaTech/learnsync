@@ -20,7 +20,7 @@ class FakeCursor:
                     'role': 'student',
                 }
             ]
-        elif sql_norm.startswith('SELECT student_id, grade_level FROM Student WHERE user_id = %s'):
+        elif 'STRING_AGG(DISTINCT sec.section' in sql_norm:
             self._rows = [{'student_id': 42, 'grade_level': '2nd Year - A'}]
         else:
             self._rows = []

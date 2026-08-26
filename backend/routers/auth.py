@@ -99,7 +99,15 @@ async def get_user_profile(user_id: int):
 
         if user['role'] == 'student':
             cur.execute(
-                'SELECT student_id, grade_level FROM Student WHERE user_id = %s',
+                """
+                SELECT s.student_id,
+                       STRING_AGG(DISTINCT sec.section, ', ' ORDER BY sec.section) AS grade_level
+                FROM student s
+                LEFT JOIN enrollment e ON e.student_id = s.student_id
+                LEFT JOIN section sec ON sec.section_id = e.section_id
+                WHERE s.user_id = %s
+                GROUP BY s.student_id
+                """,
                 (user_id,)
             )
             student = cur.fetchone()

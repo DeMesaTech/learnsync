@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS public.act_recitation
     title character varying(255) COLLATE pg_catalog."default",
     score numeric(5, 2),
     date_created timestamp without time zone,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT act_recitation_pkey PRIMARY KEY (act_recitation_id)
 );
 
@@ -39,6 +40,8 @@ CREATE TABLE IF NOT EXISTS public.act_submission
     graded_at timestamp without time zone,
     attempt_number integer NOT NULL DEFAULT 1,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    st_notes text COLLATE pg_catalog."default",
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT act_submission_pkey PRIMARY KEY (act_submission_id)
 );
 
@@ -58,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.activity
     max_attempts integer DEFAULT 1,
     visible_from timestamp without time zone,
     visible_until timestamp without time zone,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT activity_pkey PRIMARY KEY (activity_id)
 );
 
@@ -109,6 +113,7 @@ CREATE TABLE IF NOT EXISTS public.attendance
     is_present boolean,
     score numeric(5, 2),
     date_created timestamp without time zone,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT attendance_pkey PRIMARY KEY (attendance_id)
 );
 
@@ -164,6 +169,7 @@ CREATE TABLE IF NOT EXISTS public.module
     upload_date timestamp without time zone,
     summary character varying(255) COLLATE pg_catalog."default",
     class_id integer,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT module_pkey PRIMARY KEY (module_id)
 );
 
@@ -219,6 +225,7 @@ CREATE TABLE IF NOT EXISTS public.quiz_score
     is_online boolean,
     total_score numeric(5, 2),
     date_taken timestamp without time zone,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
     CONSTRAINT quiz_score_pkey PRIMARY KEY (score_id)
 );
 
