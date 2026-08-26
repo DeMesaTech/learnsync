@@ -81,30 +81,31 @@ async def login(request: LoginRequest):
 async def get_user_profile(user_id: int):
     """Return basic profile info for a user, including student details when available."""
     conn = get_db_connection()
+    employee_id = None
+    student_number = None
+    grade_level = None
+
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get user info
+
         cur.execute(
             'SELECT user_id, name, email, role FROM account WHERE user_id = %s',
             (user_id,)
         )
         user = cur.fetchone()
-        
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Get student details if user is student
-        student_number = None
-        
         if user['role'] == 'student':
             cur.execute(
-                'SELECT student_id FROM Student WHERE user_id = %s',
+                'SELECT student_id, grade_level FROM Student WHERE user_id = %s',
                 (user_id,)
             )
             student = cur.fetchone()
             if student:
-                student_number = str(student.get('student_id')) if student.get('student_id') else None
+                student_number = str(student.get('student_id')) if student.get('student_id') is not None else None
+                grade_level = student.get('grade_level')
         elif user['role'] == 'teacher':
             cur.execute(
                 'SELECT employee_id FROM Teacher WHERE user_id = %s',
@@ -112,7 +113,7 @@ async def get_user_profile(user_id: int):
             )
             teacher = cur.fetchone()
             if teacher:
-                employee_id = str(teacher.get('employee_id')) if teacher.get('employee_id') else None
+                employee_id = str(teacher.get('employee_id')) if teacher.get('employee_id') is not None else None
 
         return UserProfileResponse(
             user_id=user['user_id'],
@@ -120,7 +121,8 @@ async def get_user_profile(user_id: int):
             email=user['email'],
             role=user['role'],
             student_number=student_number,
-            employee_id=employee_id
+            employee_id=employee_id,
+            grade_level=grade_level,
         )
 
     except psycopg2.Error as e:

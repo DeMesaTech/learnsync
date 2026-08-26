@@ -208,7 +208,7 @@
                         console.log('Profile data loaded:', this.account);
                     } catch (err) { console.error('Error fetching profile:', err); }
                 },
-                formatEmployeeId(raw) {
+                formatStudentId(raw) {
                     if (!raw) return '';
                     const digits = ('' + raw).replace(/\D/g, '').slice(0,6);
                     if (digits.length <= 2) return digits;
