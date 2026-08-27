@@ -148,6 +148,15 @@ CREATE TABLE IF NOT EXISTS public.grade
     CONSTRAINT grade_pkey PRIMARY KEY (grade_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.grade_visibility
+(
+    class_id bigint NOT NULL,
+    section character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    visible boolean NOT NULL DEFAULT false,
+    CONSTRAINT grade_visibility_pkey PRIMARY KEY (class_id, section, grading_period)
+);
+
 CREATE TABLE IF NOT EXISTS public.grading_policy
 (
     policy_id serial NOT NULL,
@@ -176,10 +185,11 @@ CREATE TABLE IF NOT EXISTS public.module
 CREATE TABLE IF NOT EXISTS public.module_content
 (
     text_id serial NOT NULL,
-    module_id integer,
-    text text COLLATE pg_catalog."default",
-    chunk_index integer,
-    CONSTRAINT module_content_pkey PRIMARY KEY (text_id)
+    module_id integer NOT NULL,
+    text text COLLATE pg_catalog."default" NOT NULL,
+    chunk_index integer NOT NULL,
+    CONSTRAINT module_content_pkey PRIMARY KEY (text_id),
+    CONSTRAINT module_content_module_chunk_key UNIQUE (module_id, chunk_index)
 );
 
 CREATE TABLE IF NOT EXISTS public.module_sections
@@ -438,7 +448,9 @@ ALTER TABLE IF EXISTS public.module_content
     ADD CONSTRAINT module_content_module_id_fkey FOREIGN KEY (module_id)
     REFERENCES public.module (module_id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS module_content_module_id_idx
+    ON public.module_content(module_id);
 
 
 ALTER TABLE IF EXISTS public.module_sections

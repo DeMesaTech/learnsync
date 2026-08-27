@@ -6,7 +6,10 @@ from models import AnnouncementCreate, AnnouncementResponse, SubjectKPIsResponse
 import psycopg2
 import json 
 import os
+import uuid
+from pathlib import Path
 from psycopg2.extras import RealDictCursor
+from module_extractor import SUPPORTED_EXTENSIONS, extract_module_text
 
 #from models import 
 from db import get_db_connection
@@ -219,18 +222,37 @@ async def upload_module(
     Upload Module for the class
     """
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    max_file_size = 20 * 1024 * 1024
+    original_name = file.filename or ""
+    extension = Path(original_name).suffix.lower()
+    if extension not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(
+            status_code=415,
+            detail="Unsupported module format. Use PDF, DOCX, XLSX, or PPTX."
+        )
 
     try:
-        # Convert sections JSON string back to Python list
         sections_list = json.loads(sections)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="sections must be valid JSON")
 
-        # Save file
-        upload_dir = "uploads/modules"
-        os.makedirs(upload_dir, exist_ok=True)
+    if not isinstance(sections_list, list):
+        raise HTTPException(status_code=400, detail="sections must be a JSON list")
 
-        file_location = f"{upload_dir}/{file.filename}"
+    file_data = await file.read(max_file_size + 1)
+    if len(file_data) > max_file_size:
+        raise HTTPException(status_code=413, detail="Module file must be 20 MB or smaller")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    file_location = None
+
+    try:
+        upload_dir = Path(__file__).resolve().parents[1] / "uploads" / "modules"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        stored_name = f"{uuid.uuid4().hex}{extension}"
+        stored_path = upload_dir / stored_name
+        file_location = f"uploads/modules/{stored_name}"
 
         print(
             f"Received title: {title}, "
@@ -240,8 +262,8 @@ async def upload_module(
         )
         print(f"Received sections: {sections_list}")
 
-        with open(file_location, "wb") as buffer:
-            buffer.write(await file.read())
+        stored_path.write_bytes(file_data)
+        extraction = extract_module_text(stored_path)
 
         # Get teacher assigned to this class
         cursor.execute(
@@ -277,7 +299,7 @@ async def upload_module(
                 file_path,
                 summary,
                 class_id,
-                date_created
+                upload_date
             )
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING module_id
@@ -333,6 +355,16 @@ async def upload_module(
                 f"Linked module_id={module_id} "
                 f"to section_id={section_id}"
             )
+
+        for chunk_index, chunk in enumerate(extraction["chunks"]):
+            cursor.execute(
+                """
+                INSERT INTO module_content (module_id, text, chunk_index)
+                VALUES (%s, %s, %s)
+                """,
+                (module_id, chunk, chunk_index)
+            )
+
         conn.commit()
 
         return {
@@ -342,11 +374,21 @@ async def upload_module(
             "class_id": class_id,
             "file_path": file_location,
             "summary": summary,
-            "sections": sections_list
+            "sections": sections_list,
+            "content_extracted": extraction["content_extracted"],
+            "content_chunks": len(extraction["chunks"]),
+            "extraction_warning": extraction["warning"]
         }
 
+    except HTTPException:
+        conn.rollback()
+        if file_location:
+            Path(__file__).resolve().parents[1].joinpath(file_location).unlink(missing_ok=True)
+        raise
     except Exception as e:
         conn.rollback()
+        if file_location:
+            Path(__file__).resolve().parents[1].joinpath(file_location).unlink(missing_ok=True)
         raise HTTPException(
             status_code=500,
             detail=str(e)
