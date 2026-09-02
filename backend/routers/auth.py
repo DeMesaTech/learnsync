@@ -8,7 +8,7 @@ from db import get_db_connection
 from utils import verify_password
 
 auth_router = APIRouter(prefix="/api/auth", tags=["auth"])
-
+# /api/auth/login
 
 @auth_router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest):

@@ -67,13 +67,15 @@
                             <div class="space-y-2">
                                 <label for="loginEmail" class="block text-xs font-medium text-slate-300">Email
                                     Address</label>
-                                <input type="email" id="loginEmail" x-model="login.email"
+                            <!-- Email input field with Alpine.js model binding and validation -->
+                            <input type="email" id="loginEmail" x-model="login.email" 
                                     placeholder="e.g. juandela.cruz@gmail.com" required
                                     class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
                             </div>
                             <div class="space-y-2">
                                 <label for="loginPassword"
                                     class="block text-xs font-medium text-slate-300">Password</label>
+                                <!-- Password input field with Alpine.js model binding and validation -->
                                 <input type="password" id="loginPassword" x-model="login.password"
                                     placeholder="Enter your password" required
                                     class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
@@ -94,6 +96,7 @@
         function authApp() {
             return {
                 page: 'login',
+                // ============= LOGIN DATA x-model(login.email, login.password) =============
                 login: {
                     email: '',
                     password: '',

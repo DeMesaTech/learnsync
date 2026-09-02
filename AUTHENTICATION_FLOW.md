@@ -78,12 +78,12 @@ async def login(request: LoginRequest):
 ```sql
 -- Step 7: PostgreSQL searches User table
 -- Database contains:
-┌────────┬──────────────────────┬──────────────┬────────┬─────────────────────────┐
-│ user_id│      email           │   password   │ role   │      name              │
-├────────┼──────────────────────┼──────────────┼────────┼─────────────────────────┤
-│   1    │ juan@example.com     │ a3f5d2... ✓ │student │ Juan Dela Cruz         │
-│   2    │ maria@example.com    │ b7c8e9...   │teacher │ Maria Santos           │
-└────────┴──────────────────────┴──────────────┴────────┴─────────────────────────┘
+┌────────┬──────────────────────┬──────────────┬──────────┬─────────────────────────┐
+│ user_id│      email           │   password   │ role     │      name              │
+├────────┼──────────────────────┼──────────────┼──────────┼─────────────────────────┤
+│   1    │ juan@example.com     │ a3f5d2... ✓  │ student  │ Juan Dela Cruz         │
+│   2    │ maria@example.com    │ b7c8e9...    │ teacher  │ Maria Santos           │
+└────────┴──────────────────────┴──────────────┴──────────┴─────────────────────────┘
 
 -- Step 8: PostgreSQL returns matching record
 -- Result: 1 row found with user_id=1
@@ -191,11 +191,11 @@ async def signup(request: SignupRequest):
 ### Database State After Signup
 ```sql
 -- New User record added:
-┌────────┬──────────────────────┬──────────────┬────────┬──────────────────────┬──────────────────────┐
-│ user_id│      email           │   password   │ role   │      name            │     created_at       │
-├────────┼──────────────────────┼──────────────┼────────┼──────────────────────┼──────────────────────┤
-│   3    │ newstudent@example.com│ f7e4c2a9d.. │student │ Carlos Manuel Reyes  │ 2024-01-15 10:30:45 │
-└────────┴──────────────────────┴──────────────┴────────┴──────────────────────┴──────────────────────┘
+┌────────┬──────────────────────┬──────────────┬──────────┬──────────────────────┬──────────────────────┐
+│ user_id│      email           │   password   │ role     │      name            │     created_at       │
+├────────┼──────────────────────┼──────────────┼──────────┼──────────────────────┼──────────────────────┤
+│   3    │ newstudent@example.com│ f7e4c2a9d..  │ student  │ Carlos Manuel Reyes  │ 2024-01-15 10:30:45 │
+└────────┴──────────────────────┴──────────────┴──────────┴──────────────────────┴──────────────────────┘
 
 -- New Student record created:
 ┌────────────┬─────────┬──────────────┐
@@ -481,7 +481,7 @@ Use this to:
 ## 9. API Endpoints Summary
 
 | Method | Endpoint | Input | Output | Purpose |
-|--------|----------|-------|--------|---------|
+|--------|----------|-----------|---------------------------------------------|---------------------|
 | POST | `/api/auth/login` | `{role, email, password}` | `{success, message, user_id, role, name}` | User login |
 | POST | `/api/auth/signup` | `{role, email, firstName, middleName, lastName, idNumber, password}` | `{success, message, user_id, role, name}` | New account creation |
 | GET | `/api/health` | None | `{status}` | Check backend status |
