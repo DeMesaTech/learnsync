@@ -223,3 +223,4 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 API key.txt
+run.bat

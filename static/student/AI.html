@@ -93,6 +93,19 @@
 
             <div class="flex-1 overflow-y-auto px-4 py-6">
                 <div class="mx-auto flex max-w-4xl flex-col gap-5">
+                    <section class="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+                        <label for="learning-material" class="block text-sm font-bold text-slate-900">Choose a lesson</label>
+                        <p class="mt-1 text-xs leading-5 text-slate-600">Select an enrolled subject and published learning material to study with LearnSync AI.</p>
+                        <select id="learning-material" x-model="selectedMaterialId" :disabled="materialsLoading || !materials.length"
+                            class="mt-3 w-full rounded-xl border border-cyan-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15">
+                            <option value="" x-text="materialsLoading ? 'Loading enrolled lessons...' : (materials.length ? 'Select a lesson' : 'No published lessons available')"></option>
+                            <template x-for="material in materials" :key="material.id">
+                                <option :value="material.id" x-text="material.label"></option>
+                            </template>
+                        </select>
+                        <p x-show="materialsError" x-text="materialsError" class="mt-2 text-xs text-red-700"></p>
+                    </section>
+
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                         <div class="flex items-start gap-4">
                             <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 font-bold text-white">AI</div>
@@ -163,6 +176,10 @@
                 draft: '',
                 loading: false,
                 error: '',
+                materials: [],
+                materialsLoading: false,
+                materialsError: '',
+                selectedMaterialId: '',
                 conversations: JSON.parse(localStorage.getItem('learnsync_ai_conversations') || '[]'),
                 activeConversationId: null,
 
@@ -174,9 +191,42 @@
                     return this.activeConversation ? this.activeConversation.messages : [];
                 },
 
-                init() {
+                async init() {
                     const savedConversation = this.conversations[0];
                     if (savedConversation) this.activeConversationId = savedConversation.id;
+                    await this.loadMaterials();
+                },
+
+                async loadMaterials() {
+                    const studentId = localStorage.getItem('student_id');
+                    if (!studentId) {
+                        this.materialsError = 'Please sign in as a student to view enrolled lessons.';
+                        return;
+                    }
+
+                    this.materialsLoading = true;
+                    this.materialsError = '';
+                    try {
+                        const response = await fetch(`/api/subjects/todo/student/${encodeURIComponent(studentId)}`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load enrolled lessons.');
+
+                        const lessonNumbers = {};
+                        this.materials = (data.modules || []).map((module) => {
+                            const classKey = String(module.class_id);
+                            lessonNumbers[classKey] = (lessonNumbers[classKey] || 0) + 1;
+                            return {
+                                id: `module-${module.module_id}`,
+                                classId: module.class_id,
+                                moduleId: module.module_id,
+                                label: `${module.class_name}: Lesson ${lessonNumbers[classKey]} - ${module.title}`
+                            };
+                        });
+                    } catch (error) {
+                        this.materialsError = error.message;
+                    } finally {
+                        this.materialsLoading = false;
+                    }
                 },
 
                 persist() {
@@ -221,6 +271,11 @@
                     const message = this.draft.trim();
                     if (!message || this.loading) return;
 
+                    if (!this.selectedMaterialId) {
+                        this.error = 'Choose an enrolled lesson before sending a message.';
+                        return;
+                    }
+
                     this.draft = '';
                     this.error = '';
                     this.loading = true;
@@ -234,6 +289,7 @@
                         });
                     }
 
+                    const selectedMaterial = this.materials.find((material) => material.id === this.selectedMaterialId);
                     this.activeConversation.messages.push({ role: 'user', content: message });
                     this.persist();
                     this.scrollToBottom();
@@ -242,7 +298,15 @@
                         const response = await fetch('/api/ai/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ messages: this.messages })
+                            body: JSON.stringify({
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: `Selected lesson: ${selectedMaterial.label}`
+                                    },
+                                    ...this.messages
+                                ]
+                            })
                         });
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'The AI request failed.');

@@ -6,18 +6,9 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from models import ChatRequest, ChatResponse
 
 ai_router = APIRouter(prefix="/api/ai", tags=["AI"])
-
-
-class ChatRequest(BaseModel):
-    messages: list[dict[str, str]] = Field(min_length=1, max_length=30)
-
-
-class ChatResponse(BaseModel):
-    reply: str
-
 
 @ai_router.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:

@@ -1,7 +1,7 @@
 """Pydantic models for request/response validation (like Java POJOs)"""
 from datetime import date
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Dict, Optional, List
 
 # ============= AUTH MODELS =============
@@ -100,3 +100,10 @@ class StudentClassResponse(BaseModel):
     class_id: int
     section: str
     teacher_name: str
+
+class ChatRequest(BaseModel):
+    messages: list[dict[str, str]] = Field(min_length=1, max_length=30)
+
+
+class ChatResponse(BaseModel):
+    reply: str
