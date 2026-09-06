@@ -102,6 +102,8 @@ class StudentClassResponse(BaseModel):
     teacher_name: str
 
 class ChatRequest(BaseModel):
+    student_id: int
+    module_id: int
     messages: list[dict[str, str]] = Field(min_length=1, max_length=30)
 
 

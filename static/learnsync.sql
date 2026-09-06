@@ -452,6 +452,10 @@ ALTER TABLE IF EXISTS public.module_content
 CREATE INDEX IF NOT EXISTS module_content_module_id_idx
     ON public.module_content(module_id);
 
+CREATE INDEX IF NOT EXISTS module_content_text_search_idx
+    ON public.module_content
+    USING GIN (to_tsvector('simple', text));
+
 
 ALTER TABLE IF EXISTS public.module_sections
     ADD CONSTRAINT module_sections_module_id_fkey FOREIGN KEY (module_id)
