@@ -15,7 +15,7 @@
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
-    <div class="pt-20 flex min-h-screen" x-data="quizTakeApp()">
+    <div class="pt-20 flex min-h-screen" x-data="quizTakeApp()" x-init="init()">
         <header class="app-header">
             <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
@@ -74,7 +74,7 @@
                     </div>
                 </aside>
 
-                <form class="lms-panel" @submit.prevent="submitted = true">
+                <form class="lms-panel" @submit.prevent="submitQuiz">
                     <div class="lms-task-top">
                         <h3>Answer Sheet</h3>
                         <span class="lms-badge" :class="submitted ? 'good' : ''" x-text="submitted ? 'Submitted' : quiz.mode"></span>
@@ -83,7 +83,7 @@
                         <template x-for="(question, index) in quiz.questions" :key="question.prompt">
                             <fieldset class="lms-question">
                                 <legend class="lms-task-title" x-text="(index + 1) + '. ' + question.prompt"></legend>
-                                <template x-if="question.type === 'choice'">
+                                <template x-if="question.type === 'choice' || question.type === 'true_false'">
                                     <div class="lms-grid">
                                         <template x-for="choice in question.choices" :key="choice">
                                             <label class="lms-choice">
@@ -100,7 +100,7 @@
                         </template>
                         <button class="lms-btn" type="submit">Submit Quiz</button>
                     </div>
-                    <p class="lms-empty mt-4" x-show="submitted" x-cloak>Quiz answers are ready for backend quiz_answer records.</p>
+                    <p class="lms-empty mt-4" x-show="submitted" x-cloak x-text="result ? `Score: ${result.score} / ${result.max_score} (${result.percentage}%)` : 'Quiz submitted.'"></p>
                 </form>
             </section>
         </main>
@@ -191,8 +191,64 @@
             return {
                 open: false,
                 submitted: false,
+                result: null,
+                loading: false,
+                error: '',
                 quiz,
                 answers: {},
+                async init() {
+                    const quizId = Number(slug);
+                    if (!Number.isInteger(quizId)) return;
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/quizzes/${quizId}`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load quiz.');
+                        this.quiz = {
+                            ...data,
+                            className: data.class_name,
+                            timeLimit: data.time_limit_minutes || 0,
+                            points: data.total_points || 0,
+                            mode: data.status || 'Online',
+                            instructions: [],
+                            questions: (data.questions || []).map((question) => ({
+                                ...question,
+                                prompt: question.question_text,
+                                type: ['multiple_choice', 'true_false'].includes(question.question_type) ? 'choice' : 'text'
+                            }))
+                        };
+                    } catch (error) {
+                        this.error = error.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async submitQuiz() {
+                    const studentId = Number(localStorage.getItem('student_id'));
+                    const quizId = Number(slug);
+                    if (!Number.isInteger(quizId)) {
+                        this.submitted = true;
+                        return;
+                    }
+                    const response = await fetch(`/api/quizzes/${quizId}/submit`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            student_id: studentId,
+                            answers: Object.entries(this.answers).map(([index, answer]) => ({
+                                question_id: this.quiz.questions[Number(index)].question_id,
+                                answer
+                            }))
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        this.error = data.detail || 'Unable to submit quiz.';
+                        return;
+                    }
+                    this.result = data;
+                    this.submitted = true;
+                },
                 answeredCount() {
                     return Object.values(this.answers).filter((answer) => String(answer || '').trim().length > 0).length;
                 }

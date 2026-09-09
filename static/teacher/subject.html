@@ -268,25 +268,19 @@
                             <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
                         </div>
                         <ul class="lms-list">
-                            <li x-show="visibleFor(['3B'])">
-                                <article class="lms-clickable">
-                                    <span class="lms-badge">Online</span>
-                                    <strong class="block mt-2">Research Ethics Quiz</strong>
-                                    <p class="m-0">Multiple choice, true/false, and short answer. Deadline Oct 28, 2026.</p>
-                                    <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                            @click.prevent="openManagement('quiz','Research Ethics Quiz')">Manage</button></span>
-                                </article>
-                            </li>
-                            <li x-show="visibleFor(['3A', '3B'])">
-                                <article class="lms-clickable">
-                                    <span class="lms-badge">Practice</span>
-                                    <strong class="block mt-2">Citation Format Drill</strong>
-                                    <p class="m-0">Student answers saved as quiz answer records. Visible to Sections 3A and 3B.
-                                    </p>
-                                    <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                            @click.prevent="openManagement('quiz','Citation Format Drill')">Manage</button></span>
-                                </article>
-                            </li>
+                            <template x-if="quizzesLoading"><li>Loading quizzes...</li></template>
+                            <template x-if="!quizzesLoading && !quizzes.length"><li>No quizzes created.</li></template>
+                            <template x-for="quiz in quizzes" :key="quiz.quiz_id">
+                                <li>
+                                    <article class="lms-clickable">
+                                        <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
+                                        <strong class="block mt-2" x-text="quiz.title"></strong>
+                                        <p class="m-0" x-text="quiz.question_count + ' questions | ' + (quiz.total_points || 0) + ' points'"></p>
+                                        <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
+                                                @click.prevent="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
+                                    </article>
+                                </li>
+                            </template>
                         </ul>
                     </section>
                 </div>
@@ -394,73 +388,44 @@
 
                     <template x-if="modal === 'classQuiz'">
                         <div class="lms-grid">
-                            <input class="lms-input" placeholder="Quiz title">
-                            <select class="lms-select">
-                                <option>Source module: Research Problem and Objectives</option>
-                                <option>Source module: Review of Related Literature</option>
-                                <option>Use multiple modules</option>
+                            <input class="lms-input" x-ref="quizTitle" placeholder="Quiz title">
+                            <select class="lms-select" x-ref="quizModule">
+                                <option value="">No source module</option>
+                                <template x-for="module in modules" :key="module.module_id">
+                                    <option :value="module.module_id" x-text="module.title"></option>
+                                </template>
                             </select>
-                            <!-- QUIZ TYPES -->
-                            <div class="lms-grid" x-data="{ types: {
-                                                        multipleChoice: false,
-                                                        trueFalse: false,
-                                                        modTrueFalse: false,
-                                                        fillInTheBlank: false,
-                                                        matching: false,
-                                                        shortAnswer: false,
-                                                        essay: false,
-                                                        problemSolving: false,
-                                                        enumeration: false
-                                                    },
-
-                                                    quizTypes: [
-                                                        ['multipleChoice', 'Multiple choice'],
-                                                        ['trueFalse', 'True or false'],
-                                                        ['modTrueFalse', 'Modified true or false'],
-                                                        ['fillInTheBlank', 'Fill in the blank'],
-                                                        ['matching', 'Matching'],
-                                                        ['shortAnswer', 'Short answer'],
-                                                        ['essay', 'Essay'],
-                                                        ['problemSolving', 'Problem solving'],
-                                                        ['enumeration', 'Enumeration']
-                                                    ]}">
-                                <template x-for="[key, label] in quizTypes" :key="key">
+                            <div class="lms-grid">
+                                <template x-for="[value, label] in quizTypes" :key="value">
                                     <div>
-                                        <label class="lms-choice">
-                                            <input type="checkbox" x-model="types[key]">
-                                            <span x-text="label"></span>
-                                        </label>
-
-                                        <div class="lms-grid lms-grid-2" x-show="types[key]">
-                                            <input class="lms-input" type="number" min="1" max="100"
-                                                placeholder="Number of questions">
-
-                                            <input class="lms-input" type="number" min="1"
-                                                placeholder="Points per question">
+                                        <label class="lms-choice"><input type="checkbox" :value="value" x-model="selectedQuizTypes"><span x-text="label"></span></label>
+                                        <div class="lms-grid lms-grid-2" x-show="selectedQuizTypes.includes(value)">
+                                            <input class="lms-input" type="number" min="1" max="100" placeholder="Number of questions">
+                                            <input class="lms-input" type="number" min="1" placeholder="Points per question">
                                         </div>
                                     </div>
                                 </template>
-
                             </div>
                             <div class="lms-grid lms-grid-2">
-                                <select class="lms-select">
-                                    <option>Difficulty: Balanced</option>
-                                    <option>Difficulty: Easy</option>
-                                    <option>Difficulty: Intermediate</option>
-                                    <option>Difficulty: Advanced</option>
+                                <select class="lms-select" x-ref="quizDifficulty">
+                                    <option value="balanced">Difficulty: Balanced</option>
+                                    <option value="easy">Difficulty: Easy</option>
+                                    <option value="intermediate">Difficulty: Intermediate</option>
+                                    <option value="advanced">Difficulty: Advanced</option>
                                 </select>
-                                <input class="lms-input" type="number" min="1" placeholder="Time limit in minutes">
+                                <input class="lms-input" type="number" min="1" x-ref="quizTime" placeholder="Time limit in minutes">
                             </div>
-                            <textarea class="lms-input" rows="3"
-                                placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
-                            <textarea class="lms-input" rows="3"
-                                placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
-                            <input class="lms-input" type="date" aria-label="Quiz deadline">
+                            <textarea class="lms-input" rows="3" x-ref="quizOutcomes" placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
+                            <textarea class="lms-input" rows="3" x-ref="quizExclusions" placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
+                            <input class="lms-input" type="date" x-ref="quizDeadline" aria-label="Quiz deadline">
                             <template x-for="section in sections" :key="section">
-                                <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
-                                        checked><span x-text="'Section' + section"></span></label>
+                                <label class="lms-choice"><input type="checkbox" :value="section" x-model="quizSections"><span x-text="'Section ' + section"></span></label>
                             </template>
-                            <button class="lms-btn" type="button">Generate Quiz Draft</button>
+                            <div x-show="quizDraft" class="lms-panel"><strong x-text="quizDraft?.title"></strong><p x-text="quizDraft?.questions?.length + ' questions generated. Review and save when ready.'"></p></div>
+                            <div class="lms-inline-actions">
+                                <button class="lms-btn lms-btn-secondary" type="button" @click="generateQuizDraft()">Generate Quiz Draft</button>
+                                <button class="lms-btn" type="button" :disabled="!quizDraft" @click="saveQuiz()">Save Quiz</button>
+                            </div>
                         </div>
                     </template>
 
@@ -655,6 +620,22 @@
                 modulesLoading: false,
                 activities: [],
                 activitiesLoading: false,
+                quizzes: [],
+                quizzesLoading: false,
+                quizDraft: null,
+                quizSections: [],
+                selectedQuizTypes: ['multiple_choice', 'true_false', 'short_answer'],
+                quizTypes: [
+                    ['multiple_choice', 'Multiple choice'],
+                    ['true_false', 'True or false'],
+                    ['modified_true_false', 'Modified true or false'],
+                    ['fill_in_the_blank', 'Fill in the blank'],
+                    ['matching', 'Matching'],
+                    ['short_answer', 'Short answer'],
+                    ['essay', 'Essay'],
+                    ['problem_solving', 'Problem solving'],
+                    ['enumeration', 'Enumeration']
+                ],
 
 
                 // Initialize by loading class details and teacher classes
@@ -741,6 +722,7 @@
                         await this.load_announcement();
                         await this.load_modules();
                         await this.load_act();
+                        await this.load_quizzes();
 
                     } catch (err) {
                         console.error('Init error', err);
@@ -1160,6 +1142,71 @@
                     } finally {
                         this.activitiesLoading = false;
                     }
+                },
+
+                async load_quizzes() {
+                    const targetClassId = this.getTargetClassId();
+                    if (!targetClassId) return;
+                    this.quizzesLoading = true;
+                    try {
+                        const response = await fetch(`/api/quizzes/class/${encodeURIComponent(targetClassId)}`);
+                        if (!response.ok) throw new Error(await response.text());
+                        this.quizzes = await response.json();
+                    } catch (error) {
+                        console.error('Failed to load quizzes:', error);
+                        this.quizzes = [];
+                    } finally {
+                        this.quizzesLoading = false;
+                    }
+                },
+
+                async generateQuizDraft() {
+                    const title = this.$refs.quizTitle?.value.trim() || '';
+                    if (!title) {
+                        alert('Please enter a quiz title');
+                        return;
+                    }
+                    const response = await fetch('/api/quizzes/generate-draft', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            class_id: Number(this.getTargetClassId()),
+                            module_id: this.$refs.quizModule?.value ? Number(this.$refs.quizModule.value) : null,
+                            title,
+                            question_types: this.selectedQuizTypes.length ? this.selectedQuizTypes : ['multiple_choice'],
+                            questions_per_type: 3,
+                            points_per_question: 1,
+                            difficulty: this.$refs.quizDifficulty?.value || 'balanced',
+                            learning_outcomes: this.$refs.quizOutcomes?.value || '',
+                            exclusions: this.$refs.quizExclusions?.value || ''
+                        })
+                    });
+                    if (!response.ok) throw new Error(await response.text());
+                    this.quizDraft = await response.json();
+                },
+
+                async saveQuiz() {
+                    if (!this.quizDraft) return;
+                    const response = await fetch('/api/quizzes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            class_id: Number(this.getTargetClassId()),
+                            module_id: this.$refs.quizModule?.value ? Number(this.$refs.quizModule.value) : null,
+                            title: this.quizDraft.title,
+                            description: this.quizDraft.description,
+                            time_limit_minutes: this.$refs.quizTime?.value ? Number(this.$refs.quizTime.value) : null,
+                            deadline: this.$refs.quizDeadline?.value || null,
+                            sections: this.quizSections,
+                            questions: this.quizDraft.questions
+                        })
+                    });
+                    if (!response.ok) throw new Error(await response.text());
+                    this.quizDraft = null;
+                    this.quizSections = [];
+                    this.modal = null;
+                    await this.load_quizzes();
+                    await this.loadKPIs();
                 },
 
                 // Announcement
