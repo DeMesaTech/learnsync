@@ -215,6 +215,11 @@ CREATE TABLE IF NOT EXISTS public.question
     quiz_id integer,
     question_text text COLLATE pg_catalog."default",
     correct_answer text COLLATE pg_catalog."default",
+    question_type character varying(30) COLLATE pg_catalog."default" NOT NULL DEFAULT 'short_answer'::character varying,
+    choices jsonb,
+    points numeric(8, 2) NOT NULL DEFAULT 1,
+    display_order integer NOT NULL DEFAULT 0,
+    explanation text COLLATE pg_catalog."default",
     CONSTRAINT question_pkey PRIMARY KEY (question_id)
 );
 
@@ -224,6 +229,12 @@ CREATE TABLE IF NOT EXISTS public.quiz
     class_id bigint,
     title character varying(255) COLLATE pg_catalog."default",
     date_created timestamp without time zone,
+    description text COLLATE pg_catalog."default",
+    module_id integer,
+    deadline timestamp without time zone,
+    time_limit_minutes integer,
+    total_points numeric(8, 2),
+    status character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Published'::character varying,
     CONSTRAINT quiz_pkey PRIMARY KEY (quiz_id)
 );
 
@@ -236,7 +247,18 @@ CREATE TABLE IF NOT EXISTS public.quiz_score
     total_score numeric(5, 2),
     date_taken timestamp without time zone,
     grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
+    max_score numeric(8, 2),
+    submitted_at timestamp without time zone DEFAULT now(),
     CONSTRAINT quiz_score_pkey PRIMARY KEY (score_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.quiz_sections
+(
+    id serial NOT NULL,
+    quiz_id integer NOT NULL,
+    section_id integer NOT NULL,
+    CONSTRAINT quiz_sections_pkey PRIMARY KEY (id),
+    CONSTRAINT quiz_sections_quiz_id_section_id_key UNIQUE (quiz_id, section_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.section
@@ -263,6 +285,10 @@ CREATE TABLE IF NOT EXISTS public.student_answer
     quiz_id integer,
     answer_text text COLLATE pg_catalog."default",
     is_correct boolean,
+    score_id integer,
+    question_id integer,
+    answer_json jsonb,
+    answered_at timestamp without time zone DEFAULT now(),
     CONSTRAINT student_answer_pkey PRIMARY KEY (answer_id)
 );
 
@@ -452,10 +478,6 @@ ALTER TABLE IF EXISTS public.module_content
 CREATE INDEX IF NOT EXISTS module_content_module_id_idx
     ON public.module_content(module_id);
 
-CREATE INDEX IF NOT EXISTS module_content_text_search_idx
-    ON public.module_content
-    USING GIN (to_tsvector('simple', text));
-
 
 ALTER TABLE IF EXISTS public.module_sections
     ADD CONSTRAINT module_sections_module_id_fkey FOREIGN KEY (module_id)
@@ -499,6 +521,13 @@ ALTER TABLE IF EXISTS public.quiz
     ON DELETE NO ACTION;
 
 
+ALTER TABLE IF EXISTS public.quiz
+    ADD CONSTRAINT quiz_module_id_fkey FOREIGN KEY (module_id)
+    REFERENCES public.module (module_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
 ALTER TABLE IF EXISTS public.quiz_score
     ADD CONSTRAINT quiz_score_quiz_id_fkey FOREIGN KEY (quiz_id)
     REFERENCES public.quiz (quiz_id) MATCH SIMPLE
@@ -511,6 +540,20 @@ ALTER TABLE IF EXISTS public.quiz_score
     REFERENCES public.student (student_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.quiz_sections
+    ADD CONSTRAINT quiz_sections_quiz_id_fkey FOREIGN KEY (quiz_id)
+    REFERENCES public.quiz (quiz_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.quiz_sections
+    ADD CONSTRAINT quiz_sections_section_id_fkey FOREIGN KEY (section_id)
+    REFERENCES public.section (section_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
 
 
 ALTER TABLE IF EXISTS public.section
@@ -537,8 +580,22 @@ CREATE INDEX IF NOT EXISTS student_user_id_key
 
 
 ALTER TABLE IF EXISTS public.student_answer
+    ADD CONSTRAINT student_answer_question_id_fkey FOREIGN KEY (question_id)
+    REFERENCES public.question (question_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.student_answer
     ADD CONSTRAINT student_answer_quiz_id_fkey FOREIGN KEY (quiz_id)
     REFERENCES public.quiz (quiz_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.student_answer
+    ADD CONSTRAINT student_answer_score_id_fkey FOREIGN KEY (score_id)
+    REFERENCES public.quiz_score (score_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
