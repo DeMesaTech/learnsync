@@ -136,7 +136,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
                         </svg></span><strong x-text="nums.quizzes || '0'"></strong><span>Quizzes</span><button
-                        class="lms-btn lms-btn-small" type="button" @click="modal = 'classQuiz'">Add Quiz</button></div>
+                        class="lms-btn lms-btn-small" type="button" @click="openQuizCreator()">Add Quiz</button></div>
             </section>
 
             <section class="lms-toolbar"><!-- Section Selector -->
@@ -295,7 +295,7 @@
                     <h3 x-show="modal === 'enrollment'">Enroll Students</h3>
                     <h3 x-show="modal === 'classModule'">Upload Module</h3>
                     <h3 x-show="modal === 'classActivity'">Create Activity</h3>
-                    <h3 x-show="modal === 'classQuiz'">Create AI Quiz</h3>
+                    <h3 x-show="modal === 'classQuiz'">Create Quiz Draft</h3>
 
                     <!-- ANNOUNCEMENT -->
                     <h3 x-show="modal === 'classPost'">Create Announcement</h3>
@@ -389,8 +389,8 @@
                     <template x-if="modal === 'classQuiz'">
                         <div class="lms-grid">
                             <input class="lms-input" x-ref="quizTitle" placeholder="Quiz title">
-                            <select class="lms-select" x-ref="quizModule">
-                                <option value="">No source module</option>
+                            <select class="lms-select" x-model="quizModuleId">
+                                <option value="">Select a source module</option>
                                 <template x-for="module in modules" :key="module.module_id">
                                     <option :value="module.module_id" x-text="module.title"></option>
                                 </template>
@@ -400,8 +400,8 @@
                                     <div>
                                         <label class="lms-choice"><input type="checkbox" :value="value" x-model="selectedQuizTypes"><span x-text="label"></span></label>
                                         <div class="lms-grid lms-grid-2" x-show="selectedQuizTypes.includes(value)">
-                                            <input class="lms-input" type="number" min="1" max="100" placeholder="Number of questions">
-                                            <input class="lms-input" type="number" min="1" placeholder="Points per question">
+                                            <input class="lms-input" type="number" min="1" max="50" placeholder="Number of questions" x-model.number="quizSettings[value].count">
+                                            <input class="lms-input" type="number" min="0.5" step="0.5" placeholder="Points per question" x-model.number="quizSettings[value].points">
                                         </div>
                                     </div>
                                 </template>
@@ -421,10 +421,42 @@
                             <template x-for="section in sections" :key="section">
                                 <label class="lms-choice"><input type="checkbox" :value="section" x-model="quizSections"><span x-text="'Section ' + section"></span></label>
                             </template>
-                            <div x-show="quizDraft" class="lms-panel"><strong x-text="quizDraft?.title"></strong><p x-text="quizDraft?.questions?.length + ' questions generated. Review and save when ready.'"></p></div>
+                            <p class="lms-empty" x-show="quizError" x-text="quizError"></p>
+                            <div x-show="quizDraft" class="lms-panel">
+                                <div class="lms-task-top"><strong x-text="quizDraft?.title"></strong><span class="lms-badge">Review required</span></div>
+                                <p x-text="quizDraft?.questions?.length + ' lesson-grounded questions. Edit anything before saving as a draft.'"></p>
+                                <div class="lms-list">
+                                    <template x-for="(question, index) in quizDraft?.questions || []" :key="index">
+                                        <article class="lms-file-box">
+                                            <div class="lms-task-top"><strong x-text="'Question ' + (index + 1)"></strong><button class="lms-btn lms-btn-danger lms-btn-small" type="button" @click="removeDraftQuestion(index)">Remove</button></div>
+                                            <textarea class="lms-input" rows="3" x-model="question.question_text" aria-label="Question text"></textarea>
+                                            <div class="lms-grid lms-grid-2 mt-2">
+                                                <select class="lms-select" x-model="question.question_type" @change="syncDraftQuestion(question)">
+                                                    <option value="multiple_choice">Multiple choice</option>
+                                                    <option value="true_false">True or false</option>
+                                                    <option value="modified_true_false">Modified true or false</option>
+                                                    <option value="fill_in_the_blank">Fill in the blank</option>
+                                                    <option value="matching">Matching</option>
+                                                    <option value="short_answer">Short answer</option>
+                                                    <option value="essay">Essay</option>
+                                                    <option value="problem_solving">Problem solving</option>
+                                                    <option value="enumeration">Enumeration</option>
+                                                </select>
+                                                <input class="lms-input" type="number" min="0.5" step="0.5" x-model.number="question.points" placeholder="Points">
+                                            </div>
+                                            <template x-if="['multiple_choice', 'true_false'].includes(question.question_type)">
+                                                <textarea class="lms-input mt-2" rows="2" :value="question.choices.join('\n')" @input="question.choices = $event.target.value.split('\n').map(choice => choice.trim()).filter(Boolean)" placeholder="One answer choice per line"></textarea>
+                                            </template>
+                                            <input class="lms-input mt-2" x-model="question.correct_answer" :placeholder="['short_answer', 'essay'].includes(question.question_type) ? 'Optional model answer' : 'Correct answer (must match a choice)'">
+                                            <textarea class="lms-input mt-2" rows="2" x-model="question.explanation" placeholder="Answer explanation or grading guidance"></textarea>
+                                        </article>
+                                    </template>
+                                </div>
+                                <button class="lms-btn lms-btn-secondary lms-btn-small mt-2" type="button" @click="addDraftQuestion()">Add question</button>
+                            </div>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn lms-btn-secondary" type="button" @click="generateQuizDraft()">Generate Quiz Draft</button>
-                                <button class="lms-btn" type="button" :disabled="!quizDraft" @click="saveQuiz()">Save Quiz</button>
+                                <button class="lms-btn lms-btn-secondary" type="button" :disabled="quizGenerating" @click="generateQuizDraft()" x-text="quizGenerating ? 'Generating…' : 'Generate Quiz Draft'"></button>
+                                <button class="lms-btn" type="button" :disabled="!quizDraft || quizSaving" @click="saveQuiz()" x-text="quizSaving ? 'Saving…' : 'Save as Draft'"></button>
                             </div>
                         </div>
                     </template>
@@ -624,6 +656,10 @@
                 quizzesLoading: false,
                 quizDraft: null,
                 quizSections: [],
+                quizModuleId: '',
+                quizError: '',
+                quizGenerating: false,
+                quizSaving: false,
                 selectedQuizTypes: ['multiple_choice', 'true_false', 'short_answer'],
                 quizTypes: [
                     ['multiple_choice', 'Multiple choice'],
@@ -636,6 +672,17 @@
                     ['problem_solving', 'Problem solving'],
                     ['enumeration', 'Enumeration']
                 ],
+                quizSettings: {
+                    multiple_choice: { count: 3, points: 1 },
+                    true_false: { count: 3, points: 1 },
+                    modified_true_false: { count: 2, points: 1 },
+                    fill_in_the_blank: { count: 2, points: 1 },
+                    matching: { count: 2, points: 2 },
+                    short_answer: { count: 2, points: 2 },
+                    essay: { count: 1, points: 5 },
+                    problem_solving: { count: 2, points: 3 },
+                    enumeration: { count: 2, points: 2 }
+                },
 
 
                 // Initialize by loading class details and teacher classes
@@ -1166,47 +1213,113 @@
                         alert('Please enter a quiz title');
                         return;
                     }
-                    const response = await fetch('/api/quizzes/generate-draft', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            class_id: Number(this.getTargetClassId()),
-                            module_id: this.$refs.quizModule?.value ? Number(this.$refs.quizModule.value) : null,
-                            title,
-                            question_types: this.selectedQuizTypes.length ? this.selectedQuizTypes : ['multiple_choice'],
-                            questions_per_type: 3,
-                            points_per_question: 1,
-                            difficulty: this.$refs.quizDifficulty?.value || 'balanced',
-                            learning_outcomes: this.$refs.quizOutcomes?.value || '',
-                            exclusions: this.$refs.quizExclusions?.value || ''
-                        })
-                    });
-                    if (!response.ok) throw new Error(await response.text());
-                    this.quizDraft = await response.json();
+                    if (!this.quizModuleId) {
+                        this.quizError = 'Select a source module so the draft can be grounded in lesson content.';
+                        return;
+                    }
+                    if (!this.selectedQuizTypes.length) {
+                        this.quizError = 'Choose at least one question type.';
+                        return;
+                    }
+                    this.quizError = '';
+                    this.quizGenerating = true;
+                    try {
+                        const response = await fetch('/api/quizzes/generate-draft', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                class_id: Number(this.getTargetClassId()),
+                                module_id: Number(this.quizModuleId),
+                                title,
+                                question_types: this.selectedQuizTypes,
+                                difficulty: this.$refs.quizDifficulty?.value || 'balanced',
+                                learning_outcomes: this.$refs.quizOutcomes?.value || '',
+                                exclusions: this.$refs.quizExclusions?.value || '',
+                                question_settings: Object.fromEntries(this.selectedQuizTypes.map(type => [type, this.quizSettings[type]]))
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to generate quiz draft.');
+                        this.quizDraft = data;
+                    } catch (error) {
+                        this.quizError = error.message || 'Unable to generate quiz draft.';
+                    } finally {
+                        this.quizGenerating = false;
+                    }
                 },
 
                 async saveQuiz() {
                     if (!this.quizDraft) return;
-                    const response = await fetch('/api/quizzes', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            class_id: Number(this.getTargetClassId()),
-                            module_id: this.$refs.quizModule?.value ? Number(this.$refs.quizModule.value) : null,
-                            title: this.quizDraft.title,
-                            description: this.quizDraft.description,
-                            time_limit_minutes: this.$refs.quizTime?.value ? Number(this.$refs.quizTime.value) : null,
-                            deadline: this.$refs.quizDeadline?.value || null,
-                            sections: this.quizSections,
-                            questions: this.quizDraft.questions
-                        })
+                    this.quizError = '';
+                    const invalidQuestion = this.quizDraft.questions.find(question => {
+                        const textMissing = !question.question_text?.trim() || !(Number(question.points) > 0);
+                        const needsChoices = ['multiple_choice', 'true_false'].includes(question.question_type);
+                        return textMissing || (needsChoices && (!question.choices?.length || !question.correct_answer?.trim() || !question.choices.includes(question.correct_answer)));
                     });
-                    if (!response.ok) throw new Error(await response.text());
+                    if (invalidQuestion) {
+                        this.quizError = 'Every question needs text and positive points. Multiple-choice and true/false answers must match one of their choices.';
+                        return;
+                    }
+                    this.quizSaving = true;
+                    try {
+                        const response = await fetch('/api/quizzes', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                class_id: Number(this.getTargetClassId()),
+                                module_id: Number(this.quizModuleId),
+                                title: this.quizDraft.title,
+                                description: this.quizDraft.description,
+                                time_limit_minutes: this.$refs.quizTime?.value ? Number(this.$refs.quizTime.value) : null,
+                                deadline: this.$refs.quizDeadline?.value || null,
+                                status: 'Draft',
+                                sections: this.quizSections,
+                                questions: this.quizDraft.questions.map((question, index) => ({ ...question, display_order: index + 1 }))
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to save quiz.');
+                        this.quizDraft = null;
+                        this.quizSections = [];
+                        this.modal = null;
+                        await this.load_quizzes();
+                        await this.loadKPIs();
+                    } catch (error) {
+                        this.quizError = error.message || 'Unable to save quiz.';
+                    } finally {
+                        this.quizSaving = false;
+                    }
+                },
+
+                openQuizCreator() {
+                    this.modal = 'classQuiz';
                     this.quizDraft = null;
+                    this.quizError = '';
+                    this.quizModuleId = '';
                     this.quizSections = [];
-                    this.modal = null;
-                    await this.load_quizzes();
-                    await this.loadKPIs();
+                },
+
+                removeDraftQuestion(index) {
+                    this.quizDraft.questions.splice(index, 1);
+                },
+
+                addDraftQuestion() {
+                    this.quizDraft.questions.push({
+                        question_text: '', question_type: 'short_answer', choices: [], correct_answer: '',
+                        points: 1, explanation: '', display_order: this.quizDraft.questions.length + 1
+                    });
+                },
+
+                syncDraftQuestion(question) {
+                    if (question.question_type === 'true_false') {
+                        question.choices = ['True', 'False'];
+                        question.correct_answer = 'True';
+                    } else if (question.question_type === 'multiple_choice' && !question.choices?.length) {
+                        question.choices = ['', '', '', ''];
+                        question.correct_answer = '';
+                    } else {
+                        question.choices = [];
+                    }
                 },
 
                 // Announcement
