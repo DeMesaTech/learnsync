@@ -187,15 +187,15 @@
 
                 <!-- Tabs + Modules/Activities/Quizzes stacked in right column -->
                 <div>
+                    <!-- TAB -->
                     <section class="lms-tabs mt-0" aria-label="Class workspace tabs">
                         <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'modules'">Modules</button>
+                            @click="activeTab = 'modules'; load_modules()" x-text="'Modules (' + modules.length + ')'">Modules</button>
                         <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''"
-                            type="button" @click="activeTab = 'activities'">Activities</button>
+                            type="button" @click="activeTab = 'activities'; load_act()" x-text="'Activities (' + activities.length + ')'">Activities</button>
                         <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'quizzes'">Quizzes</button>
+                            @click="activeTab = 'quizzes'; load_quizzes()" x-text="'Quizzes (' + quizzes.length + ')'">Quizzes</button>
                     </section>
-
                     <!-- MODULES -->
                     <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
                         <div class="lms-task-top">
@@ -229,7 +229,7 @@
                             </template>
                         </ul>
                     </section>
-
+                    <!-- ACTIVITIES -->
                     <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'activities'">
                         <div class="lms-task-top">
                             <h3>Activities</h3>
@@ -269,7 +269,7 @@
                             </template>
                         </ul>
                     </section>
-
+                    <!-- QUIZZES -->
                     <section class="lms-panel mt-4" x-cloak x-show="activeTab === 'quizzes'">
                         <div class="lms-task-top">
                             <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
@@ -283,17 +283,18 @@
                             </template>
                             <template x-for="quiz in quizzes" :key="quiz.quiz_id">
                                 <li>
-
-                                        <article class="lms-clickable">
-                                            <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
-                                            <strong class="block mt-2" x-text="quiz.title"></strong>
-                                            <p class="m-0"
-                                                x-text="quiz.question_count + ' questions | ' + (quiz.total_points || 0) + ' points'">
-                                            </p>
-                                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small"
-                                                    type="button"
-                                                    @click.prevent="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
-                                        </article>
+                                    <article class="lms-clickable" role="button" tabindex="0"
+                                        @click="openQuizPreview(quiz)"
+                                        @keydown.enter="openQuizPreview(quiz)">
+                                        <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
+                                        <strong class="block mt-2" x-text="quiz.title"></strong>
+                                        <p class="m-0"
+                                            x-text="quiz.question_count + ' questions | ' + (quiz.total_points || 0) + ' points'">
+                                        </p>
+                                        <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small"
+                                                type="button"
+                                                @click.prevent.stop="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
+                                    </article>
                                 
                                     </li>
                             </template>
@@ -508,21 +509,23 @@
 
                     <template x-if="modal === 'quizPreview'">
                         <div class="lms-grid">
+                            <p class="lms-empty" x-show="quizPreviewLoading">Loading quiz questions…</p>
+                            <p class="lms-empty" x-show="quizPreviewError" x-text="quizPreviewError"></p>
                             <!-- Quiz information -->
-                            <div class="lms-task-top">
+                            <div class="lms-task-top" x-show="quizPreview && !quizPreviewLoading">
                                 <div>
-                                    <strong x-text="quizDraft?.title || 'Quiz Preview'"></strong>
-                                    <p class="lms-meta m-0" x-text="(quizDraft?.questions?.length || 0) + ' questions'">
+                                    <strong x-text="quizPreview?.title || 'Quiz Preview'"></strong>
+                                    <p class="lms-meta m-0" x-text="(quizPreview?.questions?.length || 0) + ' questions'">
                                     </p>
                                 </div>                    
                                 <span class="lms-badge">Preview</span>
                             </div>                    
                             <!-- Description -->
-                            <p class="lms-meta m-0" x-show="quizDraft?.description" x-text="quizDraft?.description">
+                            <p class="lms-meta m-0" x-show="quizPreview?.description && !quizPreviewLoading" x-text="quizPreview?.description">
                             </p>                    
                             <!-- Questions -->
-                            <div class="lms-list">                    
-                                <template x-for="(question, index) in quizDraft?.questions || []" :key="index">                    
+                            <div class="lms-list" x-show="quizPreview && !quizPreviewLoading">
+                                <template x-for="(question, index) in quizPreview?.questions || []" :key="question.question_id || index">
                                     <article class="lms-file-box">                    
                                         <!-- Question header -->
                                         <div class="lms-task-top">
@@ -833,6 +836,9 @@
                 quizError: '',
                 quizGenerating: false,
                 quizSaving: false,
+                quizPreview: null,
+                quizPreviewLoading: false,
+                quizPreviewError: '',
                 selectedQuizTypes: ['multiple_choice', 'true_false', 'short_answer'],
                 quizTypes: [
                     ['multiple_choice', 'Multiple choice'],
@@ -1048,6 +1054,25 @@
                     this.modal = `manage${type.charAt(0).toUpperCase()}${type.slice(1)}`;
                 },
 
+                async openQuizPreview(quiz) {
+                    const quizId = Number(quiz?.quiz_id);
+                    if (!Number.isInteger(quizId)) return;
+                    this.modal = 'quizPreview';
+                    this.quizPreview = null;
+                    this.quizPreviewError = '';
+                    this.quizPreviewLoading = true;
+                    try {
+                        const response = await fetch(`/api/quizzes/teacher/${encodeURIComponent(quizId)}`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load quiz questions.');
+                        this.quizPreview = data;
+                    } catch (error) {
+                        this.quizPreviewError = error.message || 'Unable to load quiz questions.';
+                    } finally {
+                        this.quizPreviewLoading = false;
+                    }
+                },
+
                 // load KPIs for the current subject class
                 async loadKPIs() {
                     const targetClassId = this.currentClassId
@@ -1212,6 +1237,8 @@
                         this.$refs.moduleSummary.value = '';
                         this.fileName = 'Choose file';
                         this.modal = null;
+                        await this.load_modules();
+                        await this.loadKPIs();
                     } catch (err) {
                         console.error('Module upload error:', err);
                         alert('Module upload failed: ' + (err.message || err));
@@ -1324,6 +1351,8 @@
                         this.$refs.activityPoints.value = '';
                         this.fileName = 'Choose file';
                         this.modal = null;
+                        await this.load_act();
+                        await this.loadKPIs();
                     } catch (err) {
                         console.error('Activity upload error:', err);
                         alert('Activity upload failed: ' + (err.message || err));

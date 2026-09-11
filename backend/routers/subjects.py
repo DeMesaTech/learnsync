@@ -27,7 +27,7 @@ async def get_student_todo(student_id: int):
         cur.execute(
             """
             SELECT a.activity_id, a.class_id, c.subject AS class_name,
-                   a.title, a.description, a.due_date AS date,
+                   a.title, a.description, a.due_date AS date, a.status,
                    latest.submission_status,
                    latest.submission_date,
                    latest.score,
@@ -43,6 +43,13 @@ async def get_student_todo(student_id: int):
                 ORDER BY s.submission_date DESC NULLS LAST, s.act_submission_id DESC
                 LIMIT 1
             ) latest ON TRUE
+            WHERE NOT EXISTS (
+                SELECT 1 FROM activity_sections visible
+                WHERE visible.activity_id = a.activity_id
+            ) OR EXISTS (
+                SELECT 1 FROM activity_sections visible
+                WHERE visible.activity_id = a.activity_id AND visible.section_id = e.section_id
+            )
             ORDER BY a.due_date DESC NULLS LAST, a.activity_id DESC
             """,
             (student_id,)
@@ -52,7 +59,7 @@ async def get_student_todo(student_id: int):
         cur.execute(
             """
             SELECT q.quiz_id, q.class_id, c.subject AS class_name,
-                   q.title, q.date_created AS date,
+                   q.title, q.description, q.deadline AS date, q.status,
                    latest.total_score,
                    (latest.score_id IS NOT NULL) AS submitted
             FROM quiz q
@@ -65,6 +72,13 @@ async def get_student_todo(student_id: int):
                 ORDER BY qs.date_taken DESC NULLS LAST, qs.score_id DESC
                 LIMIT 1
             ) latest ON TRUE
+            WHERE NOT EXISTS (
+                SELECT 1 FROM quiz_sections visible
+                WHERE visible.quiz_id = q.quiz_id
+            ) OR EXISTS (
+                SELECT 1 FROM quiz_sections visible
+                WHERE visible.quiz_id = q.quiz_id AND visible.section_id = e.section_id
+            )
             ORDER BY q.date_created DESC NULLS LAST, q.quiz_id DESC
             """,
             (student_id,)
@@ -79,6 +93,13 @@ async def get_student_todo(student_id: int):
             FROM module m
             JOIN class c ON c.class_id = m.class_id
             JOIN enrollment e ON e.class_id = m.class_id AND e.student_id = %s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM module_sections visible
+                WHERE visible.module_id = m.module_id
+            ) OR EXISTS (
+                SELECT 1 FROM module_sections visible
+                WHERE visible.module_id = m.module_id AND visible.section_id = e.section_id
+            )
             ORDER BY m.upload_date DESC NULLS LAST, m.module_id DESC
             """,
             (student_id,)
@@ -325,9 +346,9 @@ async def upload_module(
                 """
                 SELECT section_id
                 FROM section
-                WHERE section = %s
+                WHERE section = %s AND class_id = %s
                 """,
-                (section_code,)
+                (section_code, class_id)
             )
 
             row = cursor.fetchone()
@@ -499,9 +520,9 @@ async def upload_activity(
                 """
                 SELECT section_id
                 FROM section
-                WHERE section = %s
+                WHERE section = %s AND class_id = %s
                 """,
-                (section_code,)
+                (section_code, class_id)
             )
 
             row = cursor.fetchone()
