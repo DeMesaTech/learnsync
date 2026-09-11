@@ -104,7 +104,9 @@
                     </p>
                 </div>
                 <div class="lms-actions">
-                    <a class="lms-btn" :href="currentClassId ? 'grading.html?class_id=' + encodeURIComponent(currentClassId) + '&section=' + encodeURIComponent(enrollSection) : 'grading.html'">Open Grading</a>
+                    <a class="lms-btn"
+                        :href="currentClassId ? 'grading.html?class_id=' + encodeURIComponent(currentClassId) + '&section=' + encodeURIComponent(enrollSection) : 'grading.html'">Open
+                        Grading</a>
                 </div>
             </section>
 
@@ -156,7 +158,8 @@
                     <div class="lms-task-top">
                         <h3>Announcements</h3>
                         <span class="lms-inline-actions">
-                            <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add Announcement</button>
+                            <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classPost'">Add
+                                Announcement</button>
                         </span>
                     </div>
                     <!-- BODY -->
@@ -166,7 +169,8 @@
                             yet.</p>
                         <template x-for="announcement in announcements" :key="announcement.announcement_id">
                             <article class="lms-row lms-announcement-button" x-show="visibleFor(announcement.sections)">
-                                <span class="lms-badge" :class="announcement.badgeClass" x-text="announcement.title"></span>
+                                <span class="lms-badge" :class="announcement.badgeClass"
+                                    x-text="announcement.title"></span>
                                 <div class="lms-announcement-content">
                                     <strong x-text="announcement.message"></strong><br>
                                     <span class="lms-meta" x-text="announcement.date"></span>
@@ -186,8 +190,8 @@
                     <section class="lms-tabs mt-0" aria-label="Class workspace tabs">
                         <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
                             @click="activeTab = 'modules'">Modules</button>
-                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'activities'">Activities</button>
+                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''"
+                            type="button" @click="activeTab = 'activities'">Activities</button>
                         <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
                             @click="activeTab = 'quizzes'">Quizzes</button>
                     </section>
@@ -247,7 +251,8 @@
                                         <p class="m-0" x-text="activity.visibility">
                                         </p>
                                         <template x-if="activity.file_path">
-                                            <a :href="'/' + activity.file_path" target="_blank" x-text="'View Attachment'">
+                                            <a :href="'/' + activity.file_path" target="_blank"
+                                                x-text="'View Attachment'">
                                             </a>
                                         </template>
                                         <span class="lms-inline-actions mt-2">
@@ -255,7 +260,9 @@
                                                 @click.prevent="openManagement('activity', activity.title)">
                                                 Manage
                                             </button>
-                                            <a class="lms-btn lms-btn-small" :href="'/teacher/activity-submissions.html?class_id=' + currentClassId + '&activity_id=' + activity.activity_id">View Submissions</a>
+                                            <a class="lms-btn lms-btn-small"
+                                                :href="'/teacher/activity-submissions.html?class_id=' + currentClassId + '&activity_id=' + activity.activity_id">View
+                                                Submissions</a>
                                         </span>
                                     </article>
                                 </li>
@@ -268,18 +275,27 @@
                             <h3>Quizzes</h3><span class="lms-badge">Mixed question types</span>
                         </div>
                         <ul class="lms-list">
-                            <template x-if="quizzesLoading"><li>Loading quizzes...</li></template>
-                            <template x-if="!quizzesLoading && !quizzes.length"><li>No quizzes created.</li></template>
+                            <template x-if="quizzesLoading">
+                                <li>Loading quizzes...</li>
+                            </template>
+                            <template x-if="!quizzesLoading && !quizzes.length">
+                                <li>No quizzes created.</li>
+                            </template>
                             <template x-for="quiz in quizzes" :key="quiz.quiz_id">
                                 <li>
-                                    <article class="lms-clickable">
-                                        <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
-                                        <strong class="block mt-2" x-text="quiz.title"></strong>
-                                        <p class="m-0" x-text="quiz.question_count + ' questions | ' + (quiz.total_points || 0) + ' points'"></p>
-                                        <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small" type="button"
-                                                @click.prevent="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
-                                    </article>
-                                </li>
+
+                                        <article class="lms-clickable">
+                                            <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
+                                            <strong class="block mt-2" x-text="quiz.title"></strong>
+                                            <p class="m-0"
+                                                x-text="quiz.question_count + ' questions | ' + (quiz.total_points || 0) + ' points'">
+                                            </p>
+                                            <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small"
+                                                    type="button"
+                                                    @click.prevent="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
+                                        </article>
+                                
+                                    </li>
                             </template>
                         </ul>
                     </section>
@@ -296,6 +312,7 @@
                     <h3 x-show="modal === 'classModule'">Upload Module</h3>
                     <h3 x-show="modal === 'classActivity'">Create Activity</h3>
                     <h3 x-show="modal === 'classQuiz'">Create Quiz Draft</h3>
+                    <h3 x-show="modal === 'quizPreview'">Quiz Preview</h3>
 
                     <!-- ANNOUNCEMENT -->
                     <h3 x-show="modal === 'classPost'">Create Announcement</h3>
@@ -398,10 +415,15 @@
                             <div class="lms-grid">
                                 <template x-for="[value, label] in quizTypes" :key="value">
                                     <div>
-                                        <label class="lms-choice"><input type="checkbox" :value="value" x-model="selectedQuizTypes"><span x-text="label"></span></label>
+                                        <label class="lms-choice"><input type="checkbox" :value="value"
+                                                x-model="selectedQuizTypes"><span x-text="label"></span></label>
                                         <div class="lms-grid lms-grid-2" x-show="selectedQuizTypes.includes(value)">
-                                            <input class="lms-input" type="number" min="1" max="50" placeholder="Number of questions" x-model.number="quizSettings[value].count">
-                                            <input class="lms-input" type="number" min="0.5" step="0.5" placeholder="Points per question" x-model.number="quizSettings[value].points">
+                                            <input class="lms-input" type="number" min="1" max="50"
+                                                placeholder="Number of questions"
+                                                x-model.number="quizSettings[value].count">
+                                            <input class="lms-input" type="number" min="0.5" step="0.5"
+                                                placeholder="Points per question"
+                                                x-model.number="quizSettings[value].points">
                                         </div>
                                     </div>
                                 </template>
@@ -413,25 +435,37 @@
                                     <option value="intermediate">Difficulty: Intermediate</option>
                                     <option value="advanced">Difficulty: Advanced</option>
                                 </select>
-                                <input class="lms-input" type="number" min="1" x-ref="quizTime" placeholder="Time limit in minutes">
+                                <input class="lms-input" type="number" min="1" x-ref="quizTime"
+                                    placeholder="Time limit in minutes">
                             </div>
-                            <textarea class="lms-input" rows="3" x-ref="quizOutcomes" placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
-                            <textarea class="lms-input" rows="3" x-ref="quizExclusions" placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
+                            <textarea class="lms-input" rows="3" x-ref="quizOutcomes"
+                                placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
+                            <textarea class="lms-input" rows="3" x-ref="quizExclusions"
+                                placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
                             <input class="lms-input" type="date" x-ref="quizDeadline" aria-label="Quiz deadline">
                             <template x-for="section in sections" :key="section">
-                                <label class="lms-choice"><input type="checkbox" :value="section" x-model="quizSections"><span x-text="'Section ' + section"></span></label>
+                                <label class="lms-choice"><input type="checkbox" :value="section"
+                                        x-model="quizSections"><span x-text="'Section ' + section"></span></label>
                             </template>
                             <p class="lms-empty" x-show="quizError" x-text="quizError"></p>
                             <div x-show="quizDraft" class="lms-panel">
-                                <div class="lms-task-top"><strong x-text="quizDraft?.title"></strong><span class="lms-badge">Review required</span></div>
-                                <p x-text="quizDraft?.questions?.length + ' lesson-grounded questions. Edit anything before saving as a draft.'"></p>
+                                <div class="lms-task-top"><strong x-text="quizDraft?.title"></strong><span
+                                        class="lms-badge">Review required</span></div>
+                                <p
+                                    x-text="quizDraft?.questions?.length + ' lesson-grounded questions. Edit anything before saving as a draft.'">
+                                </p>
                                 <div class="lms-list">
                                     <template x-for="(question, index) in quizDraft?.questions || []" :key="index">
                                         <article class="lms-file-box">
-                                            <div class="lms-task-top"><strong x-text="'Question ' + (index + 1)"></strong><button class="lms-btn lms-btn-danger lms-btn-small" type="button" @click="removeDraftQuestion(index)">Remove</button></div>
-                                            <textarea class="lms-input" rows="3" x-model="question.question_text" aria-label="Question text"></textarea>
+                                            <div class="lms-task-top"><strong
+                                                    x-text="'Question ' + (index + 1)"></strong><button
+                                                    class="lms-btn lms-btn-danger lms-btn-small" type="button"
+                                                    @click="removeDraftQuestion(index)">Remove</button></div>
+                                            <textarea class="lms-input" rows="3" x-model="question.question_text"
+                                                aria-label="Question text"></textarea>
                                             <div class="lms-grid lms-grid-2 mt-2">
-                                                <select class="lms-select" x-model="question.question_type" @change="syncDraftQuestion(question)">
+                                                <select class="lms-select" x-model="question.question_type"
+                                                    @change="syncDraftQuestion(question)">
                                                     <option value="multiple_choice">Multiple choice</option>
                                                     <option value="true_false">True or false</option>
                                                     <option value="modified_true_false">Modified true or false</option>
@@ -442,22 +476,161 @@
                                                     <option value="problem_solving">Problem solving</option>
                                                     <option value="enumeration">Enumeration</option>
                                                 </select>
-                                                <input class="lms-input" type="number" min="0.5" step="0.5" x-model.number="question.points" placeholder="Points">
+                                                <input class="lms-input" type="number" min="0.5" step="0.5"
+                                                    x-model.number="question.points" placeholder="Points">
                                             </div>
-                                            <template x-if="['multiple_choice', 'true_false'].includes(question.question_type)">
-                                                <textarea class="lms-input mt-2" rows="2" :value="question.choices.join('\n')" @input="question.choices = $event.target.value.split('\n').map(choice => choice.trim()).filter(Boolean)" placeholder="One answer choice per line"></textarea>
+                                            <template
+                                                x-if="['multiple_choice', 'true_false'].includes(question.question_type)">
+                                                <textarea class="lms-input mt-2" rows="2"
+                                                    :value="question.choices.join('\n')"
+                                                    @input="question.choices = $event.target.value.split('\n').map(choice => choice.trim()).filter(Boolean)"
+                                                    placeholder="One answer choice per line"></textarea>
                                             </template>
-                                            <input class="lms-input mt-2" x-model="question.correct_answer" :placeholder="['short_answer', 'essay'].includes(question.question_type) ? 'Optional model answer' : 'Correct answer (must match a choice)'">
-                                            <textarea class="lms-input mt-2" rows="2" x-model="question.explanation" placeholder="Answer explanation or grading guidance"></textarea>
+                                            <input class="lms-input mt-2" x-model="question.correct_answer"
+                                                :placeholder="['short_answer', 'essay'].includes(question.question_type) ? 'Optional model answer' : 'Correct answer (must match a choice)'">
+                                            <textarea class="lms-input mt-2" rows="2" x-model="question.explanation"
+                                                placeholder="Answer explanation or grading guidance"></textarea>
                                         </article>
                                     </template>
                                 </div>
-                                <button class="lms-btn lms-btn-secondary lms-btn-small mt-2" type="button" @click="addDraftQuestion()">Add question</button>
+                                <button class="lms-btn lms-btn-secondary lms-btn-small mt-2" type="button"
+                                    @click="addDraftQuestion()">Add question</button>
                             </div>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn lms-btn-secondary" type="button" :disabled="quizGenerating" @click="generateQuizDraft()" x-text="quizGenerating ? 'Generating…' : 'Generate Quiz Draft'"></button>
-                                <button class="lms-btn" type="button" :disabled="!quizDraft || quizSaving" @click="saveQuiz()" x-text="quizSaving ? 'Saving…' : 'Save as Draft'"></button>
+                                <button class="lms-btn lms-btn-secondary" type="button" :disabled="quizGenerating"
+                                    @click="generateQuizDraft()"
+                                    x-text="quizGenerating ? 'Generating…' : 'Generate Quiz Draft'"></button>
+                                <button class="lms-btn" type="button" :disabled="!quizDraft || quizSaving"
+                                    @click="saveQuiz()" x-text="quizSaving ? 'Saving…' : 'Save as Draft'"></button>
                             </div>
+                        </div>
+                    </template>
+
+                    <template x-if="modal === 'quizPreview'">
+                        <div class="lms-grid">
+                            <!-- Quiz information -->
+                            <div class="lms-task-top">
+                                <div>
+                                    <strong x-text="quizDraft?.title || 'Quiz Preview'"></strong>
+                                    <p class="lms-meta m-0" x-text="(quizDraft?.questions?.length || 0) + ' questions'">
+                                    </p>
+                                </div>                    
+                                <span class="lms-badge">Preview</span>
+                            </div>                    
+                            <!-- Description -->
+                            <p class="lms-meta m-0" x-show="quizDraft?.description" x-text="quizDraft?.description">
+                            </p>                    
+                            <!-- Questions -->
+                            <div class="lms-list">                    
+                                <template x-for="(question, index) in quizDraft?.questions || []" :key="index">                    
+                                    <article class="lms-file-box">                    
+                                        <!-- Question header -->
+                                        <div class="lms-task-top">
+                                            <strong x-text="'Question ' + (index + 1)"></strong>                    
+                                            <span class="lms-badge" x-text="question.question_type.replaceAll('_', ' ')">
+                                            </span>
+                                        </div>
+                                        <!-- Question -->
+                                        <p class="mt-2 mb-3" x-text="question.question_text">
+                                        </p>
+                                        <!-- Multiple Choice -->
+                                        <template x-if="question.question_type === 'multiple_choice'">
+                                            <div class="lms-list">
+                                                <template x-for="(choice, choiceIndex) in question.choices || []" :key="choiceIndex">
+                                                    <div class="lms-choice">
+                                                        <span x-text="String.fromCharCode(65 + choiceIndex) + '.'">
+                                                        </span>
+                                                        <span x-text="choice"></span>
+                                                        <span x-show="choice === question.correct_answer" class="lms-badge good ml-auto">
+                                                            Correct
+                                                        </span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                    
+                                        <!-- True / False -->
+                                        <template x-if="question.question_type === 'true_false'">
+                                            <div class="lms-list">
+                    
+                                                <div class="lms-choice">
+                                                    <span>True</span>
+                    
+                                                    <span x-show="question.correct_answer === 'True'" class="lms-badge good ml-auto">
+                                                        Correct
+                                                    </span>
+                                                </div>
+                    
+                                                <div class="lms-choice">
+                                                    <span>False</span>
+                    
+                                                    <span x-show="question.correct_answer === 'False'" class="lms-badge good ml-auto">
+                                                        Correct
+                                                    </span>
+                                                </div>
+                    
+                                            </div>
+                                        </template>
+                    
+                                        <!-- Other question types -->
+                                        <template x-if="
+                                            !['multiple_choice', 'true_false'].includes(
+                                                question.question_type
+                                            )
+                                        ">
+                                            <div class="lms-panel mt-2">
+                    
+                                                <span class="lms-meta">
+                                                    Expected answer
+                                                </span>
+                    
+                                                <p class="m-0 mt-1" x-text="question.correct_answer || 'No fixed answer'">
+                                                </p>
+                    
+                                            </div>
+                                        </template>
+                    
+                                        <!-- Question footer -->
+                                        <div class="lms-task-top mt-3">
+                    
+                                            <span class="lms-meta">
+                                                <span x-text="question.points"></span>
+                                                point(s)
+                                            </span>
+                    
+                                            <span class="lms-meta" x-show="question.explanation"
+                                                x-text="'Explanation: ' + question.explanation">
+                                            </span>
+                    
+                                        </div>
+                    
+                                    </article>
+                    
+                                </template>
+                    
+                            </div>
+                    
+                            <!-- Error -->
+                            <p class="lms-empty" x-show="quizError" x-text="quizError">
+                            </p>
+                    
+                            <!-- Actions -->
+                            <div class="lms-inline-actions">
+                    
+                                <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">
+                                    Back to Editor
+                                </button>
+                    
+                                <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">
+                                    Edit Quiz
+                                </button>
+                    
+                                <button class="lms-btn" type="button" :disabled="quizSaving" @click="saveQuiz()"
+                                    x-text="quizSaving ? 'Saving…' : 'Save as Draft'">
+                                </button>
+                    
+                            </div>
+                    
                         </div>
                     </template>
 
