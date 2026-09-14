@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LearnSync | Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body class="lms-shell student-shell font-sans text-sm" x-data="{open:false}">
+    <header class="app-header"><button @click="open=!open" class="header-menu-btn" aria-label="Open menu"><svg
+                class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+            </svg></button><img src="../img/GMVCC.jfif" alt="GMVCC logo" class="header-logo">
+        <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor
+                Mariano E. Villafuerte Community College</span></h1><button class="header-icon-btn"
+            aria-label="Notifications"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V4a2 2 0 1 0-4 0v1.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1.1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+            </svg></button>
+    </header>
+    <div x-show="open" @click="open=false" class="mobile-overlay"></div>
+    <nav class="sidebar" :class="open?'sidebar-open':'sidebar-closed'">
+        <ul class="sidebar-list">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon"><svg class="sidebar-brand-icon" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
+                    </svg></div>
+                <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Admin Portal</span></div>
+            </div>
+            <li><a class="sidebar-btn-active" href="dashboard.html"><span>Dashboard</span></a></li>
+            <li><a class="sidebar-btn" href="accounts.html"><span>Manage Accounts</span></a></li>
+            <li><a class="sidebar-btn" href="create-account.html"><span>Create Account</span></a></li>
+            <li><a class="sidebar-btn" href="../index.html"><span>Logout</span></a></li>
+        </ul>
+    </nav>
+    <main class="admin-page md:ml-64 pt-24" x-data="adminDashboard()">
+        <section class="admin-hero">
+            <div>
+                <h2 class="admin-title">Admin Dashboard</h2>
+                <p class="admin-subtitle">Create and manage LearnSync teacher and student accounts.</p>
+            </div>
+            <div class="admin-actions"><a class="lms-btn lms-btn-secondary" href="accounts.html">View Accounts</a><a
+                    class="lms-btn" href="create-account.html">Create Account</a></div>
+        </section>
+        <section class="lms-grid lms-grid-3 mb-6">
+            <div class="lms-card admin-stat">
+                <div class="admin-stat-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-width="2"
+                            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-5a4 4 0 0 1 0 8m4 8v-2a4 4 0 0 0-3-3.9" />
+                    </svg></div>
+                <div><strong x-text="counts.students">0</strong><span>Students</span></div>
+            </div>
+            <div class="lms-card admin-stat">
+                <div class="admin-stat-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-width="2"
+                            d="M12 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 7a7 7 0 0 1 14 0M17 3v4m-2-2h4" />
+                    </svg></div>
+                <div><strong x-text="counts.teachers">0</strong><span>Teachers</span></div>
+            </div>
+            <div class="lms-card admin-stat">
+                <div class="admin-stat-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg></div>
+                <div><strong x-text="counts.active">0</strong><span>Active Accounts</span></div>
+            </div>
+        </section>
+        <section class="admin-table-card">
+            <div class="admin-table-header">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Recent Accounts</h3>
+                    <p class="admin-muted">Newly created accounts and email delivery status.</p>
+                </div><a class="admin-link" href="accounts.html">View all</a>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody><template x-for="account in accounts.slice(0,5)" :key="account.email">
+                            <tr>
+                                <td x-text="account.name"></td>
+                                <td><span class="admin-badge" :class="account.role" x-text="account.role"></span></td>
+                                <td x-text="account.email"></td>
+                                <td><span class="admin-badge" :class="account.status" x-text="account.status"></span>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="accounts.length===0">
+                            <td colspan="4" class="text-center admin-muted">No accounts created yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <script>function adminDashboard() { return { accounts: JSON.parse(localStorage.getItem('learnsync_accounts') || '[]'), get counts() { return { students: this.accounts.filter(a => a.role === 'student').length, teachers: this.accounts.filter(a => a.role === 'teacher').length, active: this.accounts.filter(a => a.status === 'active').length } } } }</script>
+</body>
+
+</html>

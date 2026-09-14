@@ -152,8 +152,12 @@
                         if (data.role === 'teacher') {
                             window.location.href = './teacher/dashboard.html';
 
-                        } else {
+                        } else if (data.role === 'student') {
                             window.location.href = './student/dashboard.html';
+                        } else if (data.role === 'admin') {
+                            window.location.href = './admin/dashboard.html';
+                        } else {
+                            alert('Unknown role. Please contact support.');
                         }
                     } catch (error) {
                         console.error('Login error:', error);
