@@ -183,22 +183,19 @@
                         <!-- Quizzes Section -->
                         <section class="mt-4" x-cloak x-show="activeTab === 'quizzes'">
                             <div class="lms-task-top">
-                                <h3>Quizzes</h3><span class="lms-badge">2 items</span>
+                                <h3>Quizzes</h3><span class="lms-badge" x-text="quizzes.length + ' items'"></span>
                             </div>
                             <ul class="lms-list">
-                                <li role="button" tabindex="0" @click="openStudentItem('quiz', 'research-ethics-quiz')"
-                                    @keydown.enter.prevent="openStudentItem('quiz', 'research-ethics-quiz')"
-                                    @keydown.space.prevent="openStudentItem('quiz', 'research-ethics-quiz')"><span
-                                        class="lms-badge">Online</span><strong class="block mt-2">Research Ethics Quiz</strong>
-                                    <p class="m-0">10 questions. Latest score: 18 / 20.</p>
-                                </li>
-                                <li role="button" tabindex="0" @click="openStudentItem('quiz', 'citation-format-drill')"
-                                    @keydown.enter.prevent="openStudentItem('quiz', 'citation-format-drill')"
-                                    @keydown.space.prevent="openStudentItem('quiz', 'citation-format-drill')"><span
-                                        class="lms-badge">Practice</span><strong class="block mt-2">Citation Format
-                                        Drill</strong>
-                                    <p class="m-0">Answers saved as student answer records.</p>
-                                </li>
+                                <template x-for="quiz in quizzes" :key="quiz.quiz_id">
+                                    <li role="button" tabindex="0" @click="openStudentItem('quiz', quiz.quiz_id)"
+                                        @keydown.enter.prevent="openStudentItem('quiz', quiz.quiz_id)"
+                                        @keydown.space.prevent="openStudentItem('quiz', quiz.quiz_id)">
+                                        <span class="lms-badge" :class="quiz.badgeClass" x-text="quiz.statusText"></span>
+                                        <strong class="block mt-2" x-text="quiz.title"></strong>
+                                        <p class="m-0" x-text="quiz.description || quiz.details"></p>
+                                    </li>
+                                </template>
+                                <li class="lms-empty" x-show="quizzes.length === 0">No quizzes available.</li>
                             </ul>
                         </section>
                     </section>
@@ -280,6 +277,7 @@
                 announcements: [],
                 modules: [],
                 activities: [],
+                quizzes: [],
                 submissionStatus: '',
                 badgeClass: '',
 
@@ -344,6 +342,7 @@
                     await this.loadAnnouncements(classId, student_id);
                     await this.loadModules(classId, student_id);
                     await this.loadActivity(classId, student_id);
+                    await this.loadQuizzes(classId, student_id);
                 },
                 async loadAnnouncements(classId, student_id) {
                     try {
@@ -405,6 +404,28 @@
 
                     } catch (err) {
                         console.error("Error loading activities:", err);
+                    }
+                },
+                async loadQuizzes(classId, student_id) {
+                    try {
+                        const res = await fetch(`/api/subjects/${encodeURIComponent(student_id)}/${encodeURIComponent(classId)}/student/quizzes`);
+                        if (!res.ok) {
+                            console.error("Failed to load quizzes:", await res.text());
+                            return;
+                        }
+
+                        this.quizzes = await res.json();
+                        this.quizzes.forEach(quiz => {
+                            quiz.badgeClass = quiz.submitted ? "good" : "warn";
+                            quiz.statusText = quiz.submitted ? "Submitted" : "Available";
+                            const score = quiz.total_score !== null && quiz.total_score !== undefined
+                                ? ` Latest score: ${quiz.total_score}${quiz.total_points ? ` / ${quiz.total_points}` : ""}.`
+                                : "";
+                            const deadline = quiz.deadline ? ` Due ${this.formatDateTime(quiz.deadline)}.` : "";
+                            quiz.details = `${quiz.question_count} question${quiz.question_count === 1 ? "" : "s"}.${score}${deadline}`.trim();
+                        });
+                    } catch (err) {
+                        console.error("Error loading quizzes:", err);
                     }
                 },
                 formatDateTime(value) {

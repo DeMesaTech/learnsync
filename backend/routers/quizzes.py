@@ -55,6 +55,10 @@ class QuizCreateRequest(BaseModel):
     questions: list[QuizQuestionDraft] = Field(min_length=1)
 
 
+class QuizStatusRequest(BaseModel):
+    status: str
+
+
 class QuizAnswer(BaseModel):
     question_id: int
     answer: Any = None
@@ -95,6 +99,12 @@ def _quiz_payload(cur, quiz_id: int, include_answers: bool = True) -> dict:
     )
     result = dict(quiz)
     result["questions"] = [dict(row) for row in cur.fetchall()]
+    cur.execute(
+        """SELECT s.section FROM quiz_sections qs JOIN section s ON s.section_id = qs.section_id
+           WHERE qs.quiz_id = %s ORDER BY s.section""",
+        (quiz_id,),
+    )
+    result["sections"] = [row["section"] for row in cur.fetchall()]
     return result
 
 
@@ -222,7 +232,7 @@ def generate_draft(request: QuizDraftRequest):
         plan = _question_plan(request)
         return {
             "title": request.title,
-            "description": request.learning_outcomes or f"{request.difficulty.title()} quiz based on {module['title']}.",
+            "description": request.learning_outcomes or f"{request.difficulty.title()} quiz | {module['title']}.",
             "context_used": True,
             "questions": _generate_questions_with_ai(request, module["title"], context, plan),
         }
@@ -296,9 +306,12 @@ def delete_quiz(quiz_id: int):
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT quiz_id FROM quiz WHERE quiz_id = %s", (quiz_id,))
-        if not cur.fetchone():
+        cur.execute("SELECT quiz_id, status FROM quiz WHERE quiz_id = %s", (quiz_id,))
+        quiz = cur.fetchone()
+        if not quiz:
             raise HTTPException(status_code=404, detail="Quiz not found.")
+        if quiz["status"] == "Published":
+            raise HTTPException(status_code=409, detail="Published quizzes cannot be deleted from the draft workflow.")
 
         # Some existing databases predate cascading foreign keys, so remove known
         # dependent records explicitly before removing the quiz itself.
@@ -312,6 +325,69 @@ def delete_quiz(quiz_id: int):
     except psycopg2.Error as error:
         conn.rollback()
         raise HTTPException(status_code=500, detail="Unable to delete quiz.") from error
+    finally:
+        conn.close()
+
+
+@quiz_router.put("/{quiz_id}")
+def update_quiz(quiz_id: int, request: QuizCreateRequest):
+    """Replace a draft's editable content while keeping it in the review workflow."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT quiz_id FROM quiz WHERE quiz_id = %s", (quiz_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Quiz not found.")
+        _class_exists(cur, request.class_id)
+        total_points = request.total_points or sum(question.points for question in request.questions)
+        cur.execute(
+            """UPDATE quiz SET title = %s, description = %s, module_id = %s, deadline = %s,
+               time_limit_minutes = %s, total_points = %s, status = %s WHERE quiz_id = %s""",
+            (request.title, request.description, request.module_id, request.deadline,
+             request.time_limit_minutes, total_points, request.status, quiz_id),
+        )
+        cur.execute("DELETE FROM question WHERE quiz_id = %s", (quiz_id,))
+        cur.execute("DELETE FROM quiz_sections WHERE quiz_id = %s", (quiz_id,))
+        for question in request.questions:
+            if question.question_type not in SUPPORTED_QUESTION_TYPES or not question.question_text.strip() or question.points <= 0:
+                raise HTTPException(status_code=422, detail="Each question needs supported type, text, and positive points.")
+            cur.execute(
+                """INSERT INTO question (quiz_id, question_text, correct_answer, question_type, choices, points, display_order, explanation)
+                   VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s, %s)""",
+                (quiz_id, question.question_text, question.correct_answer, question.question_type,
+                 json.dumps(question.choices), question.points, question.display_order, question.explanation),
+            )
+        cur.execute(
+            """INSERT INTO quiz_sections (quiz_id, section_id)
+               SELECT %s, section_id FROM section WHERE class_id = %s AND (%s = '{}' OR section = ANY(%s))
+               ON CONFLICT DO NOTHING""",
+            (quiz_id, request.class_id, request.sections, request.sections),
+        )
+        conn.commit()
+        return _quiz_payload(cur, quiz_id)
+    except psycopg2.Error as error:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail="Unable to update quiz.") from error
+    finally:
+        conn.close()
+
+
+@quiz_router.patch("/{quiz_id}/status")
+def update_quiz_status(quiz_id: int, request: QuizStatusRequest):
+    allowed = {"Draft", "Approved", "Published"}
+    if request.status not in allowed:
+        raise HTTPException(status_code=422, detail="Invalid quiz status.")
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("UPDATE quiz SET status = %s WHERE quiz_id = %s RETURNING quiz_id", (request.status, quiz_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Quiz not found.")
+        conn.commit()
+        return _quiz_payload(cur, quiz_id)
+    except psycopg2.Error as error:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail="Unable to update quiz status.") from error
     finally:
         conn.close()
 
@@ -342,7 +418,10 @@ def get_quiz(quiz_id: int):
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        return _quiz_payload(cur, quiz_id, include_answers=False)
+        quiz = _quiz_payload(cur, quiz_id, include_answers=False)
+        if quiz["status"] != "Published":
+            raise HTTPException(status_code=404, detail="Quiz is not published.")
+        return quiz
     finally:
         conn.close()
 
@@ -364,6 +443,8 @@ def submit_quiz(quiz_id: int, request: QuizSubmitRequest):
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         quiz = _quiz_payload(cur, quiz_id, include_answers=True)
+        if quiz["status"] != "Published":
+            raise HTTPException(status_code=403, detail="Quiz is not available to students.")
         cur.execute("SELECT question_id, correct_answer, points FROM question WHERE quiz_id = %s", (quiz_id,))
         questions = {row["question_id"]: row for row in cur.fetchall()}
         score = 0.0

@@ -293,7 +293,10 @@
                                         </p>
                                         <span class="lms-inline-actions mt-2"><button class="lms-btn lms-btn-small"
                                                 type="button"
-                                                @click.prevent.stop="openManagement('quiz', quiz.title, quiz)">Manage</button></span>
+                                                @click.prevent.stop="openQuizPreview(quiz)">Preview</button><button
+                                                class="lms-btn lms-btn-danger lms-btn-small" type="button"
+                                                x-show="quiz.status !== 'Published'"
+                                                @click.prevent.stop="deleteQuiz(quiz)">Delete</button></span>
                                     </article>
                                 
                                     </li>
@@ -406,7 +409,7 @@
 
                     <template x-if="modal === 'classQuiz'">
                         <div class="lms-grid">
-                            <input class="lms-input" x-ref="quizTitle" placeholder="Quiz title">
+                            <input class="lms-input" x-model="quizTitle" placeholder="Quiz title">
                             <select class="lms-select" x-model="quizModuleId">
                                 <option value="">Select a source module</option>
                                 <template x-for="module in modules" :key="module.module_id">
@@ -436,14 +439,14 @@
                                     <option value="intermediate">Difficulty: Intermediate</option>
                                     <option value="advanced">Difficulty: Advanced</option>
                                 </select>
-                                <input class="lms-input" type="number" min="1" x-ref="quizTime"
+                                <input class="lms-input" type="number" min="1" x-model="quizTime"
                                     placeholder="Time limit in minutes">
                             </div>
                             <textarea class="lms-input" rows="3" x-ref="quizOutcomes"
                                 placeholder="Learning outcomes, required coverage, or topics to emphasize"></textarea>
                             <textarea class="lms-input" rows="3" x-ref="quizExclusions"
                                 placeholder="Topics to exclude, answer style, grading notes, or anti-guessing requirements"></textarea>
-                            <input class="lms-input" type="date" x-ref="quizDeadline" aria-label="Quiz deadline">
+                            <input class="lms-input" type="date" x-model="quizDeadline" aria-label="Quiz deadline">
                             <template x-for="section in sections" :key="section">
                                 <label class="lms-choice"><input type="checkbox" :value="section"
                                         x-model="quizSections"><span x-text="'Section ' + section"></span></label>
@@ -502,7 +505,7 @@
                                     @click="generateQuizDraft()"
                                     x-text="quizGenerating ? 'Generating…' : 'Generate Quiz Draft'"></button>
                                 <button class="lms-btn" type="button" :disabled="!quizDraft || quizSaving"
-                                    @click="saveQuiz()" x-text="quizSaving ? 'Saving…' : 'Save as Draft'"></button>
+                                    @click="saveQuiz(true)" x-text="quizSaving ? 'Saving…' : 'Save Draft & Preview'"></button>
                             </div>
                         </div>
                     </template>
@@ -518,7 +521,7 @@
                                     <p class="lms-meta m-0" x-text="(quizPreview?.questions?.length || 0) + ' questions'">
                                     </p>
                                 </div>                    
-                                <span class="lms-badge">Preview</span>
+                                <span class="lms-badge" x-text="quizPreview?.status || 'Preview'"></span>
                             </div>                    
                             <!-- Description -->
                             <p class="lms-meta m-0" x-show="quizPreview?.description && !quizPreviewLoading" x-text="quizPreview?.description">
@@ -620,17 +623,14 @@
                             <!-- Actions -->
                             <div class="lms-inline-actions">
                     
-                                <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">
-                                    Back to Editor
-                                </button>
-                    
-                                <button class="lms-btn lms-btn-secondary" type="button" @click="modal = 'classQuiz'">
-                                    Edit Quiz
-                                </button>
-                    
-                                <button class="lms-btn" type="button" :disabled="quizSaving" @click="saveQuiz()"
-                                    x-text="quizSaving ? 'Saving…' : 'Save as Draft'">
-                                </button>
+                                <button class="lms-btn lms-btn-secondary" type="button" @click="editQuiz(quizPreview)"
+                                    x-show="quizPreview?.status !== 'Published'">Reject / Edit</button>
+                                <button class="lms-btn" type="button" :disabled="quizSaving"
+                                    @click="advanceQuizStatus('Approved')" x-show="quizPreview?.status === 'Draft'"
+                                    x-text="quizSaving ? 'Approving…' : 'Approve'"></button>
+                                <button class="lms-btn" type="button" :disabled="quizSaving"
+                                    @click="advanceQuizStatus('Published')" x-show="quizPreview?.status === 'Approved'"
+                                    x-text="quizSaving ? 'Publishing…' : 'Publish to Students'"></button>
                     
                             </div>
                     
@@ -831,6 +831,10 @@
                 quizzes: [],
                 quizzesLoading: false,
                 quizDraft: null,
+                editingQuizId: null,
+                quizTitle: '',
+                quizTime: '',
+                quizDeadline: '',
                 quizSections: [],
                 quizModuleId: '',
                 quizError: '',
@@ -1410,7 +1414,7 @@
                 },
 
                 async generateQuizDraft() {
-                    const title = this.$refs.quizTitle?.value.trim() || '';
+                    const title = this.quizTitle.trim();
                     if (!title) {
                         alert('Please enter a quiz title');
                         return;
@@ -1450,7 +1454,7 @@
                     }
                 },
 
-                async saveQuiz() {
+                async saveQuiz(previewAfterSave = false) {
                     if (!this.quizDraft) return;
                     this.quizError = '';
                     const invalidQuestion = this.quizDraft.questions.find(question => {
@@ -1464,16 +1468,16 @@
                     }
                     this.quizSaving = true;
                     try {
-                        const response = await fetch('/api/quizzes', {
-                            method: 'POST',
+                        const response = await fetch(this.editingQuizId ? `/api/quizzes/${this.editingQuizId}` : '/api/quizzes', {
+                            method: this.editingQuizId ? 'PUT' : 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 class_id: Number(this.getTargetClassId()),
                                 module_id: Number(this.quizModuleId),
-                                title: this.quizDraft.title,
+                                title: this.quizTitle.trim() || this.quizDraft.title,
                                 description: this.quizDraft.description,
-                                time_limit_minutes: this.$refs.quizTime?.value ? Number(this.$refs.quizTime.value) : null,
-                                deadline: this.$refs.quizDeadline?.value || null,
+                                time_limit_minutes: this.quizTime ? Number(this.quizTime) : null,
+                                deadline: this.quizDeadline || null,
                                 status: 'Draft',
                                 sections: this.quizSections,
                                 questions: this.quizDraft.questions.map((question, index) => ({ ...question, display_order: index + 1 }))
@@ -1482,8 +1486,18 @@
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to save quiz.');
                         this.quizDraft = null;
+                        this.editingQuizId = null;
                         this.quizSections = [];
-                        this.modal = null;
+                        this.quizTitle = '';
+                        this.quizTime = '';
+                        this.quizDeadline = '';
+                        if (previewAfterSave) {
+                            this.quizPreview = data;
+                            this.quizPreviewLoading = false;
+                            this.modal = 'quizPreview';
+                        } else {
+                            this.modal = null;
+                        }
                         await this.load_quizzes();
                         await this.loadKPIs();
                     } catch (error) {
@@ -1496,9 +1510,58 @@
                 openQuizCreator() {
                     this.modal = 'classQuiz';
                     this.quizDraft = null;
+                    this.editingQuizId = null;
                     this.quizError = '';
+                    this.quizTitle = '';
+                    this.quizTime = '';
+                    this.quizDeadline = '';
                     this.quizModuleId = '';
                     this.quizSections = [];
+                },
+
+                editQuiz(quiz) {
+                    if (!quiz) return;
+                    this.editingQuizId = quiz.quiz_id;
+                    this.quizDraft = { title: quiz.title, description: quiz.description || '', questions: quiz.questions || [] };
+                    this.quizTitle = quiz.title || '';
+                    this.quizModuleId = quiz.module_id || '';
+                    this.quizTime = quiz.time_limit_minutes || '';
+                    this.quizDeadline = quiz.deadline ? String(quiz.deadline).slice(0, 10) : '';
+                    this.quizSections = quiz.sections || [];
+                    this.quizError = '';
+                    this.modal = 'classQuiz';
+                },
+
+                async advanceQuizStatus(status) {
+                    if (!this.quizPreview?.quiz_id) return;
+                    this.quizSaving = true;
+                    this.quizError = '';
+                    try {
+                        const response = await fetch(`/api/quizzes/${this.quizPreview.quiz_id}/status`, {
+                            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to update quiz status.');
+                        this.quizPreview = data;
+                        await this.load_quizzes();
+                    } catch (error) {
+                        this.quizError = error.message || 'Unable to update quiz status.';
+                    } finally {
+                        this.quizSaving = false;
+                    }
+                },
+
+                async deleteQuiz(quiz) {
+                    if (!quiz?.quiz_id || !confirm(`Delete "${quiz.title}"? This cannot be undone.`)) return;
+                    try {
+                        const response = await fetch(`/api/quizzes/${quiz.quiz_id}`, { method: 'DELETE' });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to delete quiz.');
+                        await this.load_quizzes();
+                        await this.loadKPIs();
+                    } catch (error) {
+                        alert(error.message || 'Unable to delete quiz.');
+                    }
                 },
 
                 removeDraftQuestion(index) {

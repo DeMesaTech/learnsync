@@ -72,13 +72,13 @@ async def get_student_todo(student_id: int):
                 ORDER BY qs.date_taken DESC NULLS LAST, qs.score_id DESC
                 LIMIT 1
             ) latest ON TRUE
-            WHERE NOT EXISTS (
+            WHERE q.status = 'Published' AND (NOT EXISTS (
                 SELECT 1 FROM quiz_sections visible
                 WHERE visible.quiz_id = q.quiz_id
             ) OR EXISTS (
                 SELECT 1 FROM quiz_sections visible
                 WHERE visible.quiz_id = q.quiz_id AND visible.section_id = e.section_id
-            )
+            ))
             ORDER BY q.date_created DESC NULLS LAST, q.quiz_id DESC
             """,
             (student_id,)
@@ -1090,6 +1090,53 @@ async def get_student_modules(student_id: str, class_id: str):
 
     finally:
         cur.close()
+        conn.close()
+
+# ===========================================================
+# Student Class QUIZZES Endpoint
+@subject_router.get("/{student_id}/{class_id}/student/quizzes")
+async def get_student_quizzes(student_id: str, class_id: str):
+    conn = get_db_connection()
+    cur = None
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            """
+            SELECT q.quiz_id, q.title, q.description, q.deadline, q.total_points,
+                   COUNT(question.question_id) AS question_count,
+                   latest.total_score,
+                   (latest.score_id IS NOT NULL) AS submitted
+            FROM quiz q
+            JOIN enrollment e ON e.class_id = q.class_id AND e.student_id = %s
+            LEFT JOIN question ON question.quiz_id = q.quiz_id
+            LEFT JOIN LATERAL (
+                SELECT qs.score_id, qs.total_score
+                FROM quiz_score qs
+                WHERE qs.quiz_id = q.quiz_id AND qs.student_id = e.student_id
+                ORDER BY qs.date_taken DESC NULLS LAST, qs.score_id DESC
+                LIMIT 1
+            ) latest ON TRUE
+            WHERE q.class_id = %s
+              AND q.status = 'Published'
+              AND (
+                  NOT EXISTS (SELECT 1 FROM quiz_sections visible WHERE visible.quiz_id = q.quiz_id)
+                  OR EXISTS (
+                      SELECT 1 FROM quiz_sections visible
+                      WHERE visible.quiz_id = q.quiz_id AND visible.section_id = e.section_id
+                  )
+              )
+            GROUP BY q.quiz_id, latest.score_id, latest.total_score
+            ORDER BY q.date_created DESC NULLS LAST, q.quiz_id DESC
+            """,
+            (student_id, class_id),
+        )
+        return [dict(quiz) for quiz in cur.fetchall()]
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        if cur:
+            cur.close()
         conn.close()
 
 # ===========================================================
