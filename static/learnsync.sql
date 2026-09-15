@@ -615,4 +615,34 @@ ALTER TABLE IF EXISTS public.teacher
 CREATE INDEX IF NOT EXISTS teacher_user_id_key
     ON public.teacher(user_id);
 
+
+TRUNCATE TABLE
+    public.act_recitation,
+    public.act_submission,
+    public.activity,
+    public.activity_sections,
+    public.ai_query,
+    public.announcement,
+    public.announcement_section,
+    public.attendance,
+    public.class,
+    public.enrollment,
+    public.grade,
+    public.grade_visibility,
+    public.grading_policy,
+    public.module,
+    public.module_content,
+    public.module_sections,
+    public.query_context,
+    public.question,
+    public.quiz,
+    public.quiz_score,
+    public.quiz_sections,
+    public.section,
+    public.student_answer,
+    public.student,
+    public.teacher,
+    public.account
+RESTART IDENTITY;
+
 END;

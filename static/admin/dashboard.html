@@ -40,7 +40,6 @@
             </div>
             <li><a class="sidebar-btn-active" href="dashboard.html"><span>Dashboard</span></a></li>
             <li><a class="sidebar-btn" href="accounts.html"><span>Manage Accounts</span></a></li>
-            <li><a class="sidebar-btn" href="create-account.html"><span>Create Account</span></a></li>
             <li><a class="sidebar-btn" href="../index.html"><span>Logout</span></a></li>
         </ul>
     </nav>
@@ -50,8 +49,8 @@
                 <h2 class="admin-title">Admin Dashboard</h2>
                 <p class="admin-subtitle">Create and manage LearnSync teacher and student accounts.</p>
             </div>
-            <div class="admin-actions"><a class="lms-btn lms-btn-secondary" href="accounts.html">View Accounts</a><a
-                    class="lms-btn" href="create-account.html">Create Account</a></div>
+            <div class="admin-actions"><a class="lms-btn lms-btn-secondary" href="accounts.html">View Accounts</a>
+                <a class="lms-btn" href="accounts.html?create=1">Create Account</a></div>
         </section>
         <section class="lms-grid lms-grid-3 mb-6">
             <div class="lms-card admin-stat">
@@ -109,7 +108,27 @@
             </div>
         </section>
     </main>
-    <script>function adminDashboard() { return { accounts: JSON.parse(localStorage.getItem('learnsync_accounts') || '[]'), get counts() { return { students: this.accounts.filter(a => a.role === 'student').length, teachers: this.accounts.filter(a => a.role === 'teacher').length, active: this.accounts.filter(a => a.status === 'active').length } } } }</script>
-</body>
+    <script>
+        function adminDashboard() {
+            return {
+                accounts: [], error: '',
+                async init() {
+                    try {
+                        const response = await fetch('/api/admin/accounts');
+                        if (!response.ok) throw new Error('Unable to load accounts.');
+                        this.accounts = await response.json();
+                    } catch (error) { this.error = error.message; }
+                },
+                get counts() {
+                    return {
+                        students: this.accounts.filter(account => account.role === 'student').length,
+                        teachers: this.accounts.filter(account => account.role === 'teacher').length,
+                        active: this.accounts.filter(account => account.status === 'active').length
+                    };
+                }
+            };
+        }
+    </script>
+        </body>
 
 </html>

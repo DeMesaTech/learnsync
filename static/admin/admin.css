@@ -214,6 +214,47 @@
     border: 0;
 }
 
+.admin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgb(15 23 42 / .58);
+}
+
+[x-cloak] { display: none !important; }
+
+.admin-modal {
+    width: min(100%, 58rem);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 24px 60px rgb(15 23 42 / .28);
+}
+
+.admin-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-modal-close {
+    width: 2rem;
+    height: 2rem;
+    color: #64748b;
+    font-size: 1.6rem;
+    line-height: 1;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 @media(max-width:767px) {
     .admin-page {
         padding: 5.75rem 1.25rem 1.25rem;

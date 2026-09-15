@@ -28,6 +28,30 @@ class UserProfileResponse(BaseModel):
     grade_level: Optional[str] = None
 
 
+class AdminAccountCreate(BaseModel):
+    role: str
+    email: EmailStr
+    firstName: str
+    lastName: str
+    username: Optional[str] = None
+    idNumber: Optional[str] = None
+    sendEmail: bool = True
+
+
+class AdminAccountResponse(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    role: str
+    status: str = "active"
+    idNumber: Optional[str] = None
+
+
+class AdminResendResponse(BaseModel):
+    message: str
+    email: str
+
+
 # ============= CLASS MODELS =============
 class CreateClassRequest(BaseModel):
     teacher_id: int
