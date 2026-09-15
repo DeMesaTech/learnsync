@@ -585,6 +585,8 @@ textarea.lms-input {
 }
 
 .lms-modal {
+    display: grid;
+    gap: 0.9rem;
     width: min(100%, 34rem);
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
@@ -600,7 +602,7 @@ textarea.lms-input {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
 }
 
 .lms-modal-head h3 {
