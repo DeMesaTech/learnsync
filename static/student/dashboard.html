@@ -145,6 +145,10 @@
 
             <!-- Classes Section -->
             <section class="lms-grid lms-grid-3">
+                <div x-show="classes.length === 0" class="lms-empty">
+                    <strong>No class enrolled yet</strong>
+                    <p class="m-0 mt-2">Your enrolled classes will appear here once you are added to a class.</p>
+                </div>
                 <template x-for="cls in classes" :key="cls.subject">
                     <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card">
                         <span class="lms-badge">Class</span>
