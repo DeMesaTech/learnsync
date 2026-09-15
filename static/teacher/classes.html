@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/lms.css?v=kpi-20260915">
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -147,6 +147,12 @@
             </section>
             <!-- CLASSES -->
             <section x-data="classes()" x-init="init()">
+                <div x-show="loaded && groupedClasses.length === 0" class="lms-empty mb-4">
+                    <strong>No class created yet</strong>
+                    <p class="m-0 mt-2">Create your first class to start adding sections, students, and learning content.</p>
+                    <button class="lms-btn lms-btn-secondary mt-3" type="button"
+                        @click="modal = 'class'">Create a Class</button>
+                </div>
                 <section class="lms-grid lms-grid-3">
                     <template x-for="cls in groupedClasses" :key="cls.class_code">
                         <a :href="`subject.html?class_code=${cls.class_code}`" class="lms-card lms-card-button">
@@ -216,7 +222,7 @@
                 </div>
                 <section class="lms-table-card mt-4">
                     <div class="lms-table-head">
-                        <h3>Active Classes</h3><span class="lms-badge">4 records</span>
+                        <h3>Active Classes</h3><span class="lms-badge" x-text="groupedClasses.length + ' records'"></span>
                     </div>
                     <div class="lms-table-wrap">
                         <table class="lms-table">
@@ -241,6 +247,13 @@
                                         <td x-text="cls.modules"></td>
                                         <td x-text="cls.activities"></td>
                                         <td x-text="cls.quizzes"></td>
+                                    </tr>
+                                </tbody>
+                            </template>
+                            <template x-if="loaded && groupedClasses.length === 0">
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="lms-empty">No class created yet.</td>
                                     </tr>
                                 </tbody>
                             </template>
@@ -282,6 +295,7 @@
             return {
                 classes: [],
                 groupedClasses: [],
+                loaded: false,
                 modal: null,
                 subject: '',
                 class_code: '',
@@ -299,6 +313,8 @@
                 get isValid() { return this.sum === 100; },
 
                 async init() {
+                    // Register before the class request so the New Class button cannot fire before the listener exists.
+                    window.addEventListener('open-class-modal', () => { this.modal = 'class'; });
                     const teacher_id = localStorage.getItem('teacher_id');
                     try {
                         const res = await fetch(`/api/classes/teacher/${encodeURIComponent(teacher_id)}`);
@@ -313,9 +329,8 @@
                             activities: cls.activity_count,
                             quizzes: cls.quiz_count
                         }));
+                        this.loaded = true;
                     } catch (err) { console.error(err); }
-                    // The "New Class" button dispatches this event; setting modal to 'class' makes the class modal appear.
-                    window.addEventListener('open-class-modal', () => { this.modal = 'class'; });
                     this.$watch('sectionCount', (value) => {
                         this.sections = Array.from(
                             { length: value },

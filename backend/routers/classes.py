@@ -148,6 +148,63 @@ async def get_class_details(class_id: str):
         conn.close()
 
 # ===========================================================
+# Enroll a student using a class code
+@classes_router.post("/student/{student_id}/enroll")
+async def enroll_student_by_class_code(student_id: int, payload: dict = Body(...)):
+    class_code = str(payload.get("class_code", "")).strip()
+    if not class_code:
+        raise HTTPException(status_code=400, detail="Class code is required")
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            """SELECT student_id FROM student WHERE student_id = %s""",
+            (student_id,),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        cur.execute(
+            """SELECT c.class_id, c.class_code, c.subject, s.section_id, s.section,
+                      u.name AS teacher_name
+               FROM class c
+               JOIN section s ON s.class_id = c.class_id
+               JOIN teacher t ON t.employee_id = c.employee_id
+               JOIN account u ON u.user_id = t.user_id
+               WHERE c.class_code = %s
+               ORDER BY s.section_id
+               LIMIT 1""",
+            (class_code,),
+        )
+        class_data = cur.fetchone()
+        if not class_data:
+            raise HTTPException(status_code=404, detail="Class code not found")
+
+        cur.execute(
+            """SELECT 1 FROM enrollment
+               WHERE student_id = %s AND class_id = %s""",
+            (student_id, class_data["class_id"]),
+        )
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="You are already enrolled in this class")
+
+        cur.execute(
+            """INSERT INTO enrollment (student_id, class_id, section_id)
+               VALUES (%s, %s, %s)""",
+            (student_id, class_data["class_id"], class_data["section_id"]),
+        )
+        conn.commit()
+        return class_data
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# ===========================================================
 
 # Get all classes for a teacher
 @classes_router.get("/teacher/{teacher_id}")

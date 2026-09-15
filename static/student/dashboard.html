@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/lms.css?v=student-enrollment-20260915">
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -109,7 +109,7 @@
             </section>
             <!-- Hero Section/ KPIs -->
             <section class="lms-grid lms-grid-4 mb-4">
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                <div class="lms-kpi"><span class="lms-kpi-icon lms-kpi-icon-solid"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20h5V11H2v9h5m5 0h4M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
@@ -117,7 +117,7 @@
                     <strong x-text="kpis.enrolled_classes"></strong>
                     <span>Enrolled Classes</span>
                 </div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                <div class="lms-kpi"><span class="lms-kpi-icon lms-kpi-icon-solid"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 20h9M12 4h9M4 7h16M4 13h16M4 17h16" />
@@ -125,7 +125,7 @@
                     <strong x-text="kpis.module_count"></strong>
                     <span>Modules</span>
                 </div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                <div class="lms-kpi"><span class="lms-kpi-icon lms-kpi-icon-solid"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4l3 3m2-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -133,7 +133,7 @@
                     <strong x-text="kpis.pending_works"></strong>
                     <span>Pending Work</span>
                 </div>
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
+                <div class="lms-kpi"><span class="lms-kpi-icon lms-kpi-icon-solid"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -143,7 +143,6 @@
                 </div>
             </section>
 
-            <!-- Classes Section -->
             <section class="lms-grid lms-grid-3">
                 <div x-show="classes.length === 0" class="lms-empty">
                     <strong>No class enrolled yet</strong>
@@ -152,12 +151,13 @@
                 <template x-for="cls in classes" :key="cls.subject">
                     <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card">
                         <span class="lms-badge">Class</span>
-                        <h3 class="mt-3" x-text="cls.subject">Capstone Research Project 1</h3>
+                        <h3 class="mt-3" x-text="cls.subject"></h3>
                         <p x-text="'Section ' + cls.section + ' with Prof. ' + cls.teacher_name"></p>
                     </a>
             </template>
+            <!-- Classes Section -->
             </section>
-
+            
             <section class="lms-grid lms-grid-2 mt-4">
                 <div class="lms-panel">
                     <h3>Learning Flow</h3>
@@ -189,6 +189,36 @@
                     </ul>
                 </div>
             </section>
+
+            <button class="lms-icon-btn lms-floating-action" type="button" aria-label="Enroll in a class"
+                title="Enroll in a class" @click="enrollmentModal = true; enrollmentMessage = ''">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+                </svg>
+            </button>
+
+            <div class="lms-modal-backdrop" x-cloak x-show="enrollmentModal" x-transition.opacity
+                @click.self="enrollmentModal = false" @keydown.escape.window="enrollmentModal = false">
+                <section class="lms-modal" role="dialog" aria-modal="true" aria-labelledby="enroll-class-title">
+                    <div class="lms-modal-head">
+                        <h3 id="enroll-class-title">Enroll in a Class</h3>
+                        <button class="lms-icon-btn" type="button" aria-label="Close enrollment dialog"
+                            @click="enrollmentModal = false">
+                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="lms-meta">Enter the class code provided by your teacher.</p>
+                    <input class="lms-input" type="text" placeholder="Class code" x-model="classCode"
+                        @keydown.enter="enrollWithCode()" :disabled="enrolling" autofocus>
+                    <p x-show="enrollmentMessage" class="lms-meta" x-text="enrollmentMessage"></p>
+                    <button class="lms-btn" type="button" @click="enrollWithCode()" :disabled="enrolling">
+                        <span x-text="enrolling ? 'Enrolling...' : 'Enroll'"></span>
+                    </button>
+                </section>
+            </div>
         </main>
     </div>
 </body>
@@ -198,6 +228,10 @@
             open: false,
             kpis: {},
             classes: [],
+            enrollmentModal: false,
+            classCode: '',
+            enrollmentMessage: '',
+            enrolling: false,
             async init() {
                 const student_id = localStorage.getItem("student_id");
 
@@ -247,6 +281,41 @@
 
                 } catch (err) {
                     console.error("Unable to refresh classes:", err);
+                }
+            },
+            async enrollWithCode() {
+                const student_id = localStorage.getItem("student_id");
+                const class_code = this.classCode.trim();
+
+                if (!student_id) {
+                    this.enrollmentMessage = "Student ID not found.";
+                    return;
+                }
+                if (!class_code) {
+                    this.enrollmentMessage = "Enter a class code.";
+                    return;
+                }
+
+                this.enrolling = true;
+                this.enrollmentMessage = '';
+                try {
+                    const res = await fetch(`/api/classes/student/${encodeURIComponent(student_id)}/enroll`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ class_code })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.detail || 'Unable to enroll in class.');
+
+                    this.classCode = '';
+                    this.enrollmentMessage = `Enrolled in ${data.subject}.`;
+                    await this.fetchClasses();
+                    this.kpis.enrolled_classes = this.classes.length;
+                    setTimeout(() => { this.enrollmentModal = false; this.enrollmentMessage = ''; }, 700);
+                } catch (err) {
+                    this.enrollmentMessage = err.message;
+                } finally {
+                    this.enrolling = false;
                 }
             }
         };

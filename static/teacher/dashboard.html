@@ -186,24 +186,14 @@
                                 <th>Submitted</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody x-show="Number(nums.classes_count || 0) > 0">
                             <tr>
-                                <td>Juan Dela Cruz</td>
-                                <td>Capstone 3B</td>
-                                <td>Chapter 1 Draft</td>
-                                <td>Oct 24, 2026</td>
+                                <td colspan="4" class="lms-empty">No recent submissions yet.</td>
                             </tr>
+                        </tbody>
+                        <tbody x-show="Number(nums.classes_count || 0) === 0">
                             <tr>
-                                <td>Maria Santos</td>
-                                <td>Capstone 3B</td>
-                                <td>Problem Statement</td>
-                                <td>Oct 10, 2026</td>
-                            </tr>
-                            <tr>
-                                <td>Carlo Reyes</td>
-                                <td>Web Dev 3B</td>
-                                <td>Project Proposal</td>
-                                <td>Oct 20, 2026</td>
+                                <td colspan="4" class="lms-empty">No class created yet.</td>
                             </tr>
                         </tbody>
                     </table>
