@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <link rel="stylesheet" href="../css/lms.css?v=grading-selection-20260915">
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -53,7 +53,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn-active" href="grading.html"><svg class="sidebar-icon" fill="none"
+                <li><a class="sidebar-btn-active" href="grading.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
@@ -284,6 +284,7 @@
                     <div class="lms-grid lms-modal-body">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
                         <select class="lms-select" x-model="selectedClassId" @change="prepareClassSelection()" aria-label="Class" x-ref="classSelect">
+                            <option value="">Select a class</option>
                             <template x-for="classItem in classes" :key="classItem.class_id">
                                 <option :value="String(classItem.class_id)" x-text="classItem.subject"></option>
                             </template>
@@ -358,10 +359,19 @@
                 editMode: { attendance: false, activity: false, quiz: false },
                 openSelector(scope) { this.modal = 'classSelector'; this.$nextTick(() => { if (scope === 'section') { this.$refs.sectionSelect?.focus(); } else { this.$refs.classSelect?.focus(); } }); },
                 async init() {
+                    const freshNavigation = sessionStorage.getItem('gradingFresh') === '1';
+                    sessionStorage.removeItem('gradingFresh');
                     const params = new URLSearchParams(window.location.search);
-                    this.selectedClassId = params.get('class_id') || '';
-                    this.selectedSection = params.get('section') || '';
-                    this.selectedTerm = this.periods.includes(params.get('grading_period')) ? params.get('grading_period') : 'Midterm';
+                    if (freshNavigation) {
+                        this.selectedClassId = '';
+                        this.selectedSection = '';
+                        this.selectedTerm = 'Midterm';
+                        window.history.replaceState({}, '', window.location.pathname);
+                    } else {
+                        this.selectedClassId = params.get('class_id') || '';
+                        this.selectedSection = params.get('section') || '';
+                        this.selectedTerm = this.periods.includes(params.get('grading_period')) ? params.get('grading_period') : 'Midterm';
+                    }
                     await this.loadClasses();
                     const selectedClass = this.classes.find(classItem => String(classItem.class_id) === String(this.selectedClassId));
                     if (!this.selectedSection && selectedClass?.sections?.length) {
@@ -371,10 +381,10 @@
                         await this.loadSheet();
                         this.hasOpenedGrading = true;
                         this.modal = null;
-                    } else if (this.classes.length) {
-                        this.selectedClassId = String(this.classes[0].class_id);
-                        this.selectedSection = this.classes[0].sections?.[0] || '';
-                        await this.loadSheet();
+                    } else {
+                        this.selectedClass = '';
+                        this.selectedSection = '';
+                        this.sections = [];
                         this.modal = 'classSelector';
                     }
                 },
