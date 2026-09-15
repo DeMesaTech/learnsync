@@ -47,6 +47,12 @@ class AdminAccountResponse(BaseModel):
     idNumber: Optional[str] = None
 
 
+class AdminAccountUpdate(BaseModel):
+    name: str
+    email: EmailStr
+    idNumber: Optional[str] = None
+
+
 class AdminResendResponse(BaseModel):
     message: str
     email: str

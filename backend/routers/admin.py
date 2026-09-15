@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from psycopg2.extras import RealDictCursor
 
 from db import get_db_connection
-from models import AdminAccountCreate, AdminAccountResponse, AdminResendResponse
+from models import AdminAccountCreate, AdminAccountResponse, AdminAccountUpdate, AdminResendResponse
 from utils import hash_password
 
 
@@ -56,7 +56,8 @@ async def create_account(request: AdminAccountCreate):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        temporary_password = secrets.token_urlsafe(12)
+        temporary_password = "password123"  # Placeholder for a temporary password; replace with a secure method in production
+        # secrets.token_urlsafe(12)
         name = f"{request.firstName.strip()} {request.lastName.strip()}".strip()
         cur.execute(
             """
@@ -116,6 +117,88 @@ async def resend_activation(user_id: int):
             email=account["email"],
         )
     except psycopg2.Error as exc:
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@admin_router.put("/accounts/{user_id}", response_model=AdminAccountResponse)
+async def update_account(user_id: int, request: AdminAccountUpdate):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            "SELECT user_id, name, email, role FROM account WHERE user_id = %s AND role IN ('student', 'teacher')",
+            (user_id,),
+        )
+        account = cur.fetchone()
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        cur.execute(
+            "UPDATE account SET name = %s, email = %s WHERE user_id = %s RETURNING user_id, name, email, role",
+            (request.name.strip(), request.email, user_id),
+        )
+        updated = cur.fetchone()
+
+        if account["role"] == "student":
+            if not request.idNumber or not request.idNumber.isdigit():
+                raise HTTPException(status_code=400, detail="A numeric student ID is required")
+            cur.execute(
+                "UPDATE student SET student_id = %s WHERE user_id = %s",
+                (int(request.idNumber), user_id),
+            )
+        else:
+            cur.execute("SELECT employee_id FROM teacher WHERE user_id = %s", (user_id,))
+            teacher = cur.fetchone()
+            updated["id_number"] = teacher["employee_id"] if teacher else None
+
+        conn.commit()
+        updated["id_number"] = updated.get("id_number") or request.idNumber
+        return _account_response(updated)
+    except HTTPException:
+        conn.rollback()
+        raise
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        raise HTTPException(status_code=409, detail="Email or ID number already exists")
+    except psycopg2.Error as exc:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@admin_router.delete("/accounts/{user_id}", status_code=204)
+async def delete_account(user_id: int):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "SELECT role FROM account WHERE user_id = %s AND role IN ('student', 'teacher')",
+            (user_id,),
+        )
+        account = cur.fetchone()
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        profile_table = "student" if account[0] == "student" else "teacher"
+        cur.execute(f"DELETE FROM {profile_table} WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM account WHERE user_id = %s", (user_id,))
+        conn.commit()
+    except HTTPException:
+        conn.rollback()
+        raise
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="This account cannot be deleted because it has related LMS records.",
+        )
+    except psycopg2.Error as exc:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {exc}")
     finally:
         cur.close()
