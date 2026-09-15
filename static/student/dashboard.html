@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css?v=student-enrollment-20260915">
+    <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -210,13 +210,15 @@
                             </svg>
                         </button>
                     </div>
-                    <p class="lms-meta">Enter the class code provided by your teacher.</p>
-                    <input class="lms-input" type="text" placeholder="Class code" x-model="classCode"
-                        @keydown.enter="enrollWithCode()" :disabled="enrolling" autofocus>
-                    <p x-show="enrollmentMessage" class="lms-meta" x-text="enrollmentMessage"></p>
-                    <button class="lms-btn" type="button" @click="enrollWithCode()" :disabled="enrolling">
-                        <span x-text="enrolling ? 'Enrolling...' : 'Enroll'"></span>
-                    </button>
+                    <div class="lms-modal-body">
+                        <p class="lms-meta m-0">Enter the class code provided by your teacher.</p>
+                        <input class="lms-input" type="text" placeholder="Class code" x-model="classCode"
+                            @keydown.enter="enrollWithCode()" :disabled="enrolling" autofocus>
+                        <p x-show="enrollmentMessage" class="lms-meta m-0" x-text="enrollmentMessage"></p>
+                        <button class="lms-btn" type="button" @click="enrollWithCode()" :disabled="enrolling">
+                            <span x-text="enrolling ? 'Enrolling...' : 'Enroll'"></span>
+                        </button>
+                    </div>
                 </section>
             </div>
         </main>

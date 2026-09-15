@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -267,7 +267,7 @@
         <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity
             @click.self="modal = null"
             @keydown.escape.window="modal = null">
-            <section class="lms-modal" role="dialog" aria-modal="true">
+            <section class="lms-modal lms-modal-grading" role="dialog" aria-modal="true">
                 <div class="lms-modal-head">
                     <h3 x-show="modal === 'classSelector'">Select Class and Section</h3>
                     <h3 x-show="modal === 'addAttendance'">Add Attendance Record</h3>
@@ -281,7 +281,7 @@
                 </div>
 
                 <template x-if="modal === 'classSelector'">
-                    <div class="lms-grid">
+                    <div class="lms-grid lms-modal-body">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
                         <select class="lms-select" x-model="selectedClassId" @change="prepareClassSelection()" aria-label="Class" x-ref="classSelect">
                             <template x-for="classItem in classes" :key="classItem.class_id">
@@ -298,7 +298,7 @@
                 </template>
 
                 <template x-if="modal === 'addAttendance'">
-                    <div class="lms-grid">
+                    <div class="lms-grid lms-modal-body">
                         <input class="lms-input" placeholder="Attendance column label">
                         <input class="lms-input" type="number" min="1" placeholder="Total items">
                         <input class="lms-input" type="date" aria-label="Attendance date">
@@ -308,7 +308,7 @@
                 </template>
 
                 <template x-if="modal === 'addActivity'">
-                    <div class="lms-grid">
+                    <div class="lms-grid lms-modal-body">
                         <input class="lms-input" placeholder="Activity column label">
                         <div class="lms-grid lms-grid-2">
                             <input class="lms-input" type="number" min="1" placeholder="Total items">
@@ -320,7 +320,7 @@
                 </template>
 
                 <template x-if="modal === 'addQuiz'">
-                    <div class="lms-grid">
+                    <div class="lms-grid lms-modal-body">
                         <input class="lms-input" placeholder="Quiz column label">
                         <div class="lms-grid lms-grid-2">
                             <input class="lms-input" type="number" min="1" placeholder="Total items">
