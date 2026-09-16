@@ -16,13 +16,15 @@ body.lms-shell {
     min-height: 100vh;
     color: var(--brand-text);
     background:
-        linear-gradient(180deg, rgb(66 146 203 / 0.94), rgb(16 92 139 / 0.98));
+    radial-gradient(circle at 88% 0%, rgb(214 236 244 / 0.72), transparent 28rem),
+    linear-gradient(180deg, #f6fafb 0%, #eaf2f5 100%);
 }
 
 .lms-page {
     width: 100%;
     min-width: 0;
-    padding: clamp(1rem, 2.4vw, 2rem);
+    max-width: 1500px;
+    padding: clamp(1.25rem, 2.4vw, 2.25rem);
 }
 
 .lms-hero {
@@ -34,18 +36,22 @@ body.lms-shell {
 
 .lms-title {
     margin: 0;
-    color: white;
+    color: var(--brand-blue-dark);
     font-size: clamp(1.75rem, 3vw, 2.35rem);
     line-height: 1.12;
     font-weight: 800;
     letter-spacing: 0;
-    text-shadow: 0 3px 14px rgb(12 70 107 / 0.28);
+}
+
+.student-shell.lms-shell main .lms-title {
+    color: var(--brand-blue-dark) !important;
+    text-shadow: none;
 }
 
 .lms-subtitle {
     max-width: 68rem;
     margin: 0.45rem 0 0;
-    color: rgb(238 247 252 / 0.88);
+    color: var(--brand-muted);
     line-height: 1.65;
 }
 
@@ -62,10 +68,10 @@ body.lms-shell {
     justify-content: center;
     gap: 0.5rem;
     padding: 0.65rem 0.95rem;
-    border: 1px solid rgb(255 255 255 / 0.24);
+    border: 1px solid var(--brand-blue-dark);
     border-radius: 8px;
     color: white;
-    background: rgb(11 62 104 / 0.68);
+    background: var(--brand-blue-dark);
     font-weight: 700;
     text-decoration: none;
     transition: transform 150ms ease, background-color 150ms ease;
@@ -82,7 +88,8 @@ body.lms-shell {
 
 .lms-btn-secondary {
     color: var(--brand-blue-dark);
-    background: rgb(255 255 255 / 0.92);
+    border-color: var(--brand-line);
+    background: white;
 }
 
 .lms-btn-danger {
@@ -109,7 +116,7 @@ body.lms-shell {
 
 .lms-section-title {
     margin: 0;
-    color: white;
+    color: var(--brand-blue-dark);
     font-size: 1.2rem;
     font-weight: 800;
 }
@@ -123,7 +130,7 @@ body.lms-shell {
 .lms-panel,
 .lms-card,
 .lms-table-card {
-    border: 1px solid rgb(255 255 255 / 0.72);
+    border: 1px solid #d5e4ea;
     border-radius: 8px;
     background: var(--panel);
     box-shadow: var(--shadow);
@@ -132,6 +139,13 @@ body.lms-shell {
 .lms-panel,
 .lms-card {
     padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.lms-card,
+.lms-panel,
+.lms-table-card,
+.lms-kpi {
+    box-shadow: 0 10px 28px rgb(20 62 82 / 0.08);
 }
 
 .lms-panel {
@@ -439,7 +453,7 @@ textarea.lms-input {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
     padding: 0.35rem;
-    border: 1px solid rgb(255 255 255 / 0.72);
+    border: 1px solid var(--brand-line);
     border-radius: 8px;
     background: rgb(255 255 255 / 0.86);
     box-shadow: var(--shadow);
@@ -712,6 +726,7 @@ textarea.lms-input {
     .lms-page {
         margin-left: 16rem;
         padding-top: 1.5rem;
+        margin-right: auto;
     }
 
     .lms-hero {
@@ -732,6 +747,13 @@ textarea.lms-input {
 
     .lms-toolbar {
         grid-template-columns: minmax(0, 1fr) minmax(11rem, 14rem);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+    .lms-grid-3,
+    .lms-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

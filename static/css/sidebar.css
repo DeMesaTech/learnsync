@@ -12,11 +12,10 @@
     z-index: 50;
     width: 16rem;
     height: 100vh;
-    padding: 1rem 0.875rem;
+    padding: 1rem 0.75rem;
     overflow: hidden;
     color: white;
-    background:
-        linear-gradient(180deg, rgb(12 70 107 / 0.96), rgb(18 109 163 / 0.96));
+    background: linear-gradient(180deg, #092f4e, #0c5682 72%, #0e6d9d);
     border-right: 1px solid rgb(255 255 255 / 0.18);
     box-shadow: 12px 0 30px rgb(12 70 107 / 0.14);
     transform: translateX(-100%);
@@ -38,7 +37,7 @@
 }
 
 .sidebar-list > * + * {
-    margin-top: 0.25rem;
+    margin-top: 0.35rem;
 }
 
 .sidebar-logo {
@@ -46,8 +45,8 @@
     align-items: center;
     gap: 0.75rem;
     justify-content: flex-start;
-    padding: 0.25rem 0.5rem 1rem;
-    margin-bottom: 1rem;
+    padding: 0.25rem 0.6rem 1.1rem;
+    margin-bottom: 1.1rem;
     border-bottom: 1px solid rgb(255 255 255 / 0.22);
 }
 
