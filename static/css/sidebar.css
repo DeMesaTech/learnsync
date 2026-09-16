@@ -15,7 +15,8 @@
     padding: 1rem 0.75rem;
     overflow: hidden;
     color: white;
-    background: linear-gradient(180deg, #092f4e, #0c5682 72%, #0e6d9d);
+    background:
+        linear-gradient(180deg, rgb(12 70 107 / 0.96), rgb(18 109 163 / 0.96));
     border-right: 1px solid rgb(255 255 255 / 0.18);
     box-shadow: 12px 0 30px rgb(12 70 107 / 0.14);
     transform: translateX(-100%);

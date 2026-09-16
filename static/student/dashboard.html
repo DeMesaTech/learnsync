@@ -98,9 +98,9 @@
         <main class="lms-page">
             <section class="lms-hero">
                 <div>
-                    <h2 class="lms-title">Student Dashboard</h2>
-                    <p class="lms-subtitle">Your enrolled classes, learning modules, activities, quizzes, submissions,
-                        and AI study support.</p>
+                    <h2 class="lms-title">Your Learning Space</h2>
+                    <p class="lms-subtitle">Keep your classes, coursework, deadlines, and study support in one clear
+                        view.</p>
                 </div>
                 <div class="lms-actions">
                     <a class="lms-btn lms-btn-secondary" href="To-Do.html">Open Tasks</a>
@@ -114,7 +114,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20h5V11H2v9h5m5 0h4M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
                         </svg></span>
-                    <strong x-text="kpis.enrolled_classes"></strong>
+                    <div class="flex items-center justify-between gap-2">
+                        <strong x-text="kpis.enrolled_classes"></strong>
+                        <button class="lms-icon-btn" type="button" aria-label="Enroll in a class"
+                            title="Enroll in a class" @click="enrollmentModal = true; enrollmentMessage = ''">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 5v14M5 12h14" />
+                            </svg>
+                        </button>
+                    </div>
                     <span>Enrolled Classes</span>
                 </div>
                 <div class="lms-kpi"><span class="lms-kpi-icon lms-kpi-icon-solid"><svg fill="none" viewBox="0 0 24 24"
@@ -154,13 +163,13 @@
                         <h3 class="mt-3" x-text="cls.subject"></h3>
                         <p x-text="'Section ' + cls.section + ' with Prof. ' + cls.teacher_name"></p>
                     </a>
-            </template>
-            <!-- Classes Section -->
+                </template>
+                <!-- Classes Section -->
             </section>
-            
+
             <section class="lms-grid lms-grid-2 mt-4">
                 <div class="lms-panel">
-                    <h3>Learning Flow</h3>
+                    <h3>Your Learning Flow</h3>
                     <ul class="lms-list">
                         <li><strong>Modules</strong>
                             <p class="m-0">Teacher-uploaded files and module content chunks for lessons and AI context.
@@ -175,7 +184,7 @@
                     </ul>
                 </div>
                 <div class="lms-panel">
-                    <h3>Recent AI Queries</h3>
+                    <h3>Study With AI</h3>
                     <ul class="lms-list">
                         <li><strong>Summarize Chapter 1 objectives</strong>
                             <p class="m-0">Linked to Research Problem module. Query saved Oct 20, 2026.</p>
@@ -190,12 +199,7 @@
                 </div>
             </section>
 
-            <button class="lms-icon-btn lms-floating-action" type="button" aria-label="Enroll in a class"
-                title="Enroll in a class" @click="enrollmentModal = true; enrollmentMessage = ''">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
-                </svg>
-            </button>
+
 
             <div class="lms-modal-backdrop" x-cloak x-show="enrollmentModal" x-transition.opacity
                 @click.self="enrollmentModal = false" @keydown.escape.window="enrollmentModal = false">
