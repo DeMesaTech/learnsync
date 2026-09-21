@@ -676,37 +676,23 @@ async def post_Announcement(class_id: int, request: AnnouncementCreate):
 # ===========================================================
 #DELETE Announcement
 @subject_router.delete("/announcement/{announcement_id}")
-async def delete_announcement(class_id: int, announcement_id: int):
+async def delete_announcement(announcement_id: int):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # 1. Does the announcement exist?
-        # SELECT ...
-        cursor.execute(
-            """
-            SELECT employee_id
-            FROM class
-            WHERE class_id = %s
-            """,
-            (class_id,)
-        )
-        row = cursor.fetchone()
-        # if not found:
-        #     raise HTTPException(...)
-
-        # 2. Delete from announcement_section
-        # DELETE ...
-
-        # 3. Delete from announcement
-        # DELETE ...
-
-        # 4. Commit
+        cursor.execute("DELETE FROM announcement_section WHERE announcement_id = %s", (announcement_id,))
+        cursor.execute("DELETE FROM announcement WHERE announcement_id = %s RETURNING announcement_id", (announcement_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Announcement not found")
         conn.commit()
         return {
-            "message": "...",
+            "message": "Announcement deleted",
             "announcement_id": announcement_id
         }
+    except HTTPException:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(
@@ -717,6 +703,91 @@ async def delete_announcement(class_id: int, announcement_id: int):
         cursor.close()
         conn.close()
 # ===========================================================
+# Management endpoints used by the teacher subject modal
+@subject_router.put("/announcement/{announcement_id}")
+async def update_announcement(announcement_id: int, request: AnnouncementCreate):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE announcement SET title = %s, message = %s, status = %s WHERE announcement_id = %s RETURNING class_id", (request.title, request.message, request.status, announcement_id))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Announcement not found")
+        cursor.execute("DELETE FROM announcement_section WHERE announcement_id = %s", (announcement_id,))
+        for section_code in request.sections:
+            cursor.execute("SELECT section_id FROM section WHERE section = %s AND class_id = %s", (section_code, row[0]))
+            section = cursor.fetchone()
+            if not section:
+                raise HTTPException(status_code=404, detail=f"Section {section_code} not found")
+            cursor.execute("INSERT INTO announcement_section (announcement_id, section_id) VALUES (%s, %s)", (announcement_id, section[0]))
+        conn.commit()
+        return {"announcement_id": announcement_id}
+    except HTTPException:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+@subject_router.put("/module/{module_id}")
+async def update_module(module_id: int, payload: dict = Body(...)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE module SET title = %s, summary = %s WHERE module_id = %s RETURNING module_id", (payload.get("title"), payload.get("summary", ""), module_id))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Module not found")
+        conn.commit()
+        return {"module_id": module_id}
+    finally:
+        cursor.close()
+        conn.close()
+
+@subject_router.delete("/module/{module_id}")
+async def delete_module(module_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM module_sections WHERE module_id = %s", (module_id,))
+        cursor.execute("DELETE FROM module_content WHERE module_id = %s", (module_id,))
+        cursor.execute("DELETE FROM module WHERE module_id = %s RETURNING module_id", (module_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Module not found")
+        conn.commit()
+        return {"module_id": module_id}
+    finally:
+        cursor.close()
+        conn.close()
+
+@subject_router.put("/activity/{activity_id}")
+async def update_activity(activity_id: int, payload: dict = Body(...)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE activity SET title = %s, description = %s, due_date = %s, points = %s WHERE activity_id = %s RETURNING activity_id", (payload.get("title"), payload.get("description", ""), payload.get("due_date") or None, payload.get("points", 0), activity_id))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Activity not found")
+        conn.commit()
+        return {"activity_id": activity_id}
+    finally:
+        cursor.close()
+        conn.close()
+
+@subject_router.delete("/activity/{activity_id}")
+async def delete_activity(activity_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM activity_sections WHERE activity_id = %s", (activity_id,))
+        cursor.execute("DELETE FROM activity WHERE activity_id = %s RETURNING activity_id", (activity_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Activity not found")
+        conn.commit()
+        return {"activity_id": activity_id}
+    finally:
+        cursor.close()
+        conn.close()
+
 # LOAD TEACHER Announcements
 @subject_router.get("/{class_id}/teacher/announcement")
 async def load_Announcements(class_id: int):

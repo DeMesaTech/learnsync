@@ -517,6 +517,15 @@ textarea.lms-input {
     gap: 0.5rem;
 }
 
+.lms-task-top h3 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.lms-task-top .lms-inline-actions {
+    margin-left: auto;
+}
+
 .lms-task-title {
     margin: 0;
     color: var(--brand-blue-dark);

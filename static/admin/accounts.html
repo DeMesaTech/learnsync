@@ -18,7 +18,7 @@
     <header class="app-header"><button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg
                 class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
-            </svg></button><img src="../img/GMVCC.jfif" alt="GMVCC logo" class="header-logo">
+            </svg></button><img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo">
         <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor
                 Mariano E. Villafuerte Community College</span></h1><button class="header-icon-btn"
             aria-label="Notifications"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
@@ -84,7 +84,24 @@
                                 <td x-text="account.email"></td>
                                 <td><span class="admin-badge" :class="account.status" x-text="account.status"></span>
                                 </td>
-                                <td><div class="admin-row-actions"><button class="admin-icon-btn" type="button" title="Edit account" aria-label="Edit account" @click="openEditModal(account)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m16.862 3.487 3.651 3.651M4 20l4.2-.9L19.1 8.2a2.6 2.6 0 0 0-3.7-3.7L4.5 15.4 4 20Z"/></svg></button><button class="admin-icon-btn admin-icon-btn-danger" type="button" title="Delete account" aria-label="Delete account" @click="deleteAccount(account)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-9 0 1 13h8l1-13"/></svg></button><button class="admin-icon-btn" type="button" title="Resend activation email" aria-label="Resend activation email" @click="resend(account)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5 12 14l9-5.5M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Zm12-14V3H7v2"/></svg></button></div></td>
+                                <td>
+                                    <div class="admin-row-actions"><button class="admin-icon-btn" type="button" title="Edit account"
+                                            aria-label="Edit account" @click="openEditModal(account)"><svg viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" aria-hidden="true">
+                                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m16.862 3.487 3.651 3.651M4 20l4.2-.9L19.1 8.2a2.6 2.6 0 0 0-3.7-3.7L4.5 15.4 4 20Z" />
+                                            </svg></button><button class="admin-icon-btn admin-icon-btn-danger" type="button" title="Delete account"
+                                            aria-label="Delete account" @click="deleteAccount(account)"><svg viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" aria-hidden="true">
+                                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-9 0 1 13h8l1-13" />
+                                            </svg></button><button class="admin-icon-btn" type="button" title="Resend activation email"
+                                            aria-label="Resend activation email" @click="resend(account)"><svg viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" aria-hidden="true">
+                                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M3 8.5 12 14l9-5.5M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Zm12-14V3H7v2" />
+                                            </svg></button></div>
+                                </td>
                             </tr>
                         </template>
                         <tr x-show="filteredAccounts.length === 0">

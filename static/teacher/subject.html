@@ -256,7 +256,7 @@
                                         </a>
                                         <span class="lms-inline-actions mt-2">
                                             <button class="lms-btn lms-btn-small" type="button"
-                                                @click.prevent="openManagement('module', module.title)">
+                                                @click.prevent="openManagement('module', module)">
                                                 Manage
                                             </button>
                                         </span>
@@ -293,7 +293,7 @@
                                         </template>
                                         <span class="lms-inline-actions mt-2">
                                             <button class="lms-btn lms-btn-small" type="button"
-                                                @click.prevent="openManagement('activity', activity.title)">
+                                                @click.prevent="openManagement('activity', activity)">
                                                 Manage
                                             </button>
                                             <a class="lms-btn lms-btn-small"
@@ -679,7 +679,7 @@
                             <textarea class="lms-input" rows="5" placeholder="Detailed announcement message"
                                 x-ref="announcementMessage"></textarea>
                             <div class="lms-grid lms-grid-2">
-                                <select class="lms-select" x-model="selectedStatus">
+                                <select class="lms-select" x-model="selectedAnnouncement.status">
                                     <template x-for="status in activityStatuses" :key="status">
                                         <option :value="status" x-text="'Status: ' + status"></option>
                                     </template>
@@ -710,12 +710,12 @@
                                 </select>
                             </div>
                             <template x-for="section in sections" :key="section">
-                                <label class="lms-choice"><input type="checkbox" :x-ref="'moduleSection' + section"
-                                        checked><span x-text="'Section' + section"></span></label>
+                                <label class="lms-choice"><input type="checkbox" :value="section"
+                                        x-model="selectedAnnouncement.sections"><span x-text="'Section ' + section"></span></label>
                             </template>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn" type="button">Save Announcement</button>
-                                <button class="lms-btn lms-btn-danger" type="button">Delete Announcement</button>
+                                <button class="lms-btn" type="button" @click="saveAnnouncement()">Save Announcement</button>
+                                <button class="lms-btn lms-btn-danger" type="button" @click="delete_announcement()">Delete Announcement</button>
                             </div>
                         </div>
                     </template>
@@ -723,10 +723,10 @@
                     <template x-if="modal === 'manageModule'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
-                            <input class="lms-input" placeholder="Module title" :value="selectedManagement.title">
-                            <input class="lms-input" placeholder="Replace file path or attachment">
+                            <input class="lms-input" placeholder="Module title" x-model="selectedManagement.title">
+                            <input class="lms-input" placeholder="Replace file path or attachment" x-model="selectedManagement.file_path">
                             <textarea class="lms-input" rows="4"
-                                placeholder="Update module summary, lesson notes, or teacher remarks"></textarea>
+                                placeholder="Update module summary, lesson notes, or teacher remarks" x-model="selectedManagement.summary"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <select class="lms-select">
                                     <option>Status: Published</option>
@@ -743,8 +743,8 @@
                                 </template>
                             </div>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn" type="button">Save Module</button>
-                                <button class="lms-btn lms-btn-danger" type="button">Delete Module</button>
+                                <button class="lms-btn" type="button" @click="saveManagement('module')">Save Module</button>
+                                <button class="lms-btn lms-btn-danger" type="button" @click="deleteManagement('module')">Delete Module</button>
                             </div>
                         </div>
                     </template>
@@ -752,9 +752,9 @@
                     <template x-if="modal === 'manageActivity'">
                         <div class="lms-grid">
                             <p class="lms-meta m-0" x-text="selectedManagement.title"></p>
-                            <input class="lms-input" placeholder="Activity title" :value="selectedManagement.title">
+                            <input class="lms-input" placeholder="Activity title" x-model="selectedManagement.title">
                             <textarea class="lms-input" rows="4"
-                                placeholder="Revise instructions and submission requirements"></textarea>
+                                placeholder="Revise instructions and submission requirements" x-model="selectedManagement.description"></textarea>
                             <div class="lms-grid lms-grid-2">
                                 <input class="lms-input" type="date" aria-label="Activity deadline">
                                 <input class="lms-input" type="number" min="1" placeholder="Total points">
@@ -775,8 +775,8 @@
                                 </template>
                             </div>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn" type="button">Save Activity</button>
-                                <button class="lms-btn lms-btn-danger" type="button">Delete Activity</button>
+                                <button class="lms-btn" type="button" @click="saveManagement('activity')">Save Activity</button>
+                                <button class="lms-btn lms-btn-danger" type="button" @click="deleteManagement('activity')">Delete Activity</button>
                             </div>
                         </div>
                     </template>
@@ -810,9 +810,9 @@
                                 </template>
                             </div>
                             <div class="lms-inline-actions">
-                                <button class="lms-btn" type="button">Save Quiz</button>
+                                <button class="lms-btn" type="button" @click="editQuiz(selectedManagement.quiz)">Save Quiz</button>
                                 <button class="lms-btn lms-btn-secondary" type="button">Regenerate Draft</button>
-                                <button class="lms-btn lms-btn-danger" type="button">Delete Quiz</button>
+                                <button class="lms-btn lms-btn-danger" type="button" @click="deleteQuiz(selectedManagement.quiz)">Delete Quiz</button>
                             </div>
                         </div>
                     </template>
@@ -1085,12 +1085,20 @@
                 },
 
                 openAnnouncementManagement(announcement) {
-                    this.selectedAnnouncement = announcement || {};
+                    this.selectedAnnouncement = {
+                        ...(announcement || {}),
+                        sections: [...(announcement?.sections || [])]
+                    };
                     this.modal = 'manageAnnouncement';
                 },
 
-                openManagement(type, title, message) {
-                    this.selectedManagement = { type, title, message };
+                openManagement(type, record, message) {
+                    this.selectedManagement = {
+                        ...(record || {}),
+                        type,
+                        title: typeof record === 'string' ? record : record?.title,
+                        message
+                    };
                     this.modal = `manage${type.charAt(0).toUpperCase()}${type.slice(1)}`;
                 },
 
@@ -1597,6 +1605,70 @@
                         await this.loadKPIs();
                     } catch (error) {
                         alert(error.message || 'Unable to delete quiz.');
+                    }
+                },
+
+                async saveAnnouncement() {
+                    const announcement = this.selectedAnnouncement;
+                    if (!announcement?.announcement_id || !announcement.title?.trim() || !announcement.message?.trim()) return;
+                    try {
+                        const response = await fetch(`/api/subjects/announcement/${announcement.announcement_id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: announcement.title.trim(),
+                                message: announcement.message.trim(),
+                                status: announcement.status || 'Published',
+                                sections: announcement.sections || []
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to save announcement.');
+                        this.modal = null;
+                        await this.load_announcement();
+                    } catch (error) {
+                        alert(error.message || 'Unable to save announcement.');
+                    }
+                },
+
+                async saveManagement(type) {
+                    const record = this.selectedManagement;
+                    const id = record?.[`${type}_id`];
+                    if (!id || !record.title?.trim()) return;
+                    const payload = type === 'module'
+                        ? { title: record.title.trim(), summary: record.summary || '' }
+                        : { title: record.title.trim(), description: record.description || '', due_date: record.due_date || null, points: Number(record.points || 0) };
+                    try {
+                        const response = await fetch(`/api/subjects/${type}/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || `Unable to save ${type}.`);
+                        this.modal = null;
+                        if (type === 'module') await this.load_modules();
+                        if (type === 'activity') await this.load_act();
+                        await this.loadKPIs();
+                    } catch (error) {
+                        alert(error.message || `Unable to save ${type}.`);
+                    }
+                },
+
+                async deleteManagement(type) {
+                    const record = this.selectedManagement;
+                    const id = record?.[`${type}_id`];
+                    if (!id || !confirm(`Delete "${record.title}"? This cannot be undone.`)) return;
+                    try {
+                        const response = await fetch(`/api/subjects/${type}/${id}`, { method: 'DELETE' });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || `Unable to delete ${type}.`);
+                        this.modal = null;
+                        if (type === 'module') await this.load_modules();
+                        if (type === 'activity') await this.load_act();
+                        await this.loadKPIs();
+                    } catch (error) {
+                        alert(error.message || `Unable to delete ${type}.`);
                     }
                 },
 

@@ -1,11 +1,13 @@
 """Administrator account management endpoints."""
 import secrets
+import smtplib
 
 import psycopg2
 from fastapi import APIRouter, HTTPException
 from psycopg2.extras import RealDictCursor
 
 from db import get_db_connection
+from mailer import send_account_credentials
 from models import AdminAccountCreate, AdminAccountResponse, AdminAccountUpdate, AdminResendResponse
 from utils import hash_password
 
@@ -56,8 +58,7 @@ async def create_account(request: AdminAccountCreate):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        temporary_password = "password123"  # Placeholder for a temporary password; replace with a secure method in production
-        # secrets.token_urlsafe(12)
+        temporary_password = secrets.token_urlsafe(12)
         name = f"{request.firstName.strip()} {request.lastName.strip()}".strip()
         cur.execute(
             """
@@ -85,6 +86,11 @@ async def create_account(request: AdminAccountCreate):
 
         conn.commit()
         account["id_number"] = account.get("id_number") or request.idNumber
+        if request.sendEmail:
+            try:
+                send_account_credentials(request.email, name, temporary_password)
+            except (OSError, RuntimeError, smtplib.SMTPException) as exc:
+                raise HTTPException(status_code=502, detail=f"Account created, but email could not be sent: {exc}")
         return _account_response(account)
     except HTTPException:
         conn.rollback()
@@ -103,17 +109,27 @@ async def create_account(request: AdminAccountCreate):
 @admin_router.post("/accounts/{user_id}/resend", response_model=AdminResendResponse)
 async def resend_activation(user_id: int):
     conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            "SELECT email FROM account WHERE user_id = %s AND role IN ('student', 'teacher')",
+            "SELECT user_id, name, email FROM account WHERE user_id = %s AND role IN ('student', 'teacher')",
             (user_id,),
         )
         account = cur.fetchone()
         if not account:
             raise HTTPException(status_code=404, detail="Account not found")
+        temporary_password = secrets.token_urlsafe(12)
+        try:
+            send_account_credentials(account["email"], account["name"], temporary_password)
+        except (OSError, RuntimeError, smtplib.SMTPException) as exc:
+            raise HTTPException(status_code=502, detail=f"Email could not be sent; password was not changed: {exc}")
+        cur.execute(
+            "UPDATE account SET password = %s WHERE user_id = %s",
+            (hash_password(temporary_password), user_id),
+        )
+        conn.commit()
         return AdminResendResponse(
-            message="Activation email queued; configure a mail provider to deliver it.",
+            message="Account credentials sent by email.",
             email=account["email"],
         )
     except psycopg2.Error as exc:

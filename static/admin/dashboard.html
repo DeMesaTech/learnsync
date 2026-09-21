@@ -18,7 +18,7 @@
     <header class="app-header"><button @click="open=!open" class="header-menu-btn" aria-label="Open menu"><svg
                 class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
-            </svg></button><img src="../img/GMVCC.jfif" alt="GMVCC logo" class="header-logo">
+            </svg></button><img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo">
         <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor
                 Mariano E. Villafuerte Community College</span></h1><button class="header-icon-btn"
             aria-label="Notifications"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
@@ -100,7 +100,16 @@
                                 </td>
                             </tr>
                         </template>
-                        <tr x-show="accounts.length===0">
+                        <tr x-show="loading">
+                            <td colspan="4" class="text-center admin-muted">
+                                <span class="inline-flex items-center gap-2" role="status" aria-live="polite">
+                                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-cyan-500"
+                                        aria-hidden="true"></span>
+                                    Loading accounts...
+                                </span>
+                            </td>
+                        </tr>
+                        <tr x-show="!loading && accounts.length===0">
                             <td colspan="4" class="text-center admin-muted">No accounts created yet.</td>
                         </tr>
                     </tbody>
@@ -148,14 +157,19 @@
     <script>
         function adminDashboard() {
             return {
-                accounts: [], error: '', showCreateModal: false, submitting: false, formMessage: '',
+                accounts: [], error: '', loading: true, showCreateModal: false, submitting: false, formMessage: '',
                 form: { role: '', email: '', firstName: '', lastName: '', username: '', idNumber: '', sendEmail: true },
                 async init() {
+                    const loadingTimeout = setTimeout(() => { this.loading = false; }, 20000);
                     try {
                         const response = await fetch('/api/admin/accounts');
                         if (!response.ok) throw new Error('Unable to load accounts.');
                         this.accounts = await response.json();
                     } catch (error) { this.error = error.message; }
+                    finally {
+                        clearTimeout(loadingTimeout);
+                        this.loading = false;
+                    }
                 },
                 get counts() {
                     return {

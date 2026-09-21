@@ -76,9 +76,19 @@
                                 <label for="loginPassword"
                                     class="block text-xs font-medium text-slate-300">Password</label>
                                 <!-- Password input field with Alpine.js model binding and validation -->
-                                <input type="password" id="loginPassword" x-model="login.password"
-                                    placeholder="Enter your password" required
-                                    class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                                <div class="relative" style="position: relative;">
+                                    <input :type="showPassword ? 'text' : 'password'" id="loginPassword"
+                                        x-model="login.password" placeholder="Enter your password" required
+                                        class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 pr-12 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                                    <button type="button" @click="showPassword = !showPassword"
+                                        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                                        :aria-pressed="showPassword"
+                                        class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500/40"
+                                        style="position: absolute; top: 0; right: 20px; height: 100%;">
+                                        <i :class="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"
+                                            aria-hidden="true"></i>
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" id="loginBtn" :disabled="!login.isValid"
                                 class="w-full rounded-2xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-700">Log
@@ -96,6 +106,7 @@
         function authApp() {
             return {
                 page: 'login',
+                showPassword: false,
                 // ============= LOGIN DATA x-model(login.email, login.password) =============
                 login: {
                     email: '',
