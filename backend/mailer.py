@@ -8,9 +8,9 @@ def send_account_credentials(to_email: str, recipient_name: str, password: str) 
     """Send a newly generated password through the configured SMTP account."""
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_username = os.getenv("SMTP_USERNAME")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    mail_from = os.getenv("MAIL_FROM", smtp_username or "")
+    smtp_username = (os.getenv("SMTP_USERNAME") or "").strip()
+    smtp_password = (os.getenv("SMTP_PASSWORD") or "").replace(" ", "").replace("\t", "").strip()
+    mail_from = (os.getenv("MAIL_FROM", smtp_username or "") or "").strip()
 
     if not smtp_username or not smtp_password or not mail_from:
         raise RuntimeError("SMTP_USERNAME, SMTP_PASSWORD, and MAIL_FROM must be configured")
