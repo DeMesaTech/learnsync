@@ -52,7 +52,7 @@ body.student-shell {
 .student-shell article > h2,
 .student-shell main h2:first-child {
     margin: 0;
-    color: white !important;
+    color: rgb(18, 18, 18) !important;
     font-size: clamp(1.65rem, 3vw, 2.35rem) !important;
     line-height: 1.12 !important;
     font-weight: 800 !important;
