@@ -33,7 +33,7 @@
 
 .admin-actions {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: .65rem;
 }
 
