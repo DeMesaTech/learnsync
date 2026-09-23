@@ -25,6 +25,56 @@ body {
     margin: 0;
 }
 
+body.lms-shell > div[class*="pt-20"] {
+    padding-top: 3.825rem !important;
+}
+
+.file-transfer-progress {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    z-index: 100;
+    width: min(28rem, calc(100vw - 2rem));
+    padding: 0.55rem 0.75rem 0.65rem;
+    color: var(--gmvcc-navy);
+    background: rgb(255 255 255 / 0.96);
+    border: 1px solid var(--gmvcc-line);
+    border-top: 0;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 22px rgb(12 70 107 / 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.file-transfer-progress.is-active {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.file-transfer-progress-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.file-transfer-progress-track {
+    height: 0.35rem;
+    overflow: hidden;
+    background: var(--gmvcc-blue-100);
+    border-radius: 9999px;
+}
+
+.file-transfer-progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--gmvcc-blue-700);
+    border-radius: inherit;
+    transition: width 120ms ease;
+}
+
 body.student-shell,
 body.login-shell,
 body.ai-shell {
@@ -50,16 +100,16 @@ body.student-shell {
 }
 
 .student-shell article > h2,
-.student-shell main h2:first-child {
+.student-shell main h2:fi   rst-child {
     margin: 0;
-    color: rgb(18, 18, 18) !important;
+    color: rgb(238 247 252 / .86) !important;
     font-size: clamp(1.65rem, 3vw, 2.35rem) !important;
     line-height: 1.12 !important;
     font-weight: 800 !important;
     text-shadow: 0 3px 14px rgb(12 70 107 / 0.28);
 }
 
-.student-shell h3 {
+.student-shell h3 { 
     color: var(--gmvcc-navy) !important;
 }
 

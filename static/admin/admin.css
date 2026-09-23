@@ -2,13 +2,13 @@
     min-height: 100vh;
     width: 100%;
     min-width: 0;
-    padding: 6.25rem 2rem 2rem;
+    padding: 5.625rem 2rem 2rem;
 }
 
 @media (min-width: 768px) {
     .admin-page {
-        width: calc(100% - 16rem);
-        margin-left: 16rem;
+        width: calc(100% - 14.4rem);
+        margin-left: 14.4rem;
     }
 }
 

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <script src="../js/file-transfer.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -291,9 +292,8 @@
                         if (this.filePath) fd.append('file_path', this.filePath);
                         if (this.notes) fd.append('notes', this.notes);
 
-                        const res = await fetch(`/api/submissions/student/${encodeURIComponent(student_id)}/class/${encodeURIComponent(class_id)}/activity/${encodeURIComponent(activity_id)}/submit`, {
-                            method: 'POST',
-                            body: fd
+                        const res = await fileTransfer.upload(`/api/submissions/student/${encodeURIComponent(student_id)}/class/${encodeURIComponent(class_id)}/activity/${encodeURIComponent(activity_id)}/submit`, fd, {
+                            label: 'Uploading submission...'
                         });
 
                         if (!res.ok) {

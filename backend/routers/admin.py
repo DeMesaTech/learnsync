@@ -1,4 +1,5 @@
 """Administrator account management endpoints."""
+
 import secrets
 import smtplib
 
@@ -16,6 +17,7 @@ admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 def _account_response(row):
+    """Convert a database row into the admin account API response model."""
     return AdminAccountResponse(
         user_id=row["user_id"],
         name=row["name"],
@@ -28,6 +30,7 @@ def _account_response(row):
 
 @admin_router.get("/accounts", response_model=list[AdminAccountResponse])
 async def list_accounts():
+    """Return all student and teacher accounts for the admin dashboard."""
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -52,6 +55,7 @@ async def list_accounts():
 
 @admin_router.post("/accounts", response_model=AdminAccountResponse, status_code=201)
 async def create_account(request: AdminAccountCreate):
+    """Create a new student or teacher account and email temporary login details."""
     if request.role not in {"student", "teacher"}:
         raise HTTPException(status_code=400, detail="Role must be student or teacher")
 
@@ -108,6 +112,7 @@ async def create_account(request: AdminAccountCreate):
 
 @admin_router.post("/accounts/{user_id}/resend", response_model=AdminResendResponse)
 async def resend_activation(user_id: int):
+    """Send a fresh temporary password to an existing account owner by email."""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -141,6 +146,7 @@ async def resend_activation(user_id: int):
 
 @admin_router.put("/accounts/{user_id}", response_model=AdminAccountResponse)
 async def update_account(user_id: int, request: AdminAccountUpdate):
+    """Update an existing account's profile details and ID reference information."""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -189,6 +195,7 @@ async def update_account(user_id: int, request: AdminAccountUpdate):
 
 @admin_router.delete("/accounts/{user_id}", status_code=204)
 async def delete_account(user_id: int):
+    """Delete a student or teacher account and the related profile record."""
     conn = get_db_connection()
     cur = conn.cursor()
     try:

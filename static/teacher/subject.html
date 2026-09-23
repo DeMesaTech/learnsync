@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <script src="../js/file-transfer.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -1193,11 +1194,11 @@
                     console.log("JSON:", JSON.stringify(payload));
 
                     try {
-                        const res = await fetch(`/api/subjects/${target.class_id}/enroll`, {
+                        const res = await fileTransfer.request('Enrolling students...', () => fetch(`/api/subjects/${target.class_id}/enroll`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
-                        });
+                        }));
                         if (!res.ok) { const txt = await res.text(); throw new Error(txt); }
                         const data = await res.json();
                         alert(`Enrolled ${data.enrolled} students`);
@@ -1261,9 +1262,8 @@
                             console.log(key, value);
                         }
 
-                        const res = await fetch(`/api/subjects/${target.class_id}/up_module`, {
-                            method: 'POST',
-                            body: formData
+                        const res = await fileTransfer.upload(`/api/subjects/${target.class_id}/up_module`, formData, {
+                            label: 'Uploading module...'
                         });
 
                         console.log('Status:', res.status);
@@ -1373,9 +1373,8 @@
                             console.log(key, value);
                         }
 
-                        const res = await fetch(`/api/subjects/${target.class_id}/up_activity`, {
-                            method: 'POST',
-                            body: formData
+                        const res = await fileTransfer.upload(`/api/subjects/${target.class_id}/up_activity`, formData, {
+                            label: 'Uploading activity...'
                         });
 
                         console.log('Status:', res.status);
@@ -1512,7 +1511,7 @@
                     }
                     this.quizSaving = true;
                     try {
-                        const response = await fetch(this.editingQuizId ? `/api/quizzes/${this.editingQuizId}` : '/api/quizzes', {
+                        const response = await fileTransfer.request('Saving quiz...', () => fetch(this.editingQuizId ? `/api/quizzes/${this.editingQuizId}` : '/api/quizzes', {
                             method: this.editingQuizId ? 'PUT' : 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1526,7 +1525,7 @@
                                 sections: this.quizSections,
                                 questions: this.quizDraft.questions.map((question, index) => ({ ...question, display_order: index + 1 }))
                             })
-                        });
+                        }));
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to save quiz.');
                         this.quizDraft = null;
@@ -1612,7 +1611,7 @@
                     const announcement = this.selectedAnnouncement;
                     if (!announcement?.announcement_id || !announcement.title?.trim() || !announcement.message?.trim()) return;
                     try {
-                        const response = await fetch(`/api/subjects/announcement/${announcement.announcement_id}`, {
+                        const response = await fileTransfer.request('Saving announcement...', () => fetch(`/api/subjects/announcement/${announcement.announcement_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1621,7 +1620,7 @@
                                 status: announcement.status || 'Published',
                                 sections: announcement.sections || []
                             })
-                        });
+                        }));
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to save announcement.');
                         this.modal = null;
@@ -1639,11 +1638,11 @@
                         ? { title: record.title.trim(), summary: record.summary || '' }
                         : { title: record.title.trim(), description: record.description || '', due_date: record.due_date || null, points: Number(record.points || 0) };
                     try {
-                        const response = await fetch(`/api/subjects/${type}/${id}`, {
+                        const response = await fileTransfer.request(`Saving ${type}...`, () => fetch(`/api/subjects/${type}/${id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
-                        });
+                        }));
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || `Unable to save ${type}.`);
                         this.modal = null;
@@ -1719,7 +1718,7 @@
                     }
 
                     try {
-                        const res = await fetch(
+                        const res = await fileTransfer.request('Publishing announcement...', () => fetch(
                             `/api/subjects/${targetClassId}/announcement`,
                             {
                                 method: 'POST',
@@ -1733,7 +1732,7 @@
                                     sections: selectedSections
                                 })
                             }
-                        );
+                        ));
 
                         if (!res.ok) {
                             const txt = await res.text();

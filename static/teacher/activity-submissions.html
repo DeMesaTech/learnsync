@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <script src="../js/file-transfer.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -120,7 +121,7 @@
                                     <template x-for="s in submissions" :key="s.act_submission_id || s.student_id">
                                         <tr class="border-t border-slate-200 align-top transition-colors duration-150"
                                             :class="s.submission_file_path ? 'cursor-pointer hover:bg-blue-50' : ''"
-                                            @click="if (s.submission_file_path) window.open('/' + s.submission_file_path, '_blank')">
+                                            @click="if (s.submission_file_path) fileTransfer.download('/' + s.submission_file_path, window.open('', '_blank'))">
                                             <td class="px-3 py-2">
                                                 <div class="font-semibold" x-text="s.student_name || ('Student ' + s.student_id)"></div>
                                             </td>

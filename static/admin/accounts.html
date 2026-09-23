@@ -47,6 +47,10 @@
             color: #334155;
             margin-bottom: 1rem;
             min-height: 3rem;
+            max-height: min(50vh, 24rem);
+            overflow-y: auto;
+            white-space: pre-wrap;
+            text-align: left;
         }
 
         .admin-sending-dots {
@@ -95,10 +99,14 @@
         }
 
         @keyframes sendDot {
-            0%, 80%, 100% {
+
+            0%,
+            80%,
+            100% {
                 transform: translateY(0);
                 opacity: 0.25;
             }
+
             40% {
                 transform: translateY(-6px);
                 opacity: 1;
@@ -110,6 +118,7 @@
                 opacity: 0;
                 transform: translateY(12px) scale(0.98);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -122,6 +131,7 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css">
     <link rel="stylesheet" href="admin.css">
+    <script src="../js/file-transfer.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm" x-data="{ open: false }">
@@ -148,9 +158,21 @@
                     </svg></div>
                 <div class="sidebar-brand-text"><strong>LearnSync</strong><span>Admin Portal</span></div>
             </div>
-            <li><a class="sidebar-btn" href="dashboard.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" /></svg><span>Dashboard</span></a></li>
-            <li><a class="sidebar-btn-active" href="accounts.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v14H4V5Zm3 4h10M7 13h6M7 16h4" /></svg><span>Manage Accounts</span></a></li>
-            <li><a class="sidebar-btn" href="../index.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
+            <li><a class="sidebar-btn" href="dashboard.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" />
+                    </svg><span>Dashboard</span></a></li>
+            <li><a class="sidebar-btn-active" href="accounts.html"><svg class="sidebar-icon" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 5h16v14H4V5Zm3 4h10M7 13h6M7 16h4" />
+                    </svg><span>Manage Accounts</span></a></li>
+            <li><a class="sidebar-btn" href="../index.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
+                    </svg><span>Logout</span></a></li>
         </ul>
     </nav>
     <main class="admin-page md:ml-64 pt-24" x-data="accountDirectory()">
@@ -159,7 +181,9 @@
                 <h2 class="admin-title">Manage Accounts</h2>
                 <p class="admin-subtitle">Review account access and resend activation instructions.</p>
             </div>
-            <div class="admin-actions"><button class="lms-btn lms-btn-secondary" type="button" @click="openImportModal()">Import Excel</button><button class="lms-btn" type="button" @click="openCreateModal()">Create Account</button></div>
+            <div class="admin-actions"><button class="lms-btn lms-btn-secondary" type="button"
+                    @click="openImportModal()">Import from Files</button><button class="lms-btn" type="button"
+                    @click="openCreateModal()">Create Account</button></div>
         </section>
         <section class="admin-table-card">
             <div class="admin-table-header">
@@ -168,12 +192,14 @@
                     <p class="admin-muted" x-text="filteredAccounts.length + ' account(s) found'"></p>
                 </div>
                 <div class="admin-actions">
-                    <input class="admin-input" style="min-width:220px" type="search" x-model="query" placeholder="Search name or email" aria-label="Search accounts">
+                    <input class="admin-input" style="min-width:220px" type="search" x-model="query"
+                        placeholder="Search name or email" aria-label="Search accounts">
                     <select class="admin-select" style="width:auto" x-model="roleFilter" aria-label="Filter by role">
                         <option value="all">All roles</option>
                         <option value="teacher">Teachers</option>
                         <option value="student">Students</option>
-                    </select></div>
+                    </select>
+                </div>
             </div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
@@ -195,18 +221,21 @@
                                 <td><span class="admin-badge" :class="account.status" x-text="account.status"></span>
                                 </td>
                                 <td>
-                                    <div class="admin-row-actions"><button class="admin-icon-btn" type="button" title="Edit account"
-                                            aria-label="Edit account" @click="openEditModal(account)"><svg viewBox="0 0 24 24" fill="none"
+                                    <div class="admin-row-actions"><button class="admin-icon-btn" type="button"
+                                            title="Edit account" aria-label="Edit account"
+                                            @click="openEditModal(account)"><svg viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" aria-hidden="true">
                                                 <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                                     d="m16.862 3.487 3.651 3.651M4 20l4.2-.9L19.1 8.2a2.6 2.6 0 0 0-3.7-3.7L4.5 15.4 4 20Z" />
-                                            </svg></button><button class="admin-icon-btn admin-icon-btn-danger" type="button" title="Delete account"
-                                            aria-label="Delete account" @click="deleteAccount(account)"><svg viewBox="0 0 24 24" fill="none"
+                                            </svg></button><button class="admin-icon-btn admin-icon-btn-danger"
+                                            type="button" title="Delete account" aria-label="Delete account"
+                                            @click="deleteAccount(account)"><svg viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" aria-hidden="true">
                                                 <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                                     d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-9 0 1 13h8l1-13" />
-                                            </svg></button><button class="admin-icon-btn" type="button" title="Resend activation email"
-                                            aria-label="Resend activation email" @click="resend(account)"><svg viewBox="0 0 24 24" fill="none"
+                                            </svg></button><button class="admin-icon-btn" type="button"
+                                            title="Resend activation email" aria-label="Resend activation email"
+                                            @click="resend(account)"><svg viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" aria-hidden="true">
                                                 <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                                     d="M3 8.5 12 14l9-5.5M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Zm12-14V3H7v2" />
@@ -224,68 +253,110 @@
             <p class="admin-notice m-4">Account emails should contain a one-time activation link. The backend should
                 generate credentials and send them securely.</p>
         </section>
-    <div class="admin-modal-backdrop" x-show="showCreateModal" x-cloak @keydown.escape.window="showCreateModal = false">
-        <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="create-account-title" @click.outside="showCreateModal = false">
-            <div class="admin-modal-header">
-                <div>
-                    <h2 id="create-account-title" class="text-xl font-bold text-black" x-text="editingAccountId ? 'Edit Account' : 'Create Account'"></h2>
-                    <p class="admin-muted">Set up access for a teacher or student.</p>
+        <div class="admin-modal-backdrop" x-show="showCreateModal" x-cloak
+            @keydown.escape.window="showCreateModal = false">
+            <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="create-account-title"
+                @click.outside="showCreateModal = false">
+                <div class="admin-modal-header">
+                    <div>
+                        <h2 id="create-account-title" class="text-xl font-bold text-black"
+                            x-text="editingAccountId ? 'Edit Account' : 'Create Account'"></h2>
+                        <p class="admin-muted">Set up access for a teacher or student.</p>
+                    </div>
+                    <button class="admin-modal-close" type="button" aria-label="Close create account dialog"
+                        @click="showCreateModal = false">&times;</button>
                 </div>
-                <button class="admin-modal-close" type="button" aria-label="Close create account dialog" @click="showCreateModal = false">&times;</button>
-            </div>
-            <div class="admin-notice mb-6">A secure activation email will be queued after the backend creates the account.</div>
-            <form @submit.prevent="submitAccount">
-                <div class="admin-form-grid">
-                    <div class="admin-field"><label class="admin-label" for="modal-role">Account type</label><select class="admin-select" id="modal-role" x-model="form.role" :disabled="editingAccountId" required><option value="">Select account type</option><option value="teacher">Teacher</option><option value="student">Student</option></select></div>
-                    <div class="admin-field"><label class="admin-label" for="modal-email">Email address</label><input class="admin-input" id="modal-email" type="email" x-model="form.email" required></div>
-                    <div class="admin-field"><label class="admin-label" for="modal-first-name">First name</label><input class="admin-input" id="modal-first-name" x-model="form.firstName" required></div>
-                    <div class="admin-field"><label class="admin-label" for="modal-last-name">Last name</label><input class="admin-input" id="modal-last-name" x-model="form.lastName" required></div>
-                    <div class="admin-field"><label class="admin-label" for="modal-username">Username</label><input class="admin-input" id="modal-username" x-model="form.username" required></div>
-                    <div class="admin-field"><label class="admin-label" for="modal-id-number">ID number</label><input class="admin-input" id="modal-id-number" x-model="form.idNumber" required></div>
-                </div>
-                <label class="flex items-center gap-3 mb-6"><input type="checkbox" x-model="form.sendEmail"><span class="admin-muted">Send activation instructions by email</span></label>
-                <p x-show="formMessage" class="admin-notice mb-5" x-text="formMessage"></p>
-                <div class="flex justify-end gap-3"><button class="lms-btn lms-btn-secondary" type="button" @click="showCreateModal = false">Cancel</button><button class="lms-btn" type="submit" :disabled="submitting" x-text="submitting ? 'Saving...' : (editingAccountId ? 'Save changes' : 'Create account')"></button></div>
-            </form>
-        </section>
-    </div>
-
-    <div class="admin-modal-backdrop" x-show="showImportModal" x-cloak @keydown.escape.window="showImportModal = false">
-        <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="import-account-title" @click.outside="showImportModal = false">
-            <div class="admin-modal-header">
-                <div>
-                    <h2 id="import-account-title" class="text-xl font-bold text-black">Import accounts from Excel</h2>
-                    <p class="admin-muted">Upload one row per student or teacher account.</p>
-                </div>
-                <button class="admin-modal-close" type="button" aria-label="Close import accounts dialog" @click="showImportModal = false">&times;</button>
-            </div>
-            <div class="admin-notice mb-6">Required columns: <strong>email</strong>, <strong>firstName</strong>, <strong>lastName</strong>, and <strong>idNumber</strong>. The first row must contain these headers.</div>
-            <form @submit.prevent="importAccounts">
-                <div class="admin-form-grid">
-                    <div class="admin-field"><label class="admin-label" for="import-file">Excel file</label><input class="admin-input" id="import-file" type="file" accept=".xlsx,.xls" @change="importFile = $event.target.files[0] || null" required></div>
-                    <div class="admin-field"><label class="admin-label" for="import-role">Account type</label><select class="admin-select" id="import-role" x-model="importRole" required><option value="">Select account type</option><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
-                </div>
-                <p x-show="importMessage" class="admin-notice mb-5" x-text="importMessage"></p>
-                <div class="flex justify-end gap-3"><button class="lms-btn lms-btn-secondary" type="button" @click="showImportModal = false">Cancel</button><button class="lms-btn" type="submit" :disabled="importing" x-text="importing ? 'Importing...' : 'Import accounts'"></button></div>
-            </form>
-        </section>
-    </div>
-
-    <div class="admin-sending-backdrop" x-show="showSendingModal" x-cloak>
-        <div class="admin-sending-modal admin-modal" role="status" aria-live="polite" aria-modal="true">
-            <span class="admin-sending-title" x-text="sendingState === 'loading' ? 'Sending email' : (sendingState === 'success' ? 'Success' : 'Error')">Sending email</span>
-            <div x-show="sendingState === 'loading'" class="admin-sending-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></div>
-            <span x-show="sendingState !== 'loading'" class="admin-sending-message" x-text="sendingMessage"></span>
-            <button x-show="sendingState !== 'loading'" type="button" class="admin-sending-ok" @click="closeSendingModal()">OK</button>
+                <div class="admin-notice mb-6">A secure activation email will be queued after the backend creates the
+                    account.</div>
+                <form @submit.prevent="submitAccount">
+                    <div class="admin-form-grid">
+                        <div class="admin-field"><label class="admin-label" for="modal-role">Account type</label><select
+                                class="admin-select" id="modal-role" x-model="form.role" :disabled="editingAccountId"
+                                required>
+                                <option value="">Select account type</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="student">Student</option>
+                            </select></div>
+                        <div class="admin-field"><label class="admin-label" for="modal-email">Email
+                                address</label><input class="admin-input" id="modal-email" type="email"
+                                x-model="form.email" required></div>
+                        <div class="admin-field"><label class="admin-label" for="modal-first-name">First
+                                name</label><input class="admin-input" id="modal-first-name" x-model="form.firstName"
+                                required></div>
+                        <div class="admin-field"><label class="admin-label" for="modal-last-name">Last
+                                name</label><input class="admin-input" id="modal-last-name" x-model="form.lastName"
+                                required></div>
+                        <div class="admin-field"><label class="admin-label" for="modal-id-number">ID
+                                number</label><input class="admin-input" id="modal-id-number" x-model="form.idNumber"
+                                required></div>
+                    </div>
+                    <label class="flex items-center gap-3 mb-6"><input type="checkbox" x-model="form.sendEmail"><span
+                            class="admin-muted">Send activation instructions by email</span></label>
+                    <p x-show="formMessage" class="admin-notice mb-5" x-text="formMessage"></p>
+                    <div class="flex justify-end gap-3"><button class="lms-btn lms-btn-secondary" type="button"
+                            @click="showCreateModal = false">Cancel</button><button class="lms-btn" type="submit"
+                            :disabled="submitting"
+                            x-text="submitting ? 'Saving...' : (editingAccountId ? 'Save changes' : 'Create account')"></button>
+                    </div>
+                </form>
+            </section>
         </div>
-    </div>
+
+        <div class="admin-modal-backdrop" x-show="showImportModal" x-cloak
+            @keydown.escape.window="showImportModal = false">
+            <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="import-account-title"
+                @click.outside="showImportModal = false">
+                <div class="admin-modal-header">
+                    <div>
+                        <h2 id="import-account-title" class="text-xl font-bold text-black">Import from Files</h2>
+                        <p class="admin-muted">Upload one row per student or teacher account.</p>
+                    </div>
+                    <button class="admin-modal-close" type="button" aria-label="Close import accounts dialog"
+                        @click="showImportModal = false">&times;</button>
+                </div>
+                <div class="admin-notice mb-6">Required columns: <strong>email</strong>, <strong>firstName</strong>,
+                    <strong>lastName</strong>, and <strong>idNumber</strong>. The first row must contain these headers.
+                </div>
+                <form @submit.prevent="importAccounts">
+                    <div class="admin-form-grid">
+                        <div class="admin-field"><label class="admin-label" for="import-file">Excel file</label><input
+                                class="admin-input" id="import-file" type="file" accept=".xlsx,.xls"
+                                @change="importFile = $event.target.files[0] || null" required></div>
+                        <div class="admin-field"><label class="admin-label" for="import-role">Account
+                                type</label><select class="admin-select" id="import-role" x-model="importRole" required>
+                                <option value="">Select account type</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select></div>
+                    </div>
+                    <p x-show="importMessage" class="admin-notice mb-5" x-text="importMessage"></p>
+                    <div class="flex justify-end gap-3"><button class="lms-btn lms-btn-secondary" type="button"
+                            @click="showImportModal = false">Cancel</button><button class="lms-btn" type="submit"
+                            :disabled="importing" x-text="importing ? 'Importing...' : 'Import accounts'"></button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <div class="admin-sending-backdrop" x-show="showSendingModal" x-cloak>
+            <div class="admin-sending-modal admin-modal" role="status" aria-live="polite" aria-modal="true">
+                <span class="admin-sending-title"
+                    x-text="sendingState === 'loading' ? 'Sending email' : (sendingState === 'success' ? 'Success' : 'Error')">Sending
+                    email</span>
+                <div x-show="sendingState === 'loading'" class="admin-sending-dots" aria-hidden="true">
+                    <span>.</span><span>.</span><span>.</span></div>
+                <span x-show="sendingState !== 'loading'" class="admin-sending-message" x-text="sendingMessage"></span>
+                <button x-show="sendingState !== 'loading'" type="button" class="admin-sending-ok"
+                    @click="closeSendingModal()">OK</button>
+            </div>
+        </div>
     </main>
     <script>
         function accountDirectory() {
             return {
                 query: '', roleFilter: 'all', accounts: [], error: '', showCreateModal: false, showImportModal: false, submitting: false, importing: false, formMessage: '', importMessage: '', editingAccountId: null, importFile: null, importRole: '',
                 showSendingModal: false, sendingMessage: 'Sending email', sendingState: 'loading',
-                form: { role: '', email: '', firstName: '', lastName: '', username: '', idNumber: '', sendEmail: true },
+                form: { role: '', email: '', firstName: '', lastName: '', idNumber: '', sendEmail: true },
                 beginSending(message = 'Sending email') {
                     this.sendingMessage = message;
                     this.sendingState = 'loading';
@@ -316,13 +387,16 @@
                         if (new URLSearchParams(window.location.search).get('create') === '1') this.openCreateModal();
                     } catch (error) { this.error = error.message; }
                 },
-                openCreateModal() { this.formMessage = ''; this.editingAccountId = null; this.form = { role: '', email: '', firstName: '', lastName: '', username: '', idNumber: '', sendEmail: true }; this.showCreateModal = true; },
+                openCreateModal() { 
+                    this.formMessage = ''; 
+                    this.editingAccountId = null; this.form = { role: '', email: '', firstName: '', lastName: '', idNumber: '', sendEmail: true }; this.showCreateModal = true;
+                },
                 openImportModal() { this.importMessage = ''; this.importFile = null; this.importRole = ''; this.showImportModal = true; },
                 openEditModal(account) {
                     const nameParts = (account.name || '').trim().split(/\s+/);
                     this.editingAccountId = account.user_id;
                     this.formMessage = '';
-                    this.form = { role: account.role, email: account.email, firstName: nameParts.shift() || '', lastName: nameParts.join(' '), username: '', idNumber: account.idNumber || '', sendEmail: false };
+                    this.form = { role: account.role, email: account.email, firstName: nameParts.shift() || '', lastName: nameParts.join(' '), idNumber: account.idNumber || '', sendEmail: false };
                     this.showCreateModal = true;
                 },
                 get filteredAccounts() {
@@ -360,7 +434,7 @@
                     try {
                         const isEditing = Boolean(this.editingAccountId);
                         const payload = isEditing ? { name: `${this.form.firstName} ${this.form.lastName}`.trim(), email: this.form.email, idNumber: this.form.idNumber } : this.form;
-                        const response = await fetch(isEditing ? `/api/admin/accounts/${this.editingAccountId}` : '/api/admin/accounts', { method: isEditing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                        const response = await fileTransfer.request(isEditing ? 'Updating account...' : 'Creating account...', () => fetch(isEditing ? `/api/admin/accounts/${this.editingAccountId}` : '/api/admin/accounts', { method: isEditing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }));
                         const result = await response.json();
                         if (!response.ok) throw new Error(result.detail || (isEditing ? 'Unable to update account.' : 'Unable to create account.'));
                         if (isEditing) {
@@ -372,7 +446,7 @@
                             this.formMessage = `Account created for ${result.email}. ${this.form.sendEmail ? 'Activation email queued.' : 'Activation email not requested.'}`;
                             this.showSuccess(this.form.sendEmail ? 'Account created. Activation email sent.' : 'Account created successfully.');
                         }
-                        this.form = { role: '', email: '', firstName: '', lastName: '', username: '', idNumber: '', sendEmail: true };
+                        this.form = { role: '', email: '', firstName: '', lastName: '', idNumber: '', sendEmail: true };
                         this.showCreateModal = false;
                         this.editingAccountId = null;
                     } catch (error) {
@@ -383,10 +457,11 @@
                         if (shouldSendEmail && this.sendingState === 'loading') this.endSending();
                     }
                 }
-                ,async importAccounts() {
+                , async importAccounts() {
                     this.importMessage = '';
                     if (!this.importFile || !this.importRole) return;
                     this.importing = true;
+                    fileTransfer.start('Importing accounts...', 0);
                     try {
                         const workbook = XLSX.read(await this.importFile.arrayBuffer(), { type: 'array' });
                         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
@@ -397,27 +472,54 @@
                         const missingFields = requiredFields.filter(field => !Object.prototype.hasOwnProperty.call(normalizedRows[0], field));
                         if (missingFields.length) throw new Error(`Missing required column(s): ${missingFields.join(', ')}.`);
 
-                        const invalidRow = normalizedRows.findIndex(row => !row.email || !row.firstname || !row.lastname || !row.idnumber);
-                        if (invalidRow !== -1) throw new Error(`Row ${invalidRow + 2} is missing email, first name, last name, or ID number.`);
-
                         let imported = 0;
-                        for (const row of normalizedRows) {
-                            const response = await fetch('/api/admin/accounts', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ role: this.importRole, email: row.email, firstName: row.firstname, lastName: row.lastname, username: row.username || '', idNumber: row.idnumber, sendEmail: true })
-                            });
-                            const result = await response.json();
-                            if (!response.ok) throw new Error(`Row ${imported + 2}: ${result.detail || 'Unable to create account.'}`);
-                            this.accounts.unshift(result);
-                            imported += 1;
+                        let processed = 0;
+                        const errors = [];
+                        const requiredFieldLabels = { email: 'email', firstname: 'first name', lastname: 'last name', idnumber: 'ID number' };
+                        for (const [index, row] of normalizedRows.entries()) {
+                            const rowNumber = index + 2;
+                            try {
+                                const missingFields = requiredFields.filter(field => !row[field]);
+                                if (missingFields.length) {
+                                    errors.push({ row: rowNumber, message: `Missing ${missingFields.map(field => requiredFieldLabels[field]).join(', ')}.` });
+                                } else {
+                                    const response = await fetch('/api/admin/accounts', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ role: this.importRole, email: row.email, firstName: row.firstname, lastName: row.lastname, username: row.username || '', idNumber: row.idnumber, sendEmail: true })
+                                    });
+                                    let result = {};
+                                    try {
+                                        result = await response.json();
+                                    } catch (error) {
+                                        result = {};
+                                    }
+                                    if (!response.ok) {
+                                        errors.push({ row: rowNumber, message: result.detail || 'Unable to create account.' });
+                                    } else {
+                                        this.accounts.unshift(result);
+                                        imported += 1;
+                                    }
+                                }
+                            } catch (error) {
+                                errors.push({ row: rowNumber, message: error.message || 'Unable to create account.' });
+                            } finally {
+                                processed += 1;
+                                fileTransfer.progress('Importing accounts...', (processed / normalizedRows.length) * 100);
+                            }
                         }
                         this.showImportModal = false;
-                        this.showSuccess(`${imported} account${imported === 1 ? '' : 's'} imported successfully.`);
+                        if (errors.length) {
+                            const summary = `Import completed. ${normalizedRows.length} rows processed, ${imported} account${imported === 1 ? '' : 's'} imported successfully, ${errors.length} failed.\n\n${errors.map(error => `Row ${error.row}: ${error.message}`).join('\n')}`;
+                            this.showError(summary);
+                        } else {
+                            this.showSuccess(`Import completed successfully. ${normalizedRows.length} rows processed, ${imported} account${imported === 1 ? '' : 's'} imported.`);
+                        }
                     } catch (error) {
                         this.importMessage = error.message || 'Unable to import accounts.';
                     } finally {
                         this.importing = false;
+                        fileTransfer.finish();
                     }
                 }
             };
