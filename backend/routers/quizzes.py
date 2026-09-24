@@ -49,6 +49,7 @@ class QuizCreateRequest(BaseModel):
     description: str = ""
     deadline: Optional[datetime] = None
     time_limit_minutes: Optional[int] = Field(default=None, ge=1)
+    max_attempts: Optional[int] = Field(default=None, ge=1)
     status: str = "Published"
     total_points: Optional[float] = None
     sections: list[str] = Field(default_factory=list)
@@ -79,7 +80,7 @@ def _quiz_payload(cur, quiz_id: int, include_answers: bool = True) -> dict:
     cur.execute(
         """
         SELECT q.quiz_id, q.class_id, c.subject AS class_name, q.title, q.description,
-               q.module_id, q.deadline, q.time_limit_minutes, q.total_points, q.status,
+               q.module_id, q.deadline, q.time_limit_minutes, q.total_points, q.max_attempts, q.status,
                q.date_created
         FROM quiz q JOIN class c ON c.class_id = q.class_id
         WHERE q.quiz_id = %s
@@ -263,12 +264,12 @@ def create_quiz(request: QuizCreateRequest):
         cur.execute(
             """
             INSERT INTO quiz (class_id, title, date_created, description, module_id, deadline,
-                              time_limit_minutes, total_points, status)
-            VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s)
+                              time_limit_minutes, total_points, max_attempts, status)
+            VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s)
             RETURNING quiz_id
             """,
             (request.class_id, request.title, request.description, request.module_id, request.deadline,
-             request.time_limit_minutes, total_points, request.status),
+             request.time_limit_minutes, total_points, request.max_attempts, request.status),
         )
         quiz_id = cur.fetchone()["quiz_id"]
         for question in request.questions:
@@ -342,9 +343,9 @@ def update_quiz(quiz_id: int, request: QuizCreateRequest):
         total_points = request.total_points or sum(question.points for question in request.questions)
         cur.execute(
             """UPDATE quiz SET title = %s, description = %s, module_id = %s, deadline = %s,
-               time_limit_minutes = %s, total_points = %s, status = %s WHERE quiz_id = %s""",
+                    time_limit_minutes = %s, total_points = %s, max_attempts = %s, status = %s WHERE quiz_id = %s""",
             (request.title, request.description, request.module_id, request.deadline,
-             request.time_limit_minutes, total_points, request.status, quiz_id),
+             request.time_limit_minutes, total_points, request.max_attempts, request.status, quiz_id),
         )
         cur.execute("DELETE FROM question WHERE quiz_id = %s", (quiz_id,))
         cur.execute("DELETE FROM quiz_sections WHERE quiz_id = %s", (quiz_id,))
@@ -400,7 +401,7 @@ def list_class_quizzes(class_id: int):
         cur.execute(
             """
             SELECT q.quiz_id, q.class_id, q.title, q.description, q.date_created, q.deadline,
-                   q.time_limit_minutes, q.total_points, q.status,
+                   q.time_limit_minutes, q.total_points, q.max_attempts, q.status,
                    COUNT(question.question_id) AS question_count
             FROM quiz q LEFT JOIN question ON question.quiz_id = q.quiz_id
             WHERE q.class_id = %s
@@ -445,6 +446,42 @@ def submit_quiz(quiz_id: int, request: QuizSubmitRequest):
         quiz = _quiz_payload(cur, quiz_id, include_answers=True)
         if quiz["status"] != "Published":
             raise HTTPException(status_code=403, detail="Quiz is not available to students.")
+        cur.execute(
+            """
+            SELECT q.class_id, q.max_attempts
+            FROM quiz q
+            WHERE q.quiz_id = %s
+            FOR UPDATE
+            """,
+            (quiz_id,),
+        )
+        locked_quiz = cur.fetchone()
+        cur.execute(
+            """
+            SELECT 1
+            FROM enrollment e
+            WHERE e.student_id = %s
+              AND e.class_id = %s
+              AND (
+                  NOT EXISTS (SELECT 1 FROM quiz_sections WHERE quiz_id = %s)
+                  OR EXISTS (
+                      SELECT 1 FROM quiz_sections qs
+                      WHERE qs.quiz_id = %s AND qs.section_id = e.section_id
+                  )
+              )
+            """,
+            (request.student_id, locked_quiz["class_id"], quiz_id, quiz_id),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=403, detail="You are not authorized to submit this quiz.")
+        cur.execute(
+            "SELECT COUNT(*) AS attempt_count FROM quiz_score WHERE quiz_id = %s AND student_id = %s",
+            (quiz_id, request.student_id),
+        )
+        attempt_count = cur.fetchone()["attempt_count"]
+        max_attempts = locked_quiz["max_attempts"]
+        if max_attempts is not None and attempt_count >= max_attempts:
+            raise HTTPException(status_code=409, detail="You have reached the attempt limit for this quiz.")
         cur.execute("SELECT question_id, correct_answer, points FROM question WHERE quiz_id = %s", (quiz_id,))
         questions = {row["question_id"]: row for row in cur.fetchall()}
         score = 0.0

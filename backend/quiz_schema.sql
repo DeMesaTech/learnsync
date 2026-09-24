@@ -6,6 +6,7 @@ ALTER TABLE IF EXISTS public.quiz
     ADD COLUMN IF NOT EXISTS deadline timestamp without time zone,
     ADD COLUMN IF NOT EXISTS time_limit_minutes integer,
     ADD COLUMN IF NOT EXISTS total_points numeric(8, 2),
+    ADD COLUMN IF NOT EXISTS max_attempts integer,
     ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'Published';
 
 ALTER TABLE IF EXISTS public.question

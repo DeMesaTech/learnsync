@@ -110,21 +110,22 @@
             </section>
             <!-- KPIs -->
             <section class="lms-grid lms-grid-4 mb-4" x-data="kpi()" x-init="init()">
-                <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
-                </svg></span>
-                <div class="flex items-center justify-between gap-2">
-                </div>
-                <strong x-text="nums.classes_count || '0'"></strong>
-                <button class="lms-icon-btn" type="button" aria-label="Enroll in a class"
-                    @click="window.dispatchEvent(new CustomEvent('open-class-modal'))">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 5v14M5 12h14" /></svg>
-                </button>
-                <span>Classes</span>
+                <div class="lms-kpi">
+                    <span class="lms-kpi-icon">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
+                        </svg>
+                    </span>
+                    <div class="flex items-center justify-between gap-2"> 
+                            <strong x-text="nums.classes_count || '0'"></strong>
+                            <button class="lms-icon-btn" type="button" aria-label="Enroll in a class"
+                            @click="window.dispatchEvent(new CustomEvent('open-class-modal'))">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+                            </svg>
+                        </button>
+                    </div>
+                    <span>Classes</span>
 
                 </div>
 

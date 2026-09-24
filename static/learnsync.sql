@@ -234,6 +234,7 @@ CREATE TABLE IF NOT EXISTS public.quiz
     deadline timestamp without time zone,
     time_limit_minutes integer,
     total_points numeric(8, 2),
+    max_attempts integer,
     status character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Published'::character varying,
     CONSTRAINT quiz_pkey PRIMARY KEY (quiz_id)
 );

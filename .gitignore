@@ -224,3 +224,4 @@ __marimo__/
 .streamlit/secrets.toml
 API key.txt
 run.bat
+run_wireless_server.bat
