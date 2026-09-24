@@ -17,7 +17,7 @@
 <body class="lms-shell student-shell font-sans text-sm">
     <div class="pt-20 flex min-h-screen" x-data="quizTakeApp()" x-init="init()">
         <header class="app-header">
-            <button @click="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+            <button @click.stop="open = !open" class="header-menu-btn" aria-label="Open menu"><svg class="header-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg></button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
             <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
             <button class="header-icon-btn" aria-label="Notifications"><svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" /></svg></button>
@@ -107,8 +107,21 @@
     </div>
 
     <script>
+        const query = new URLSearchParams(window.location.search);
+        const slug = query.get('quiz') || query.get('quiz_id') || window.location.pathname.split('/').pop().replace('.html', '');
+        const quiz = {
+            title: 'Take Quiz',
+            className: '',
+            questions: [],
+            timeLimit: 0,
+            points: 0,
+            mode: 'Online',
+            instructions: [],
+            description: '',
+            attachment: ''
+        };
+
         function quizTakeApp() {
-           
             return {
                 open: false,
                 submitted: false,
