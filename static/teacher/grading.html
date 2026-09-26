@@ -163,7 +163,7 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in attendanceColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('attendance', student.student_id, column.key)" :disabled="!editMode.attendance"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('attendance', student.student_id, column)" :disabled="!editMode.attendance" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
@@ -208,7 +208,7 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in quizColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('quiz', student.student_id, column.key)" :disabled="!editMode.quiz"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('quiz', student.student_id, column)" :disabled="!editMode.quiz" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
@@ -253,7 +253,7 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in activityColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :value="recordValue('activity', student.student_id, column.key)" :disabled="!editMode.activity"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('activity', student.student_id, column)" :disabled="!editMode.activity" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
@@ -300,35 +300,38 @@
 
                 <template x-if="modal === 'addAttendance'">
                     <div class="lms-grid lms-modal-body">
-                        <input class="lms-input" placeholder="Attendance column label">
-                        <input class="lms-input" type="number" min="1" placeholder="Total items">
-                        <input class="lms-input" type="date" aria-label="Attendance date">
-                        <input class="lms-input" type="number" min="0" placeholder="Default score">
-                        <button class="lms-btn" type="button">Add Attendance Column</button>
+                        <input class="lms-input" x-model="forms.attendance.label" placeholder="Attendance column label">
+                        <input class="lms-input" x-model.number="forms.attendance.total_items" type="number" min="1" placeholder="Total items">
+                        <input class="lms-input" x-model="forms.attendance.record_date" type="date" aria-label="Attendance date">
+                        <input class="lms-input" x-model.number="forms.attendance.default_score" type="number" min="0" placeholder="Default score">
+                        <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
+                        <button class="lms-btn" type="button" @click="createColumn('attendance')" :disabled="saving"> <span x-text="saving ? 'Saving...' : 'Add Attendance Column'"></span></button>
                     </div>
                 </template>
 
                 <template x-if="modal === 'addActivity'">
                     <div class="lms-grid lms-modal-body">
-                        <input class="lms-input" placeholder="Activity column label">
+                        <input class="lms-input" x-model="forms.activity.label" placeholder="Activity column label">
                         <div class="lms-grid lms-grid-2">
-                            <input class="lms-input" type="number" min="1" placeholder="Total items">
-                            <input class="lms-input" type="date" aria-label="Activity date">
+                            <input class="lms-input" x-model.number="forms.activity.total_items" type="number" min="1" placeholder="Total items">
+                            <input class="lms-input" x-model="forms.activity.record_date" type="date" aria-label="Activity date">
                         </div>
-                        <textarea class="lms-input" rows="4" placeholder="Paste starting scores, one student per line, or leave blank"></textarea>
-                        <button class="lms-btn" type="button">Add Activity Column</button>
+                        <textarea class="lms-input" x-model="forms.activity.scores" rows="4" placeholder="Paste scores, one per line, or leave blank"></textarea>
+                        <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
+                        <button class="lms-btn" type="button" @click="createColumn('activity')" :disabled="saving"><span x-text="saving ? 'Saving...' : 'Add Activity Column'"></span></button>
                     </div>
                 </template>
 
                 <template x-if="modal === 'addQuiz'">
                     <div class="lms-grid lms-modal-body">
-                        <input class="lms-input" placeholder="Quiz column label">
+                        <input class="lms-input" x-model="forms.quiz.label" placeholder="Quiz column label">
                         <div class="lms-grid lms-grid-2">
-                            <input class="lms-input" type="number" min="1" placeholder="Total items">
-                            <input class="lms-input" type="date" aria-label="Quiz date">
+                            <input class="lms-input" x-model.number="forms.quiz.total_items" type="number" min="1" placeholder="Total items">
+                            <input class="lms-input" x-model="forms.quiz.record_date" type="date" aria-label="Quiz date">
                         </div>
-                        <textarea class="lms-input" rows="4" placeholder="Paste quiz scores, one student per line, or leave blank"></textarea>
-                        <button class="lms-btn" type="button">Add Quiz Column</button>
+                        <textarea class="lms-input" x-model="forms.quiz.scores" rows="4" placeholder="Paste quiz scores, one per line, or leave blank"></textarea>
+                        <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
+                        <button class="lms-btn" type="button" @click="createColumn('quiz')" :disabled="saving"><span x-text="saving ? 'Saving...' : 'Add Quiz Column'"></span></button>
                     </div>
                 </template>
             </section>
@@ -353,10 +356,19 @@
                 attendance: [],
                 quizzes: [],
                 activities: [],
+                gradingColumns: [],
+                gradingScores: [],
                 attendanceColumns: [1, 2, 3, 4].map(index => ({ key: `empty-attendance-${index}`, label: '-', total: '-' })),
                 quizColumns: [1, 2, 3, 4].map(index => ({ key: `empty-quiz-${index}`, label: '-', total: '-' })),
                 activityColumns: [1, 2, 3, 4].map(index => ({ key: `empty-activity-${index}`, label: '-', total: '-' })),
                 editMode: { attendance: false, activity: false, quiz: false },
+                saving: false,
+                saveError: '',
+                forms: {
+                    attendance: { label: '', total_items: 1, record_date: '', default_score: 0 },
+                    activity: { label: '', total_items: 1, record_date: '', scores: '' },
+                    quiz: { label: '', total_items: 1, record_date: '', scores: '' }
+                },
                 openSelector(scope) { this.modal = 'classSelector'; this.$nextTick(() => { if (scope === 'section') { this.$refs.sectionSelect?.focus(); } else { this.$refs.classSelect?.focus(); } }); },
                 async init() {
                     const freshNavigation = sessionStorage.getItem('gradingFresh') === '1';
@@ -413,9 +425,11 @@
                     this.attendance = data.attendance || [];
                     this.quizzes = data.quizzes || [];
                     this.activities = data.activities || [];
-                    this.attendanceColumns = this.columnsFrom(this.attendance, 'record_date', 'Attendance');
-                    this.quizColumns = this.columnsFrom(this.quizzes, 'quiz_id', 'title');
-                    this.activityColumns = this.columnsFrom(this.activities, 'activity_id', 'title', 'points');
+                    this.gradingColumns = data.grading_columns || [];
+                    this.gradingScores = data.grading_scores || [];
+                    this.attendanceColumns = this.withCustomColumns('attendance', this.columnsFrom(this.attendance, 'record_date', 'Attendance'), '-');
+                    this.quizColumns = this.withCustomColumns('quiz', this.columnsFrom(this.quizzes, 'quiz_id', 'title', 'max_score'), '-');
+                    this.activityColumns = this.withCustomColumns('activity', this.columnsFrom(this.activities, 'activity_id', 'title', 'points'), '-');
                     const url = new URL(window.location.href);
                     url.searchParams.set('class_id', this.selectedClassId);
                     url.searchParams.set('section', this.selectedSection);
@@ -445,11 +459,152 @@
                     }
                     return columns;
                 },
+                withCustomColumns(category, legacyColumns, legacyTotal) {
+                    const custom = this.gradingColumns
+                        .filter(column => column.category === category)
+                        .map(column => ({
+                            key: String(column.column_id),
+                            label: column.label,
+                            total: column.total_items,
+                            custom: true,
+                            category,
+                            columnId: column.column_id
+                        }));
+                    return [...custom, ...legacyColumns].slice(0, 4).map(column => ({
+                        custom: false,
+                        ...column,
+                        total: column.total === '-' ? legacyTotal : column.total
+                    }));
+                },
                 recordValue(kind, studentId, key) {
                     const source = kind === 'attendance' ? this.attendance : (kind === 'quiz' ? this.quizzes : this.activities);
                     const record = source.find(item => String(item.student_id) === String(studentId) && String(item[kind === 'attendance' ? 'record_date' : `${kind}_id`]) === String(key));
                     if (!record) return '';
                     return kind === 'attendance' ? (record.score ?? (record.is_present ? 1 : 0)) : (kind === 'quiz' ? (record.total_score ?? '') : (record.score ?? ''));
+                },
+                scoreValue(kind, studentId, column) {
+                    if (column.custom) {
+                        const score = this.gradingScores.find(item => String(item.column_id) === String(column.columnId) && String(item.student_id) === String(studentId));
+                        return score?.score ?? '';
+                    }
+                    return this.recordValue(kind, studentId, column.key);
+                },
+                parseScores(text, defaultScore = null) {
+                    const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+                    if (!lines.length && defaultScore !== null && defaultScore !== '') {
+                        return this.students.map(student => ({ student_id: student.student_id, score: Number(defaultScore) }));
+                    }
+                    return lines.map((line, index) => {
+                        const parts = line.split(/\s*[:=,]\s*/);
+                        const explicitStudentId = parts.length > 1 ? Number(parts[0]) : this.students[index]?.student_id;
+                        const value = Number(parts.length > 1 ? parts[1] : parts[0]);
+                        if (!Number.isInteger(explicitStudentId) || !Number.isFinite(value)) {
+                            throw new Error(`Invalid score on line ${index + 1}. Use one score per line or student_id: score.`);
+                        }
+                        return { student_id: explicitStudentId, score: value };
+                    });
+                },
+                async createColumn(category) {
+                    const form = this.forms[category];
+                    this.saveError = '';
+                    if (!this.selectedClassId || !this.selectedSection) {
+                        this.saveError = 'Select a class and section first.';
+                        return;
+                    }
+                    if (!form.label.trim() || !Number(form.total_items) || Number(form.total_items) <= 0) {
+                        this.saveError = 'Enter a label and a total greater than zero.';
+                        return;
+                    }
+                    this.saving = true;
+                    try {
+                        const scores = category === 'attendance'
+                            ? this.parseScores('', form.default_score)
+                            : this.parseScores(form.scores);
+                        const response = await fetch('/api/grades/columns', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                class_id: Number(this.selectedClassId),
+                                section: this.selectedSection,
+                                grading_period: this.selectedTerm,
+                                teacher_id: Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id')),
+                                category,
+                                label: form.label.trim(),
+                                total_items: Number(form.total_items),
+                                record_date: form.record_date || null,
+                                scores
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to create grading column.');
+                        this.resetForm(category);
+                        this.modal = null;
+                        await this.loadSheet();
+                    } catch (error) {
+                        this.saveError = error.message || 'Unable to create grading column.';
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+                resetForm(category) {
+                    this.forms[category] = category === 'attendance'
+                        ? { label: '', total_items: 1, record_date: '', default_score: 0 }
+                        : { label: '', total_items: 1, record_date: '', scores: '' };
+                },
+                async saveScore(column, studentId, value) {
+                    this.saveError = '';
+                    const score = value === '' ? null : Number(value);
+                    if (score !== null && (!Number.isFinite(score) || score < 0 || score > Number(column.total))) {
+                        this.saveError = `Score must be between 0 and ${column.total}.`;
+                        await this.loadSheet();
+                        return;
+                    }
+                    if (!column.custom) {
+                        const kind = column.category || (this.activeTab === 'attendance' ? 'attendance' : this.activeTab === 'quiz' ? 'quiz' : 'activity');
+                        const source = kind === 'attendance' ? this.attendance : kind === 'quiz' ? this.quizzes : this.activities;
+                        const record = source.find(item => String(item.student_id) === String(studentId) && String(item[kind === 'attendance' ? 'record_date' : `${kind}_id`]) === String(column.key));
+                        const recordId = record?.[kind === 'attendance' ? 'attendance_id' : kind === 'quiz' ? 'score_id' : 'act_submission_id'];
+                        if (!recordId) {
+                            this.saveError = 'This student has no existing record in this column.';
+                            return;
+                        }
+                        try {
+                            const response = await fetch('/api/grades/records/score', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    teacher_id: Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id')),
+                                    category: kind,
+                                    record_id: recordId,
+                                    score
+                                })
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.detail || 'Unable to save score.');
+                            await this.loadSheet();
+                        } catch (error) {
+                            this.saveError = error.message || 'Unable to save score.';
+                        }
+                        return;
+                    }
+                    const existing = this.gradingScores.find(item => String(item.column_id) === String(column.columnId) && String(item.student_id) === String(studentId));
+                    if (existing) existing.score = score;
+                    else this.gradingScores.push({ column_id: column.columnId, student_id: studentId, score });
+                    try {
+                        const response = await fetch(`/api/grades/columns/${encodeURIComponent(column.columnId)}/scores`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                teacher_id: Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id')),
+                                scores: [{ student_id: studentId, score }]
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to save score.');
+                    } catch (error) {
+                        this.saveError = error.message || 'Unable to save score.';
+                        await this.loadSheet();
+                    }
                 },
                 async openSelectedClass() {
                     if (!this.selectedClassId) return;

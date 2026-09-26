@@ -1,13 +1,238 @@
 """Class grading records used by the teacher grading sheet."""
-from typing import Optional
+from datetime import date
+from typing import Optional, Literal
 
 from fastapi import APIRouter, HTTPException, Query, Body
+from pydantic import BaseModel, Field
 from psycopg2.extras import RealDictCursor
 
 from db import get_db_connection
 
 
 grades_router = APIRouter(prefix="/api/grades", tags=["grades"])
+
+
+class GradingScore(BaseModel):
+    student_id: int
+    score: Optional[float] = Field(default=None, ge=0)
+
+
+class GradingColumnRequest(BaseModel):
+    class_id: int
+    section: str
+    grading_period: Literal["Midterm", "Finals"] = "Midterm"
+    teacher_id: int
+    category: Literal["attendance", "activity", "quiz"]
+    label: str = Field(min_length=1, max_length=255)
+    total_items: float = Field(gt=0)
+    record_date: Optional[date] = None
+    scores: list[GradingScore] = Field(default_factory=list)
+
+
+class GradingScoreUpdate(BaseModel):
+    teacher_id: int
+    scores: list[GradingScore]
+
+
+class LegacyScoreUpdate(BaseModel):
+    teacher_id: int
+    category: Literal["attendance", "activity", "quiz"]
+    record_id: int
+    score: Optional[float] = Field(default=None, ge=0)
+
+
+def ensure_grading_tables(conn):
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS grading_column (
+                column_id bigserial PRIMARY KEY,
+                class_id bigint NOT NULL,
+                section varchar(50) NOT NULL,
+                grading_period varchar(20) NOT NULL,
+                category varchar(20) NOT NULL,
+                label varchar(255) NOT NULL,
+                total_items numeric(8, 2) NOT NULL CHECK (total_items > 0),
+                record_date date,
+                teacher_id integer NOT NULL,
+                created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (class_id, section, grading_period, category, label)
+            );
+            CREATE TABLE IF NOT EXISTS grading_score (
+                score_id bigserial PRIMARY KEY,
+                column_id bigint NOT NULL REFERENCES grading_column(column_id) ON DELETE CASCADE,
+                student_id integer NOT NULL,
+                score numeric(8, 2),
+                UNIQUE (column_id, student_id)
+            );
+            """
+        )
+        conn.commit()
+    finally:
+        cur.close()
+
+
+def assert_teacher_class(cur, class_id: int, teacher_id: int):
+    cur.execute("SELECT 1 FROM class WHERE class_id = %s AND employee_id = %s", (class_id, teacher_id))
+    if not cur.fetchone():
+        raise HTTPException(status_code=403, detail="You do not own this class.")
+
+
+def assert_score_students(cur, class_id: int, section: str, scores: list[GradingScore]):
+    if not scores:
+        return
+    cur.execute(
+        """
+        SELECT e.student_id
+        FROM enrollment e
+        JOIN section sec ON sec.section_id = e.section_id
+        WHERE e.class_id = %s AND sec.section = %s AND e.student_id = ANY(%s)
+        """,
+        (class_id, section, [item.student_id for item in scores]),
+    )
+    enrolled = {row[0] for row in cur.fetchall()}
+    unknown = {item.student_id for item in scores} - enrolled
+    if unknown:
+        raise HTTPException(status_code=400, detail="One or more students are not enrolled in this section.")
+
+
+def upsert_grading_scores(cur, column_id: int, total_items: float, scores: list[GradingScore]):
+    for item in scores:
+        if item.score is not None and item.score > total_items:
+            raise HTTPException(status_code=400, detail="A score cannot exceed the column total.")
+        cur.execute(
+            """
+            INSERT INTO grading_score (column_id, student_id, score)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (column_id, student_id)
+            DO UPDATE SET score = EXCLUDED.score
+            """,
+            (column_id, item.student_id, item.score),
+        )
+
+
+@grades_router.post("/columns")
+async def create_grading_column(payload: GradingColumnRequest):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        ensure_grading_tables(conn)
+        assert_teacher_class(cur, payload.class_id, payload.teacher_id)
+        assert_score_students(cur, payload.class_id, payload.section, payload.scores)
+        cur.execute(
+            """
+            INSERT INTO grading_column
+                (class_id, section, grading_period, category, label, total_items, record_date, teacher_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING column_id, class_id, section, grading_period, category, label, total_items, record_date
+            """,
+            (payload.class_id, payload.section, payload.grading_period, payload.category,
+             payload.label.strip(), payload.total_items, payload.record_date, payload.teacher_id),
+        )
+        column = cur.fetchone()
+        upsert_grading_scores(cur, column[0], payload.total_items, payload.scores)
+        conn.commit()
+        return {
+            "column_id": column[0],
+            "class_id": column[1],
+            "section": column[2],
+            "grading_period": column[3],
+            "category": column[4],
+            "label": column[5],
+            "total_items": column[6],
+            "record_date": column[7],
+        }
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as exc:
+        conn.rollback()
+        if "duplicate key" in str(exc).lower():
+            raise HTTPException(status_code=409, detail="A grading column with this label already exists.")
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@grades_router.put("/columns/{column_id}/scores")
+async def update_grading_scores(column_id: int, payload: GradingScoreUpdate):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        ensure_grading_tables(conn)
+        cur.execute(
+            """
+            SELECT gc.class_id, gc.section, gc.total_items, gc.teacher_id
+            FROM grading_column gc
+            WHERE gc.column_id = %s
+            """,
+            (column_id,),
+        )
+        column = cur.fetchone()
+        if not column:
+            raise HTTPException(status_code=404, detail="Grading column not found.")
+        assert_teacher_class(cur, column[0], payload.teacher_id)
+        assert_score_students(cur, column[0], column[1], payload.scores)
+        upsert_grading_scores(cur, column_id, float(column[2]), payload.scores)
+        conn.commit()
+        return {"column_id": column_id, "saved": len(payload.scores)}
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as exc:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@grades_router.put("/records/score")
+async def update_legacy_score(payload: LegacyScoreUpdate):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        if payload.category == "attendance":
+            query = """
+                UPDATE attendance a
+                SET score = %s, is_present = (%s > 0)
+                FROM class c
+                WHERE a.attendance_id = %s AND c.class_id = a.class_id AND c.employee_id = %s
+                RETURNING a.attendance_id
+            """
+        elif payload.category == "quiz":
+            query = """
+                UPDATE quiz_score qs
+                SET total_score = %s
+                FROM quiz q JOIN class c ON c.class_id = q.class_id
+                WHERE qs.score_id = %s AND qs.quiz_id = q.quiz_id AND c.employee_id = %s
+                RETURNING qs.score_id
+            """
+        else:
+            query = """
+                UPDATE act_submission s
+                SET score = %s, graded_at = NOW()
+                FROM activity a JOIN class c ON c.class_id = a.class_id
+                WHERE s.act_submission_id = %s AND s.activity_id = a.activity_id AND c.employee_id = %s
+                RETURNING s.act_submission_id
+            """
+        params = (payload.score, payload.score, payload.record_id, payload.teacher_id) if payload.category == "attendance" else (payload.score, payload.record_id, payload.teacher_id)
+        cur.execute(query, params)
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Score record not found or not owned by this teacher.")
+        conn.commit()
+        return {"saved": True, "record_id": payload.record_id}
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as exc:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
 
 
 def ensure_visibility_table(conn):
@@ -337,6 +562,7 @@ async def get_class_grading_sheet(
     """Return the records needed by the grading sheet for one class."""
     conn = get_db_connection()
     try:
+        ensure_grading_tables(conn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         cur.execute(
@@ -423,12 +649,51 @@ async def get_class_grading_sheet(
         )
         activities = cur.fetchall()
 
+        cur.execute(
+            """
+            SELECT gc.column_id, gc.class_id, gc.section, gc.grading_period,
+                   gc.category, gc.label, gc.total_items, gc.record_date,
+                   gs.score_id, gs.student_id, gs.score
+            FROM grading_column gc
+            LEFT JOIN grading_score gs ON gs.column_id = gc.column_id
+            WHERE gc.class_id = %s
+              AND gc.section = COALESCE(%s, gc.section)
+              AND gc.grading_period = %s
+            ORDER BY gc.created_at, gc.column_id, gs.student_id
+            """,
+            (class_id, section, grading_period),
+        )
+        custom_rows = cur.fetchall()
+
         return {
             "class": dict(class_row),
             "students": [dict(row) for row in students],
             "attendance": [dict(row) for row in attendance],
             "quizzes": [dict(row) for row in quizzes],
             "activities": [dict(row) for row in activities],
+            "grading_columns": [
+                {
+                    "column_id": row["column_id"],
+                    "class_id": row["class_id"],
+                    "section": row["section"],
+                    "grading_period": row["grading_period"],
+                    "category": row["category"],
+                    "label": row["label"],
+                    "total_items": row["total_items"],
+                    "record_date": row["record_date"],
+                }
+                for row in custom_rows
+            ],
+            "grading_scores": [
+                {
+                    "score_id": row["score_id"],
+                    "column_id": row["column_id"],
+                    "student_id": row["student_id"],
+                    "score": row["score"],
+                }
+                for row in custom_rows
+                if row["score_id"] is not None
+            ],
         }
     except HTTPException:
         raise
