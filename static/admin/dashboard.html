@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css">
-    <link rel="stylesheet" href="admin.css?v=modal-20260915">
+    <link rel="stylesheet" href="admin.css?v=bug-reports-20260927">
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm" x-data="{open:false}">
@@ -40,6 +40,7 @@
             </div>
             <li><a class="sidebar-btn-active" href="dashboard.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v11H4V5Zm3 14h10M8 9h8M8 12h5" /></svg><span>Dashboard</span></a></li>
             <li><a class="sidebar-btn" href="accounts.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v14H4V5Zm3 4h10M7 13h6M7 16h4" /></svg><span>Manage Accounts</span></a></li>
+            <li><a class="sidebar-btn" href="bug-reports.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4" /></svg><span>Bug Reports</span></a></li>
             <li><a class="sidebar-btn" href="../index.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" /></svg><span>Logout</span></a></li>
         </ul>
     </nav>
@@ -139,9 +140,7 @@
                         class="admin-input" id="dashboard-modal-first-name" x-model="form.firstName" required></div>
                     <div class="admin-field"><label class="admin-label" for="dashboard-modal-last-name">Last name</label><input
                         class="admin-input" id="dashboard-modal-last-name" x-model="form.lastName" required></div>
-                    <div class="admin-field"><label class="admin-label" for="dashboard-modal-username">Username</label><input
-                        class="admin-input" id="dashboard-modal-username" x-model="form.username" required></div>
-                    <div class="admin-field"><label class="admin-label" for="dashboard-modal-id-number">ID number</label><input
+                   <div class="admin-field"><label class="admin-label" for="dashboard-modal-id-number">ID number</label><input
                         class="admin-input" id="dashboard-modal-id-number" x-model="form.idNumber" required></div>
                 </div>
                 <label class="flex items-center gap-3 mb-6"><input type="checkbox" x-model="form.sendEmail"><span

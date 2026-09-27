@@ -564,6 +564,7 @@ async def get_student_final_grades(
                 "section": row["section"] or "-",
                 "teacher": row["teacher"],
                 "grade": grade,
+                "exam_percentage": round(float(row["exam_percentage"]), 2) if row["exam_percentage"] is not None else None,
                 "remark": "Passed" if grade is not None and grade >= 75 else "Failed" if grade is not None else "Grade not available yet",
             })
 

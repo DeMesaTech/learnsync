@@ -100,6 +100,36 @@
                 <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section>
 
+            <section class="lms-panel syllabus-progress-panel student-syllabus-progress">
+                <div class="lms-task-top">
+                    <div>
+                        <h3>Syllabus Progress</h3>
+                        <span class="lms-meta" x-text="syllabusProgress.completed_topics + ' of ' + syllabusProgress.total_topics + ' topics complete'"></span>
+                    </div>
+                    <span class="lms-badge good" x-text="syllabusProgress.completion_percent + '% complete'"></span>
+                </div>
+                <div class="syllabus-progress-track" role="progressbar" aria-label="Your syllabus completion"
+                    aria-valuemin="0" aria-valuemax="100" :aria-valuenow="syllabusProgress.completion_percent">
+                    <span class="syllabus-progress-fill" :style="'width: ' + syllabusProgress.completion_percent + '%' "></span>
+                </div>
+                <p class="lms-empty" x-show="syllabusProgressError" x-text="syllabusProgressError"></p>
+                <div class="syllabus-student-topics">
+                    <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
+                        <article class="syllabus-student-topic">
+                            <span class="syllabus-topic-count" :class="topic.completed ? 'complete' : ''" x-text="index + 1"></span>
+                            <div class="syllabus-student-topic-copy">
+                                <strong x-text="topic.title"></strong>
+                                <span class="lms-meta" x-text="topic.completed ? 'Completed' : 'Not completed'"></span>
+                            </div>
+                            <button class="lms-btn lms-btn-small" type="button" :disabled="updatingTopicId === topic.topic_id"
+                                @click="toggleTopicCompletion(topic)"
+                                x-text="topic.completed ? 'Undo' : 'Mark complete'"></button>
+                        </article>
+                    </template>
+                    <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Your teacher has not added syllabus topics yet.</p>
+                </div>
+            </section>
+
             <!-- Announcements + Learning Materials: two-column layout -->
             <section class="lms-grid lms-grid-2 gap-4">
                 <!-- Announcements -->
@@ -213,30 +243,31 @@
                             <span class="lms-meta">Your current grade for this subject</span>
                         </div>
                         <span class="lms-badge"
-                            :class="finalGrade.grade === null ? 'warn' : (finalGrade.grade >= 75 ? 'good' : 'bad')"
-                            x-text="finalGrade.grade === null ? 'Pending' : 'Finalized'"></span>
+                            :class="finalGradeLoading ? '' : (finalGrade.grade === null ? 'warn' : (finalGrade.grade >= 75 ? 'good' : 'bad'))"
+                            x-text="finalGradeLoading ? 'Loading...' : (finalGrade.grade === null ? 'Pending' : 'Finalized')"></span>
                     </div>
                     <div class="lms-grid lms-grid-4 gap-4">
                         <div class="lms-card">
                             <strong class="grade-number"
-                                x-text="finalGrade.grade === null ? 'Not available' : finalGrade.grade.toFixed(2)"></strong>
+                                x-text="finalGradeLoading ? 'Loading...' : (finalGrade.grade === null ? 'Not available' : Number(finalGrade.grade).toFixed(2))"></strong>
                             <span>Course Grade</span>
                         </div>
                         <div class="lms-card">
-                            <strong class="grade-number" x-text="finalGrade.midterm === null ? 'N/A' : finalGrade.midterm.toFixed(2)"></strong>
+                            <strong class="grade-number" x-text="finalGradeLoading ? 'Loading...' : (finalGrade.midterm === null ? 'Pending' : Number(finalGrade.midterm).toFixed(2))"></strong>
                             <span>Midterm Grade</span>
                         </div>
                         <div class="lms-card">
                             <strong class="grade-number"
-                                x-text="finalGrade.finalExam === null ? 'N/A' : finalGrade.finalExam.toFixed(2)"></strong>
+                                x-text="finalGradeLoading ? 'Loading...' : (finalGrade.finalExam === null ? 'Pending' : Number(finalGrade.finalExam).toFixed(2))"></strong>
                             <span>Final Exam</span>
                         </div>
                         <div class="lms-card">
-                            <strong class="grade-number" x-text="finalGrade.remark"></strong>
+                            <strong class="grade-number" x-text="finalGradeLoading ? 'Loading...' : finalGrade.remark"></strong>
                             <span>Remark</span>
                         </div>
                     </div>
-                    <p class="mt-2" x-text="finalGrade.note"></p>
+                    <p class="mt-2" x-show="!finalGradeError" x-text="finalGrade.note"></p>
+                    <p class="mt-2 text-red-600" x-show="finalGradeError" x-text="finalGradeError"></p>
                 </section>
             </section>
         </main>
@@ -279,6 +310,10 @@
                 modules: [],
                 activities: [],
                 quizzes: [],
+                studentId: null,
+                syllabusProgress: { topics: [], completed_topics: 0, total_topics: 0, completion_percent: 0 },
+                syllabusProgressError: '',
+                updatingTopicId: null,
                 submissionStatus: '',
                 badgeClass: '',
 
@@ -298,22 +333,29 @@
                 },
                 classId: null,
                 finalGrade: {
-                    grade: 91.86,
-                    midterm: 88.50,
-                    finalExam: 95.00,
-                    remark: 'Passed',
-                    note: 'This final grade summary is based on your current class scores for Section 3B. If a score is missing, the status will remain pending.'
+                    grade: null,
+                    midterm: null,
+                    finalExam: null,
+                    remark: 'Grade not available yet',
+                    note: 'Final course grade appears once grading components are complete and published.'
                 },
+                finalGradeLoading: true,
+                finalGradeError: '',
                 async init() {
                     const student_id = localStorage.getItem("student_id");
                     const urlParams = new URLSearchParams(window.location.search);
 
                     if (!student_id) {
                         console.warn("Student ID not found.");
+                        this.finalGradeLoading = false;
+                        this.finalGradeError = 'Sign in to view your grades.';
                         return;
                     }
+                    this.studentId = student_id;
                     if (!urlParams.get('class_id')) {
                         console.warn("Class ID not found.");
+                        this.finalGradeLoading = false;
+                        this.finalGradeError = 'Open this page from a class to view your grades.';
                         return;
                     }
                     const classId = urlParams.get('class_id');
@@ -340,10 +382,52 @@
                     } catch (err) {
                         console.error("Unable to load class title:", err);
                     }
+                    await this.loadFinalGrade(classId, student_id);
+                    await this.loadSyllabusProgress(classId, student_id);
                     await this.loadAnnouncements(classId, student_id);
                     await this.loadModules(classId, student_id);
                     await this.loadActivity(classId, student_id);
                     await this.loadQuizzes(classId, student_id);
+                },
+                async loadFinalGrade(classId, studentId) {
+                    this.finalGradeLoading = true;
+                    this.finalGradeError = '';
+                    try {
+                        const loadPeriodSummary = async gradingPeriod => {
+                            const params = new URLSearchParams({
+                                section: this.classSection,
+                                grading_period: gradingPeriod
+                            });
+                            const response = await fetch(`/api/grades/class/${encodeURIComponent(classId)}/summary?${params}`);
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.detail || `Unable to load ${gradingPeriod.toLowerCase()} grades.`);
+                            return (data.students || []).find(student => String(student.student_id) === String(studentId)) || null;
+                        };
+
+                        const params = new URLSearchParams({ grading_period: 'Finals' });
+                        const [midtermStudent, courseResponse] = await Promise.all([
+                            loadPeriodSummary('Midterm'),
+                            fetch(`/api/grades/student/${encodeURIComponent(studentId)}?${params}`)
+                        ]);
+                        const courseData = await courseResponse.json();
+                        if (!courseResponse.ok) throw new Error(courseData.detail || 'Unable to load the course grade.');
+                        const course = (courseData.courses || []).find(item => String(item.id) === String(classId));
+                        const isPublished = course?.grade !== null && course?.grade !== undefined;
+
+                        this.finalGrade = {
+                            grade: isPublished ? course.grade : null,
+                            midterm: midtermStudent?.period_grade ?? null,
+                            finalExam: isPublished ? (course.exam_percentage ?? null) : null,
+                            remark: course?.remark || 'Grade not available yet',
+                            note: isPublished
+                                ? 'Grades are based on the scores recorded for this subject.'
+                                : 'Final course grade appears once grading components are complete and published.'
+                        };
+                    } catch (error) {
+                        this.finalGradeError = error.message || 'Unable to load grades for this subject.';
+                    } finally {
+                        this.finalGradeLoading = false;
+                    }
                 },
                 async loadAnnouncements(classId, student_id) {
                     try {
@@ -369,6 +453,35 @@
                         console.log("Modules loaded:", this.modules);
                     } catch (err) {
                         console.error("Error loading modules:", err);
+                    }
+                },
+                async loadSyllabusProgress(classId, studentId) {
+                    this.syllabusProgressError = '';
+                    try {
+                        const response = await fetch(`/api/subjects/${encodeURIComponent(studentId)}/${encodeURIComponent(classId)}/student/syllabus-progress`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load syllabus progress.');
+                        this.syllabusProgress = data;
+                    } catch (error) {
+                        this.syllabusProgressError = error.message || 'Unable to load syllabus progress.';
+                    }
+                },
+                async toggleTopicCompletion(topic) {
+                    this.updatingTopicId = topic.topic_id;
+                    this.syllabusProgressError = '';
+                    try {
+                        const response = await fetch(`/api/subjects/${encodeURIComponent(this.studentId)}/${encodeURIComponent(this.classId)}/student/syllabus-topics/${topic.topic_id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ completed: !topic.completed })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to update topic progress.');
+                        await this.loadSyllabusProgress(this.classId, this.studentId);
+                    } catch (error) {
+                        this.syllabusProgressError = error.message || 'Unable to update topic progress.';
+                    } finally {
+                        this.updatingTopicId = null;
                     }
                 },
                 async loadActivity(classId, student_id) {

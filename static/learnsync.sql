@@ -279,6 +279,46 @@ CREATE TABLE IF NOT EXISTS public.student
     CONSTRAINT student_user_id_key UNIQUE (user_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.syllabus_topic
+(
+    topic_id bigserial NOT NULL,
+    class_id bigint NOT NULL,
+    title character varying(255) NOT NULL,
+    display_order integer NOT NULL DEFAULT 0,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT syllabus_topic_pkey PRIMARY KEY (topic_id),
+    CONSTRAINT syllabus_topic_class_id_fkey FOREIGN KEY (class_id)
+        REFERENCES public.class (class_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS public.student_topic_progress
+(
+    topic_id bigint NOT NULL,
+    student_id integer NOT NULL,
+    completed boolean NOT NULL DEFAULT false,
+    completed_at timestamp without time zone,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT student_topic_progress_pkey PRIMARY KEY (topic_id, student_id),
+    CONSTRAINT student_topic_progress_topic_id_fkey FOREIGN KEY (topic_id)
+        REFERENCES public.syllabus_topic (topic_id) ON DELETE CASCADE,
+    CONSTRAINT student_topic_progress_student_id_fkey FOREIGN KEY (student_id)
+        REFERENCES public.student (student_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx
+    ON public.syllabus_topic (class_id, display_order, topic_id);
+
+CREATE TABLE IF NOT EXISTS public.class_syllabus
+(
+    class_id bigint NOT NULL,
+    file_name character varying(255) NOT NULL,
+    file_path character varying(255) NOT NULL,
+    uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT class_syllabus_pkey PRIMARY KEY (class_id),
+    CONSTRAINT class_syllabus_class_id_fkey FOREIGN KEY (class_id)
+        REFERENCES public.class (class_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS public.student_answer
 (
     answer_id serial NOT NULL,

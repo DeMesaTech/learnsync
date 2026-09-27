@@ -19,6 +19,7 @@ from routers.grades import grades_router
 from routers.ai import ai_router
 from routers.quizzes import quiz_router
 from routers.admin import admin_router
+from routers.bug_reports import bug_reports_router
 
 # ============= APP INITIALIZATION =============
 app = FastAPI(
@@ -55,6 +56,7 @@ app.include_router(grades_router)
 app.include_router(ai_router)
 app.include_router(quiz_router)
 app.include_router(admin_router)
+app.include_router(bug_reports_router)
 
 
 # ============= SERVE STATIC FILES =============

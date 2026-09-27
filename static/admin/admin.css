@@ -133,6 +133,28 @@
     font-weight: 700;
 }
 
+.admin-report-filters {
+    flex-wrap: wrap;
+}
+
+.admin-report-filters .admin-input {
+    min-width: min(18rem, 100%);
+}
+
+.admin-report-description {
+    max-width: 28rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+    .admin-report-filters,
+    .admin-report-filters .admin-input,
+    .admin-report-filters .admin-select {
+        width: 100%;
+    }
+}
+
 .admin-badge.teacher {
     color: #075985;
     background: #e0f2fe;

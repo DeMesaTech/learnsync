@@ -178,6 +178,52 @@
                 </div>
             </section>
 
+            <section class="lms-panel syllabus-progress-panel">
+                <div class="lms-task-top">
+                    <div>
+                        <h3>Syllabus Progress</h3>
+                        <span class="lms-meta" x-text="syllabusProgress.total_students + ' enrolled students'">Loading progress...</span>
+                    </div>
+                    <span class="lms-badge good" x-text="syllabusProgress.overall_completion_percent + '% complete'"></span>
+                </div>
+                <div class="syllabus-progress-track" role="progressbar" aria-label="Class syllabus completion"
+                    aria-valuemin="0" aria-valuemax="100" :aria-valuenow="syllabusProgress.overall_completion_percent">
+                    <span class="syllabus-progress-fill"
+                        :style="'width: ' + syllabusProgress.overall_completion_percent + '%' "></span>
+                </div>
+                <div x-show="syllabusProgress.syllabus" class="syllabus-file-link">
+                    <span class="lms-meta">Current syllabus</span>
+                    <a :href="'/' + syllabusProgress.syllabus.file_path" target="_blank" rel="noopener"
+                        x-text="syllabusProgress.syllabus.file_name"></a>
+                    <span class="lms-meta" x-text="'Uploaded ' + formatDateTime(syllabusProgress.syllabus.uploaded_at)"></span>
+                </div>
+                <form class="syllabus-topic-form" @submit.prevent="uploadSyllabus()">
+                    <input class="lms-input" type="file" x-ref="syllabusFile"
+                        accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        aria-label="Choose syllabus DOCX or PDF"
+                        @change="syllabusUploadError = ''; syllabusUploadMessage = ''">
+                    <button class="lms-btn" type="submit" :disabled="!$refs.syllabusFile?.files?.length || syllabusUploading"
+                        x-text="syllabusUploading ? 'Uploading...' : (syllabusProgress.syllabus ? 'Replace syllabus' : 'Upload syllabus')"></button>
+                </form>
+                <p class="lms-empty" x-show="syllabusUploadError" x-text="syllabusUploadError"></p>
+                <p class="lms-meta m-0" x-show="syllabusUploadMessage" x-text="syllabusUploadMessage"></p>
+                <p class="lms-empty" x-show="syllabusProgressError" x-text="syllabusProgressError"></p>
+                <div class="syllabus-topic-bubbles">
+                    <template x-for="topic in syllabusProgress.topics" :key="topic.topic_id">
+                        <article class="syllabus-topic-bubble">
+                            <span class="syllabus-topic-count" :class="topic.completed_students ? 'complete' : ''">
+                                <span x-text="topic.completed_students"></span><small>/</small><span x-text="topic.total_students"></span>
+                            </span>
+                            <strong x-text="topic.title"></strong>
+                            <span class="lms-meta" x-text="topic.completion_percent + '% complete'"></span>
+                            <button class="lms-btn lms-btn-danger lms-btn-small" type="button"
+                                @click="deleteSyllabusTopic(topic)">Remove</button>
+                        </article>
+                    </template>
+                    <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Upload a syllabus with a course outline to populate topics and begin tracking progress.</p>
+                </div>
+            </section>
+
             <section class="lms-toolbar"><!-- Section Selector -->
                 <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
                     <option value="all">All sections</option>
@@ -832,6 +878,12 @@
                 sections: [],
                 teacherClasses: [],
                 nums: { students: null, modules: null, activities: null, quizzes: null },
+                teacherId: null,
+                syllabusProgress: { topics: [], total_students: 0, overall_completion_percent: 0 },
+                syllabusProgressError: '',
+                syllabusUploading: false,
+                syllabusUploadError: '',
+                syllabusUploadMessage: '',
                 currentClassId: null,
                 group_id: null,
                 subjectTitle: '',
@@ -912,6 +964,7 @@
                         return;
                     }
                     this._initialized = true;
+                    this.teacherId = localStorage.getItem('teacher_id');
 
                     try {
                         const params = new URLSearchParams(window.location.search);
@@ -986,6 +1039,7 @@
                         }
 
                         await this.loadKPIs();
+                        await this.loadSyllabusProgress();
                         await this.load_announcement();
                         await this.load_modules();
                         await this.load_act();
@@ -1154,6 +1208,59 @@
                         };
                     } catch (err) {
                         console.error('Error loading subject KPIs:', err);
+                    }
+                },
+                async loadSyllabusProgress() {
+                    if (!this.currentClassId) return;
+                    this.syllabusProgressError = '';
+                    try {
+                        const response = await fetch(`/api/subjects/${encodeURIComponent(this.currentClassId)}/teacher/syllabus-progress`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load syllabus progress.');
+                        this.syllabusProgress = data;
+                    } catch (error) {
+                        this.syllabusProgressError = error.message || 'Unable to load syllabus progress.';
+                    }
+                },
+                async uploadSyllabus() {
+                    const file = this.$refs.syllabusFile?.files?.[0];
+                    if (!file || !this.currentClassId) return;
+                    if (this.syllabusProgress.topics.length && !confirm('This import removes topics no longer listed in the syllabus and their completion records. Matching topic titles keep their progress. Continue?')) return;
+                    this.syllabusUploading = true;
+                    this.syllabusUploadError = '';
+                    this.syllabusUploadMessage = '';
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('teacher_id', this.teacherId || '');
+                        const response = await fileTransfer.upload(
+                            `/api/subjects/${encodeURIComponent(this.currentClassId)}/teacher/syllabus`,
+                            formData,
+                            { label: 'Uploading syllabus...' }
+                        );
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to upload syllabus.');
+                        this.$refs.syllabusFile.value = '';
+                        await this.loadSyllabusProgress();
+                        this.syllabusUploadMessage = data.topic_warning
+                            || `Syllabus uploaded. Imported ${data.topics_imported} topics. Matching topics kept their completion progress.`;
+                    } catch (error) {
+                        this.syllabusUploadError = error.message || 'Unable to upload syllabus.';
+                    } finally {
+                        this.syllabusUploading = false;
+                    }
+                },
+                async deleteSyllabusTopic(topic) {
+                    if (!confirm(`Remove "${topic.title}" and its completion records?`)) return;
+                    this.syllabusProgressError = '';
+                    try {
+                        const params = new URLSearchParams({ teacher_id: this.teacherId || '' });
+                        const response = await fetch(`/api/subjects/teacher/syllabus-topics/${topic.topic_id}?${params}`, { method: 'DELETE' });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to remove syllabus topic.');
+                        await this.loadSyllabusProgress();
+                    } catch (error) {
+                        this.syllabusProgressError = error.message || 'Unable to remove syllabus topic.';
                     }
                 },
                 // Parse textarea and call enroll endpoint

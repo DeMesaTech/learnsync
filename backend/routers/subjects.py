@@ -9,12 +9,310 @@ import os
 import uuid
 from pathlib import Path
 from psycopg2.extras import RealDictCursor
-from module_extractor import SUPPORTED_EXTENSIONS, extract_module_text
+from module_extractor import SUPPORTED_EXTENSIONS, extract_module_text, extract_syllabus_topics
 
 #from models import 
 from db import get_db_connection
 
 subject_router = APIRouter(prefix="/api/subjects", tags=["subjects"])
+
+
+def ensure_syllabus_progress_tables(conn):
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS syllabus_topic (
+                topic_id bigserial PRIMARY KEY,
+                class_id bigint NOT NULL REFERENCES class(class_id) ON DELETE CASCADE,
+                title varchar(255) NOT NULL,
+                display_order integer NOT NULL DEFAULT 0,
+                created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS student_topic_progress (
+                topic_id bigint NOT NULL REFERENCES syllabus_topic(topic_id) ON DELETE CASCADE,
+                student_id integer NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
+                completed boolean NOT NULL DEFAULT false,
+                completed_at timestamp without time zone,
+                updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (topic_id, student_id)
+            );
+            CREATE TABLE IF NOT EXISTS class_syllabus (
+                class_id bigint PRIMARY KEY REFERENCES class(class_id) ON DELETE CASCADE,
+                file_name varchar(255) NOT NULL,
+                file_path varchar(255) NOT NULL,
+                uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx
+                ON syllabus_topic (class_id, display_order, topic_id);
+            """
+        )
+        conn.commit()
+    finally:
+        cur.close()
+
+
+def assert_student_enrolled(cur, student_id: int, class_id: int):
+    cur.execute(
+        "SELECT 1 FROM enrollment WHERE student_id = %s AND class_id = %s",
+        (student_id, class_id),
+    )
+    if not cur.fetchone():
+        raise HTTPException(status_code=403, detail="Student is not enrolled in this class.")
+
+
+def assert_teacher_owns_class(cur, class_id: int, teacher_id: int):
+    cur.execute(
+        "SELECT 1 FROM class WHERE class_id = %s AND employee_id = %s",
+        (class_id, teacher_id),
+    )
+    if not cur.fetchone():
+        raise HTTPException(status_code=403, detail="You do not own this class.")
+
+
+@subject_router.get("/{class_id}/teacher/syllabus-progress")
+async def get_teacher_syllabus_progress(class_id: int):
+    conn = get_db_connection()
+    try:
+        ensure_syllabus_progress_tables(conn)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT COUNT(*) AS total FROM enrollment WHERE class_id = %s", (class_id,))
+        total_students = cur.fetchone()["total"] or 0
+        cur.execute(
+            """
+            SELECT topic.topic_id, topic.title, topic.display_order,
+                   COUNT(progress.student_id) FILTER (WHERE progress.completed) AS completed_students
+            FROM syllabus_topic topic
+            LEFT JOIN student_topic_progress progress ON progress.topic_id = topic.topic_id
+            WHERE topic.class_id = %s
+            GROUP BY topic.topic_id
+            ORDER BY topic.display_order, topic.topic_id
+            """,
+            (class_id,),
+        )
+        topics = [dict(row) for row in cur.fetchall()]
+        for topic in topics:
+            topic["total_students"] = total_students
+            topic["completion_percent"] = round(topic["completed_students"] * 100 / total_students) if total_students else 0
+        cur.execute(
+            "SELECT file_name, file_path, uploaded_at FROM class_syllabus WHERE class_id = %s",
+            (class_id,),
+        )
+        syllabus = cur.fetchone()
+        total_possible = len(topics) * total_students
+        completed_total = sum(topic["completed_students"] for topic in topics)
+        return {
+            "topics": topics,
+            "syllabus": dict(syllabus) if syllabus else None,
+            "total_students": total_students,
+            "overall_completion_percent": round(completed_total * 100 / total_possible) if total_possible else 0,
+        }
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@subject_router.post("/{class_id}/teacher/syllabus")
+async def upload_class_syllabus(
+    class_id: int,
+    teacher_id: int = Form(...),
+    file: UploadFile = File(...),
+):
+    original_name = Path(file.filename or "syllabus").name
+    extension = Path(original_name).suffix.lower()
+    if extension not in {".docx", ".pdf"}:
+        raise HTTPException(status_code=415, detail="Syllabus must be a DOCX or PDF file.")
+
+    max_file_size = 20 * 1024 * 1024
+    file_data = await file.read(max_file_size + 1)
+    if len(file_data) > max_file_size:
+        raise HTTPException(status_code=413, detail="Syllabus file must be 20 MB or smaller.")
+
+    conn = get_db_connection()
+    cur = None
+    new_path = None
+    try:
+        ensure_syllabus_progress_tables(conn)
+        cur = conn.cursor()
+        assert_teacher_owns_class(cur, class_id, teacher_id)
+        cur.execute("SELECT file_path FROM class_syllabus WHERE class_id = %s", (class_id,))
+        previous = cur.fetchone()
+
+        upload_dir = Path(__file__).resolve().parents[1] / "uploads" / "syllabus"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        stored_name = f"{uuid.uuid4().hex}{extension}"
+        stored_path = upload_dir / stored_name
+        new_path = f"uploads/syllabus/{stored_name}"
+        stored_path.write_bytes(file_data)
+        try:
+            syllabus_topics = extract_syllabus_topics(stored_path)
+        except Exception as error:
+            raise HTTPException(status_code=422, detail="Unable to read syllabus topics from this file.") from error
+
+        cur.execute(
+            """
+            INSERT INTO class_syllabus (class_id, file_name, file_path, uploaded_at)
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (class_id) DO UPDATE
+            SET file_name = EXCLUDED.file_name,
+                file_path = EXCLUDED.file_path,
+                uploaded_at = CURRENT_TIMESTAMP
+            """,
+            (class_id, original_name[:255], new_path),
+        )
+        if syllabus_topics:
+            cur.execute(
+                "SELECT topic_id, title FROM syllabus_topic WHERE class_id = %s",
+                (class_id,),
+            )
+            existing_topics = cur.fetchall()
+            existing_by_title = {}
+            for topic_id, title in existing_topics:
+                existing_by_title.setdefault(title.casefold(), topic_id)
+
+            retained_topic_ids = set()
+            for display_order, title in enumerate(syllabus_topics, start=1):
+                existing_id = existing_by_title.get(title.casefold())
+                if existing_id:
+                    retained_topic_ids.add(existing_id)
+                    cur.execute(
+                        "UPDATE syllabus_topic SET display_order = %s WHERE topic_id = %s",
+                        (display_order, existing_id),
+                    )
+                else:
+                    cur.execute(
+                        "INSERT INTO syllabus_topic (class_id, title, display_order) VALUES (%s, %s, %s) RETURNING topic_id",
+                        (class_id, title, display_order),
+                    )
+                    retained_topic_ids.add(cur.fetchone()[0])
+            for topic_id, _ in existing_topics:
+                if topic_id not in retained_topic_ids:
+                    cur.execute("DELETE FROM syllabus_topic WHERE topic_id = %s", (topic_id,))
+        conn.commit()
+
+        if previous and previous[0] != new_path:
+            old_file = Path(__file__).resolve().parents[1] / previous[0]
+            old_file.unlink(missing_ok=True)
+
+        return {
+            "file_name": original_name[:255],
+            "file_path": new_path,
+            "topics_imported": len(syllabus_topics),
+            "topic_warning": None if syllabus_topics else "No course outline topics were detected; existing tracked topics were kept. Use a DOCX or PDF with a course-outline table or numbered topics.",
+        }
+    except HTTPException:
+        conn.rollback()
+        if new_path:
+            (Path(__file__).resolve().parents[1] / new_path).unlink(missing_ok=True)
+        raise
+    except Exception as e:
+        conn.rollback()
+        if new_path:
+            (Path(__file__).resolve().parents[1] / new_path).unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail="Unable to upload syllabus.") from e
+    finally:
+        if cur:
+            cur.close()
+        conn.close()
+
+
+@subject_router.delete("/teacher/syllabus-topics/{topic_id}")
+async def delete_syllabus_topic(topic_id: int, teacher_id: int):
+    conn = get_db_connection()
+    try:
+        ensure_syllabus_progress_tables(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT class_id FROM syllabus_topic WHERE topic_id = %s", (topic_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Syllabus topic not found.")
+        assert_teacher_owns_class(cur, row[0], teacher_id)
+        cur.execute("DELETE FROM syllabus_topic WHERE topic_id = %s", (topic_id,))
+        conn.commit()
+        return {"deleted": True}
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@subject_router.get("/{student_id}/{class_id}/student/syllabus-progress")
+async def get_student_syllabus_progress(student_id: int, class_id: int):
+    conn = get_db_connection()
+    try:
+        ensure_syllabus_progress_tables(conn)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        assert_student_enrolled(cur, student_id, class_id)
+        cur.execute(
+            """
+            SELECT topic.topic_id, topic.title, topic.display_order,
+                   COALESCE(progress.completed, false) AS completed,
+                   progress.completed_at
+            FROM syllabus_topic topic
+            LEFT JOIN student_topic_progress progress
+              ON progress.topic_id = topic.topic_id AND progress.student_id = %s
+            WHERE topic.class_id = %s
+            ORDER BY topic.display_order, topic.topic_id
+            """,
+            (student_id, class_id),
+        )
+        topics = [dict(row) for row in cur.fetchall()]
+        completed = sum(topic["completed"] for topic in topics)
+        return {
+            "topics": topics,
+            "completed_topics": completed,
+            "total_topics": len(topics),
+            "completion_percent": round(completed * 100 / len(topics)) if topics else 0,
+        }
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@subject_router.put("/{student_id}/{class_id}/student/syllabus-topics/{topic_id}")
+async def set_student_topic_completion(student_id: int, class_id: int, topic_id: int, payload: dict = Body(...)):
+    completed = payload.get("completed")
+    if not isinstance(completed, bool):
+        raise HTTPException(status_code=400, detail="completed must be a boolean.")
+
+    conn = get_db_connection()
+    try:
+        ensure_syllabus_progress_tables(conn)
+        cur = conn.cursor()
+        assert_student_enrolled(cur, student_id, class_id)
+        cur.execute(
+            "SELECT 1 FROM syllabus_topic WHERE topic_id = %s AND class_id = %s",
+            (topic_id, class_id),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Syllabus topic not found.")
+        cur.execute(
+            """
+            INSERT INTO student_topic_progress (topic_id, student_id, completed, completed_at, updated_at)
+            VALUES (%s, %s, %s, CASE WHEN %s THEN CURRENT_TIMESTAMP ELSE NULL END, CURRENT_TIMESTAMP)
+            ON CONFLICT (topic_id, student_id) DO UPDATE
+            SET completed = EXCLUDED.completed,
+                completed_at = EXCLUDED.completed_at,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (topic_id, student_id, completed, completed),
+        )
+        conn.commit()
+        return {"topic_id": topic_id, "completed": completed}
+    except psycopg2.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
 
 
 @subject_router.get("/todo/student/{student_id}")

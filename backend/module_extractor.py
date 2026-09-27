@@ -11,6 +11,19 @@ from pypdf import PdfReader
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".pptx"}
 CHUNK_SIZE = 2000
+TOPIC_HEADER_PATTERN = re.compile(
+    r"\b(topic|topics|subject matter|course content|content|lesson|course outline|weekly outline)\b",
+    re.IGNORECASE,
+)
+OUTLINE_SECTION_PATTERN = re.compile(
+    r"\b(course outline|course content|subject matter|learning plan|weekly outline|topics covered)\b",
+    re.IGNORECASE,
+)
+STOP_SECTION_PATTERN = re.compile(
+    r"\b(references|bibliography|grading system|course policies|consultation hours|course description)\b",
+    re.IGNORECASE,
+)
+NUMBERED_TOPIC_PATTERN = re.compile(r"^(?:\d+(?:\.\d+)*[.)-]?\s+|(?:week|unit|lesson|topic)\s+\d+\s*[:.)-]?\s+)", re.IGNORECASE)
 
 
 def _clean_text(value: object) -> str:
@@ -80,3 +93,127 @@ def extract_module_text(path: str | Path) -> dict[str, object]:
         "content_extracted": bool(text),
         "warning": None if text else "No extractable text was found in this file.",
     }
+
+
+def _topic_candidate(value: str, require_label: bool = True) -> str | None:
+    text = _clean_text(value).strip(" |\t-\u2022")
+    if not text or len(text) < 3 or len(text) > 255:
+        return None
+    if require_label and not NUMBERED_TOPIC_PATTERN.match(text):
+        return None
+    if re.fullmatch(
+        r"(?:topics?|course content|subject matter|content|lesson|week|unit|learning outcomes?|objectives?|activities|assessment|references)",
+        text.strip(" :.-"),
+        re.IGNORECASE,
+    ):
+        return None
+    if re.fullmatch(r"(?:week|unit|lesson|topic)\s+\d+\s*[:.)-]?", text, re.IGNORECASE):
+        return None
+    return text
+
+
+def _docx_syllabus_topics(path: Path) -> list[str]:
+    document = Document(str(path))
+    topics: list[str] = []
+
+    for table in document.tables:
+        rows = [
+            ["\n".join(_clean_text(paragraph.text) for paragraph in cell.paragraphs if _clean_text(paragraph.text)) for cell in row.cells]
+            for row in table.rows
+        ]
+        header_index = None
+        topic_column = None
+        for row_index, row in enumerate(rows[:4]):
+            for column_index, cell in enumerate(row):
+                if TOPIC_HEADER_PATTERN.search(cell):
+                    header_index = row_index
+                    topic_column = column_index
+                    break
+            if topic_column is not None:
+                break
+
+        if topic_column is not None and header_index is not None:
+            topics_before_table = len(topics)
+            for row in rows[header_index + 1:]:
+                if topic_column >= len(row):
+                    continue
+                cell_text = row[topic_column]
+                candidates = re.split(r"\n+", cell_text)
+                for candidate in candidates:
+                    topic = _topic_candidate(candidate, require_label=False)
+                    if topic:
+                        topics.append(topic)
+            if len(topics) > topics_before_table:
+                continue
+
+        for row in rows:
+            for column_index, cell in enumerate(row[:-1]):
+                if re.match(r"^(?:week|unit|lesson)\s*\d+\b", cell, re.IGNORECASE):
+                    for candidate in re.split(r"\n+", row[column_index + 1]):
+                        topic = _topic_candidate(candidate, require_label=False)
+                        if topic:
+                            topics.append(topic)
+                    break
+
+    in_outline = False
+    for paragraph in document.paragraphs:
+        text = _clean_text(paragraph.text)
+        if not text:
+            continue
+        if OUTLINE_SECTION_PATTERN.search(text):
+            in_outline = True
+            continue
+        if in_outline and STOP_SECTION_PATTERN.search(text):
+            in_outline = False
+            continue
+        if in_outline or paragraph.style.name.lower().startswith("heading"):
+            for candidate in re.split(r"\n+", text):
+                topic = _topic_candidate(candidate, require_label=not in_outline)
+                if topic:
+                    topics.append(topic)
+
+    return _unique_topics(topics)
+
+
+def _unique_topics(topics: list[str]) -> list[str]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for topic in topics:
+        normalized = topic.casefold()
+        if normalized not in seen:
+            seen.add(normalized)
+            unique.append(topic)
+        if len(unique) >= 100:
+            break
+    return unique
+
+
+def _pdf_syllabus_topics(path: Path) -> list[str]:
+    reader = PdfReader(str(path))
+    topics: list[str] = []
+    in_outline = False
+    for page in reader.pages:
+        for raw_line in (page.extract_text() or "").splitlines():
+            text = _clean_text(raw_line)
+            if OUTLINE_SECTION_PATTERN.search(text):
+                in_outline = True
+                continue
+            if in_outline and STOP_SECTION_PATTERN.search(text):
+                in_outline = False
+                continue
+            if in_outline or NUMBERED_TOPIC_PATTERN.match(text):
+                topic = _topic_candidate(text)
+                if topic:
+                    topics.append(topic)
+    return _unique_topics(topics)
+
+
+def extract_syllabus_topics(path: str | Path) -> list[str]:
+    """Extract numbered or week-labeled topics from a syllabus outline."""
+    document_path = Path(path)
+    extension = document_path.suffix.lower()
+    if extension == ".docx":
+        return _docx_syllabus_topics(document_path)
+    if extension == ".pdf":
+        return _pdf_syllabus_topics(document_path)
+    raise ValueError("Syllabus topic extraction supports DOCX and PDF files.")
