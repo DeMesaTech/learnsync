@@ -156,6 +156,31 @@ async def create_grading_column(payload: GradingColumnRequest):
         conn.close()
 
 
+@grades_router.delete("/columns/{column_id}")
+async def delete_grading_column(column_id: int, teacher_id: int = Query(...)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        ensure_grading_tables(conn)
+        cur.execute("SELECT class_id FROM grading_column WHERE column_id = %s", (column_id,))
+        column = cur.fetchone()
+        if not column:
+            raise HTTPException(status_code=404, detail="Grading column not found.")
+        assert_teacher_class(cur, column[0], teacher_id)
+        cur.execute("DELETE FROM grading_column WHERE column_id = %s", (column_id,))
+        conn.commit()
+        return {"column_id": column_id, "deleted": True}
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as exc:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {exc}")
+    finally:
+        cur.close()
+        conn.close()
+
+
 @grades_router.put("/columns/{column_id}/scores")
 async def update_grading_scores(column_id: int, payload: GradingScoreUpdate):
     conn = get_db_connection()
@@ -616,10 +641,11 @@ async def get_class_grading_sheet(
 
         cur.execute(
             """
-            SELECT q.quiz_id, q.title, qs.student_id, qs.total_score,
+                 SELECT q.quiz_id, q.title, q.date_created AS column_date,
+                     qs.student_id, qs.total_score,
                    qs.date_taken
-            FROM quiz q
-              JOIN quiz_score qs ON qs.quiz_id = q.quiz_id
+                        FROM quiz q
+                              JOIN quiz_score qs ON qs.quiz_id = q.quiz_id
                             AND qs.grading_period = %s
             WHERE q.class_id = %s
             ORDER BY q.date_created NULLS LAST, q.quiz_id, qs.student_id
@@ -630,7 +656,8 @@ async def get_class_grading_sheet(
 
         cur.execute(
             """
-                 SELECT a.activity_id, a.title, a.points, s.student_id,
+                                 SELECT a.activity_id, a.title, a.points, a.due_date AS column_date,
+                                     s.student_id,
                    s.score, s.submission_date
             FROM activity a
             LEFT JOIN (
@@ -651,9 +678,9 @@ async def get_class_grading_sheet(
 
         cur.execute(
             """
-            SELECT gc.column_id, gc.class_id, gc.section, gc.grading_period,
+                 SELECT gc.column_id, gc.class_id, gc.section, gc.grading_period,
                    gc.category, gc.label, gc.total_items, gc.record_date,
-                   gs.score_id, gs.student_id, gs.score
+                     gc.created_at, gs.score_id, gs.student_id, gs.score
             FROM grading_column gc
             LEFT JOIN grading_score gs ON gs.column_id = gc.column_id
             WHERE gc.class_id = %s
@@ -681,6 +708,7 @@ async def get_class_grading_sheet(
                     "label": row["label"],
                     "total_items": row["total_items"],
                     "record_date": row["record_date"],
+                    "created_at": row["created_at"],
                 }
                 for row in custom_rows
             ],

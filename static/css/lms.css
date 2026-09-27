@@ -334,6 +334,26 @@ body.lms-shell {
     box-shadow: 0 0 0 4px rgb(23 111 168 / 0.14);
 }
 
+.student-announcements-panel {
+    align-self: start;
+    align-content: start;
+}
+
+.student-announcements-list {
+    align-content: start;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.student-announcements-list > .lms-badge {
+    justify-self: start;
+}
+
+.student-announcement-button {
+    gap: 0.35rem;
+    padding: 0.75rem;
+}
+
 .lms-meta {
     display: block;
     color: var(--brand-muted);
@@ -411,6 +431,50 @@ body.lms-shell {
     text-transform: uppercase;
 }
 
+.lms-table-grading {
+    min-width: 960px;
+    table-layout: fixed;
+}
+
+.lms-table-grading th,
+.lms-table-grading td {
+    padding: 0.9rem 1.25rem;
+}
+
+.lms-table-grading th {
+    border-bottom: 0;
+    color: #64748b;
+    background: #f8fafc;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+.lms-table-grading td {
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 0;
+    color: #334155;
+}
+
+.lms-table-grading th:first-child,
+.lms-table-grading td:first-child {
+    width: 4rem;
+}
+
+.lms-table-grading th:nth-child(2),
+.lms-table-grading td:nth-child(2) {
+    width: 15rem;
+}
+
+.lms-table-grading .lms-input {
+    min-width: 0;
+    padding-right: 0.4rem;
+    padding-left: 0.4rem;
+}
+
+.lms-table-grading tbody tr:hover td {
+    background: #f8fbfd;
+}
+
 .lms-table-bordered {
     border: 1px solid #d5e5ef;
 }
@@ -452,6 +516,10 @@ textarea.lms-input {
     border-radius: 8px;
     background: rgb(255 255 255 / 0.86);
     box-shadow: var(--shadow);
+}
+
+.lms-tabs-grading {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .lms-tab {
@@ -762,6 +830,10 @@ textarea.lms-input {
 }
 
 @media (max-width: 767px) {
+    .lms-tabs-grading {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .lms-grid-4,
     .lms-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));

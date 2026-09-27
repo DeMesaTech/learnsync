@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css?v=grading-selection-20260915">
+    <link rel="stylesheet" href="../css/lms.css?v=grading-table-admin-20260927">
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -109,7 +109,7 @@
                     <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('section')">Change Section</button>
                 </div>
             </section>
-            
+            <!-- Toolbar -->
             <section class="lms-toolbar">
                 <select class="lms-select" x-model="selectedTerm" @change="loadSheet()" aria-label="Filter by grading period">
                     <template x-for="period in periods" :key="period">
@@ -118,14 +118,16 @@
                 </select>
                 <a class="lms-btn" :href="finalGradesUrl()">Final Grades</a>
             </section>
-
-            <section class="lms-tabs" aria-label="Grading table tabs">
+            <!-- Grading Table Tabs -->
+            <section class="lms-tabs lms-tabs-grading" aria-label="Grading table tabs">
                 <button class="lms-tab" :class="activeTab === 'attendance' ? 'lms-tab-active' : ''" type="button"
                     @click="activeTab = 'attendance'">Attendance</button>
                 <button class="lms-tab" :class="activeTab === 'quiz' ? 'lms-tab-active' : ''" type="button"
                     @click="activeTab = 'quiz'">Quiz</button>
                 <button class="lms-tab" :class="activeTab === 'activity' ? 'lms-tab-active' : ''" type="button"
                     @click="activeTab = 'activity'">Activities</button>
+                <button class="lms-tab" :class="activeTab === 'progress' ? 'lms-tab-active' : ''" type="button"
+                    @click="activeTab = 'progress'; loadProgress()">Progress Tracking</button>
             </section>
 
             <section id="attendance" class="lms-table-card mt-4" x-show="activeTab === 'attendance'">
@@ -137,12 +139,11 @@
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
                         <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addAttendance'">Add Record</button>
-                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.attendance = !editMode.attendance"
-                            x-text="editMode.attendance ? 'Done Editing' : 'Edit Records'"></button>
+                        <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -153,7 +154,30 @@
                             </tr>
                             <tr>
                                 <template x-for="column in attendanceColumns" :key="column.key">
-                                    <th x-text="column.label"></th>
+                                    <th>
+                                        <span x-text="column.label"></span>
+                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
+                                            @click="toggleEditMode('attendance', column)"
+                                            :disabled="Boolean(savingCategory)"
+                                            :aria-label="isColumnEditing('attendance', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
+                                            :title="isColumnEditing('attendance', column) ? 'Save column scores' : 'Edit column scores'">
+                                            <svg x-show="!isColumnEditing('attendance', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            </svg>
+                                            <svg x-show="isColumnEditing('attendance', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            </svg>
+                                        </button>
+                                        <button class="lms-icon-btn" type="button" x-show="column.custom"
+                                            @click="deleteColumn('attendance', column)"
+                                            :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
+                                            :aria-label="'Delete ' + column.label + ' column'"
+                                            :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            </svg>
+                                        </button>
+                                    </th>
                                 </template>
                             </tr>
                         </thead>
@@ -163,11 +187,11 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in attendanceColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('attendance', student.student_id, column)" :disabled="!editMode.attendance" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('attendance', student.student_id, column)" :disabled="!isColumnEditing('attendance', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length"><td :colspan="2 + attendanceColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -182,12 +206,11 @@
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
                         <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addQuiz'">Add Score</button>
-                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.quiz = !editMode.quiz"
-                            x-text="editMode.quiz ? 'Done Editing' : 'Edit Records'"></button>
+                        <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -198,7 +221,30 @@
                             </tr>
                             <tr>
                                 <template x-for="column in quizColumns" :key="column.key">
-                                    <th x-text="column.label"></th>
+                                    <th>
+                                        <span x-text="column.label"></span>
+                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
+                                            @click="toggleEditMode('quiz', column)"
+                                            :disabled="Boolean(savingCategory)"
+                                            :aria-label="isColumnEditing('quiz', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
+                                            :title="isColumnEditing('quiz', column) ? 'Save column scores' : 'Edit column scores'">
+                                            <svg x-show="!isColumnEditing('quiz', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            </svg>
+                                            <svg x-show="isColumnEditing('quiz', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            </svg>
+                                        </button>
+                                        <button class="lms-icon-btn" type="button" x-show="column.custom"
+                                            @click="deleteColumn('quiz', column)"
+                                            :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
+                                            :aria-label="'Delete ' + column.label + ' column'"
+                                            :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            </svg>
+                                        </button>
+                                    </th>
                                 </template>
                             </tr>
                         </thead>
@@ -208,11 +254,11 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in quizColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('quiz', student.student_id, column)" :disabled="!editMode.quiz" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('quiz', student.student_id, column)" :disabled="!isColumnEditing('quiz', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length"><td :colspan="2 + quizColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -227,12 +273,11 @@
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
                         <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addActivity'">Add Score</button>
-                        <button class="lms-btn lms-btn-small" type="button" @click="editMode.activity = !editMode.activity"
-                            x-text="editMode.activity ? 'Done Editing' : 'Edit Records'"></button>
+                        <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -243,7 +288,30 @@
                             </tr>
                             <tr>
                                 <template x-for="column in activityColumns" :key="column.key">
-                                    <th x-text="column.label"></th>
+                                    <th>
+                                        <span x-text="column.label"></span>
+                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
+                                            @click="toggleEditMode('activity', column)"
+                                            :disabled="Boolean(savingCategory)"
+                                            :aria-label="isColumnEditing('activity', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
+                                            :title="isColumnEditing('activity', column) ? 'Save column scores' : 'Edit column scores'">
+                                            <svg x-show="!isColumnEditing('activity', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            </svg>
+                                            <svg x-show="isColumnEditing('activity', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            </svg>
+                                        </button>
+                                        <button class="lms-icon-btn" type="button" x-show="column.custom"
+                                            @click="deleteColumn('activity', column)"
+                                            :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
+                                            :aria-label="'Delete ' + column.label + ' column'"
+                                            :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            </svg>
+                                        </button>
+                                    </th>
                                 </template>
                             </tr>
                         </thead>
@@ -253,13 +321,73 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in activityColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('activity', student.student_id, column)" :disabled="!editMode.activity" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('activity', student.student_id, column)" :disabled="!isColumnEditing('activity', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td colspan="6" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length"><td :colspan="2 + activityColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <section id="progress-tracking" class="lms-table-card mt-4" x-cloak x-show="activeTab === 'progress'">
+                <div class="lms-table-head">
+                    <div>
+                        <h3>Student Progress</h3>
+                        <span class="lms-meta">Academic performance for <span x-text="selectedTerm"></span> in this section.</span>
+                    </div>
+                    <span class="lms-badge" x-text="'Section ' + selectedSection"></span>
+                </div>
+                <div class="p-4">
+                    <div class="lms-kpis">
+                        <article class="lms-kpi">
+                            <span class="lms-kpi-icon" aria-hidden="true">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87m-1-11.13a4 4 0 0 1 0 7.75" /></svg>
+                            </span>
+                            <span>Students</span>
+                            <strong x-text="progressStudents.length"></strong>
+                        </article>
+                        <article class="lms-kpi">
+                            <span class="lms-kpi-icon" aria-hidden="true">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" /></svg>
+                            </span>
+                            <span>Completed</span>
+                            <strong x-text="progressStudents.filter(student => student.period_grade !== null && student.period_grade !== undefined).length"></strong>
+                        </article>
+                        <article class="lms-kpi">
+                            <span class="lms-kpi-icon" aria-hidden="true">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                            </span>
+                            <span>Pending</span>
+                            <strong x-text="progressStudents.filter(student => student.period_grade === null || student.period_grade === undefined).length"></strong>
+                        </article>
+                    </div>
+                    <h4 class="mt-4 mb-2 text-base font-bold text-slate-800">Student Performance</h4>
+                    <div class="lms-table-wrap">
+                        <table class="lms-table lms-table-grading">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Average</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="student in progressStudents" :key="student.student_id">
+                                    <tr>
+                                        <td x-text="student.name"></td>
+                                        <td x-text="formatProgressGrade(student.period_grade)"></td>
+                                        <td><span class="lms-badge" :class="student.period_grade === null || student.period_grade === undefined ? 'warn' : (student.period_grade >= 75 ? 'good' : 'bad')"
+                                            x-text="student.period_grade === null || student.period_grade === undefined ? 'Pending' : (student.period_grade >= 75 ? 'Good' : 'Needs review')"></span></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="progressLoading"><td colspan="3" class="lms-meta">Loading student progress...</td></tr>
+                                <tr x-show="!progressLoading && progressError"><td colspan="3" class="text-red-600" x-text="progressError"></td></tr>
+                                <tr x-show="!progressLoading && !progressError && !progressStudents.length"><td colspan="3" class="lms-meta">No students are enrolled in this section.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -353,16 +481,23 @@
                 sections: [],
                 periods: ['Midterm', 'Finals'],
                 students: [],
+                progressStudents: [],
+                progressLoading: false,
+                progressError: '',
                 attendance: [],
                 quizzes: [],
                 activities: [],
                 gradingColumns: [],
                 gradingScores: [],
-                attendanceColumns: [1, 2, 3, 4].map(index => ({ key: `empty-attendance-${index}`, label: '-', total: '-' })),
-                quizColumns: [1, 2, 3, 4].map(index => ({ key: `empty-quiz-${index}`, label: '-', total: '-' })),
-                activityColumns: [1, 2, 3, 4].map(index => ({ key: `empty-activity-${index}`, label: '-', total: '-' })),
-                editMode: { attendance: false, activity: false, quiz: false },
+                scoreColumnLimit: 6,
+                attendanceColumns: [1, 2, 3, 4, 5, 6].map(index => ({ key: `empty-attendance-${index}`, label: '-', total: '-' })),
+                quizColumns: [1, 2, 3, 4, 5, 6].map(index => ({ key: `empty-quiz-${index}`, label: '-', total: '-' })),
+                activityColumns: [1, 2, 3, 4, 5, 6].map(index => ({ key: `empty-activity-${index}`, label: '-', total: '-' })),
+                editMode: { attendance: {}, activity: {}, quiz: {} },
+                pendingEdits: { attendance: {}, activity: {}, quiz: {} },
                 saving: false,
+                savingCategory: '',
+                deletingColumnId: null,
                 saveError: '',
                 forms: {
                     attendance: { label: '', total_items: 1, record_date: '', default_score: 0 },
@@ -435,6 +570,34 @@
                     url.searchParams.set('section', this.selectedSection);
                     url.searchParams.set('grading_period', this.selectedTerm);
                     window.history.replaceState({}, '', url);
+                    if (this.activeTab === 'progress') await this.loadProgress();
+                },
+                async loadProgress() {
+                    if (!this.selectedClassId || !this.selectedSection) {
+                        this.progressStudents = [];
+                        this.progressError = '';
+                        return;
+                    }
+                    this.progressLoading = true;
+                    this.progressError = '';
+                    try {
+                        const params = new URLSearchParams({
+                            section: this.selectedSection,
+                            grading_period: this.selectedTerm
+                        });
+                        const response = await fetch(`/api/grades/class/${encodeURIComponent(this.selectedClassId)}/summary?${params}`);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load student progress.');
+                        this.progressStudents = data.students || [];
+                    } catch (error) {
+                        this.progressStudents = [];
+                        this.progressError = error.message || 'Unable to load student progress.';
+                    } finally {
+                        this.progressLoading = false;
+                    }
+                },
+                formatProgressGrade(grade) {
+                    return grade === null || grade === undefined ? 'Pending' : `${Number(grade).toFixed(2)}%`;
                 },
                 prepareClassSelection() {
                     const selectedClass = this.classes.find(classItem => String(classItem.class_id) === String(this.selectedClassId));
@@ -448,33 +611,50 @@
                         if (!record[keyName] || seen.has(key)) return false;
                         seen.add(key);
                         return true;
-                    }).slice(0, 4).map(record => ({
+                    }).map(record => ({
                         key: String(record[keyName]),
                         label: labelName === 'Attendance' ? String(record[keyName]) : (record[labelName] || '-'),
-                        total: totalName ? (record[totalName] ?? '-') : '-'
+                        total: totalName ? (record[totalName] ?? '-') : '-',
+                        sortDate: record.column_date || record.record_date || null
                     }));
-                    while (columns.length < 4) {
-                        const index = columns.length + 1;
-                        columns.push({ key: `empty-${keyName}-${index}`, label: '-', total: '-' });
-                    }
                     return columns;
                 },
                 withCustomColumns(category, legacyColumns, legacyTotal) {
+                    const seenCustom = new Set();
                     const custom = this.gradingColumns
-                        .filter(column => column.category === category)
+                        .filter(column => {
+                            if (column.category !== category || seenCustom.has(String(column.column_id))) return false;
+                            seenCustom.add(String(column.column_id));
+                            return true;
+                        })
                         .map(column => ({
                             key: String(column.column_id),
                             label: column.label,
                             total: column.total_items,
                             custom: true,
                             category,
-                            columnId: column.column_id
+                            columnId: column.column_id,
+                            sortDate: column.record_date || column.created_at || null
                         }));
-                    return [...custom, ...legacyColumns].slice(0, 4).map(column => ({
-                        custom: false,
+                    const columns = [...custom, ...legacyColumns]
+                        .sort((left, right) => {
+                            const leftDate = Date.parse(left.sortDate || '');
+                            const rightDate = Date.parse(right.sortDate || '');
+                            if (Number.isNaN(leftDate)) return Number.isNaN(rightDate) ? 0 : 1;
+                            if (Number.isNaN(rightDate)) return -1;
+                            return leftDate - rightDate;
+                        })
+                        .slice(0, this.scoreColumnLimit)
+                        .map(column => ({
                         ...column,
+                        custom: Boolean(column.custom),
                         total: column.total === '-' ? legacyTotal : column.total
                     }));
+                    while (columns.length < this.scoreColumnLimit) {
+                        const index = columns.length + 1;
+                        columns.push({ key: `empty-${category}-${index}`, label: '-', total: '-', custom: false });
+                    }
+                    return columns;
                 },
                 recordValue(kind, studentId, key) {
                     const source = kind === 'attendance' ? this.attendance : (kind === 'quiz' ? this.quizzes : this.activities);
@@ -483,11 +663,55 @@
                     return kind === 'attendance' ? (record.score ?? (record.is_present ? 1 : 0)) : (kind === 'quiz' ? (record.total_score ?? '') : (record.score ?? ''));
                 },
                 scoreValue(kind, studentId, column) {
+                    const pending = this.pendingEdits[kind][this.editKey(column, studentId)];
+                    if (pending) return pending.score ?? '';
                     if (column.custom) {
                         const score = this.gradingScores.find(item => String(item.column_id) === String(column.columnId) && String(item.student_id) === String(studentId));
                         return score?.score ?? '';
                     }
                     return this.recordValue(kind, studentId, column.key);
+                },
+                editKey(column, studentId) {
+                    return `${column.custom ? `custom-${column.columnId}` : `legacy-${column.key}`}-${studentId}`;
+                },
+                columnEditKey(column) {
+                    return column.custom ? `custom-${column.columnId}` : `legacy-${column.key}`;
+                },
+                isColumnEditing(category, column) {
+                    return Boolean(this.editMode[category][this.columnEditKey(column)]);
+                },
+                toggleEditMode(category, column) {
+                    const columnKey = this.columnEditKey(column);
+                    if (!this.editMode[category][columnKey]) {
+                        this.saveError = '';
+                        this.editMode[category][columnKey] = true;
+                        return;
+                    }
+                    this.saveEdits(category, columnKey);
+                },
+                async deleteColumn(category, column) {
+                    if (!column.custom || !column.columnId || this.deletingColumnId) return;
+                    if (!window.confirm(`Delete "${column.label}" and all of its scores? This cannot be undone.`)) return;
+                    this.saveError = '';
+                    this.deletingColumnId = column.columnId;
+                    try {
+                        const teacherId = localStorage.getItem('teacher_id') || localStorage.getItem('user_id');
+                        const response = await fetch(`/api/grades/columns/${encodeURIComponent(column.columnId)}?teacher_id=${encodeURIComponent(teacherId)}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.detail || 'Unable to delete grading column.');
+                        const columnKey = this.columnEditKey(column);
+                        this.editMode[category][columnKey] = false;
+                        this.pendingEdits[category] = Object.fromEntries(
+                            Object.entries(this.pendingEdits[category]).filter(([, edit]) => edit.columnKey !== columnKey)
+                        );
+                        await this.loadSheet();
+                    } catch (error) {
+                        this.saveError = error.message || 'Unable to delete grading column.';
+                    } finally {
+                        this.deletingColumnId = null;
+                    }
                 },
                 parseScores(text, defaultScore = null) {
                     const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
@@ -551,16 +775,16 @@
                         ? { label: '', total_items: 1, record_date: '', default_score: 0 }
                         : { label: '', total_items: 1, record_date: '', scores: '' };
                 },
-                async saveScore(column, studentId, value) {
+                saveScore(column, studentId, value) {
                     this.saveError = '';
+                    const kind = column.category || (this.activeTab === 'attendance' ? 'attendance' : this.activeTab === 'quiz' ? 'quiz' : 'activity');
                     const score = value === '' ? null : Number(value);
-                    if (score !== null && (!Number.isFinite(score) || score < 0 || score > Number(column.total))) {
+                    const total = Number(column.total);
+                    if (score !== null && (!Number.isFinite(score) || score < 0 || (Number.isFinite(total) && score > total))) {
                         this.saveError = `Score must be between 0 and ${column.total}.`;
-                        await this.loadSheet();
                         return;
                     }
                     if (!column.custom) {
-                        const kind = column.category || (this.activeTab === 'attendance' ? 'attendance' : this.activeTab === 'quiz' ? 'quiz' : 'activity');
                         const source = kind === 'attendance' ? this.attendance : kind === 'quiz' ? this.quizzes : this.activities;
                         const record = source.find(item => String(item.student_id) === String(studentId) && String(item[kind === 'attendance' ? 'record_date' : `${kind}_id`]) === String(column.key));
                         const recordId = record?.[kind === 'attendance' ? 'attendance_id' : kind === 'quiz' ? 'score_id' : 'act_submission_id'];
@@ -568,42 +792,61 @@
                             this.saveError = 'This student has no existing record in this column.';
                             return;
                         }
-                        try {
-                            const response = await fetch('/api/grades/records/score', {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    teacher_id: Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id')),
-                                    category: kind,
-                                    record_id: recordId,
-                                    score
-                                })
-                            });
-                            const data = await response.json();
-                            if (!response.ok) throw new Error(data.detail || 'Unable to save score.');
-                            await this.loadSheet();
-                        } catch (error) {
-                            this.saveError = error.message || 'Unable to save score.';
-                        }
+                    }
+                    this.pendingEdits[kind][this.editKey(column, studentId)] = {
+                        category: kind,
+                        columnKey: this.columnEditKey(column),
+                        custom: Boolean(column.custom),
+                        columnId: column.columnId,
+                        recordId: column.custom ? null : recordId,
+                        studentId,
+                        score
+                    };
+                },
+                async saveEdits(category, columnKey) {
+                    const edits = Object.values(this.pendingEdits[category]).filter(edit => edit.columnKey === columnKey);
+                    if (!edits.length) {
+                        this.editMode[category][columnKey] = false;
                         return;
                     }
-                    const existing = this.gradingScores.find(item => String(item.column_id) === String(column.columnId) && String(item.student_id) === String(studentId));
-                    if (existing) existing.score = score;
-                    else this.gradingScores.push({ column_id: column.columnId, student_id: studentId, score });
+                    this.saveError = '';
+                    this.savingCategory = category;
                     try {
-                        const response = await fetch(`/api/grades/columns/${encodeURIComponent(column.columnId)}/scores`, {
+                        const teacherId = Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id'));
+                        const customGroups = new Map();
+                        edits.filter(edit => edit.custom).forEach(edit => {
+                            if (!customGroups.has(edit.columnId)) customGroups.set(edit.columnId, []);
+                            customGroups.get(edit.columnId).push({ student_id: edit.studentId, score: edit.score });
+                        });
+                        const requests = Array.from(customGroups, ([columnId, scores]) => fetch(`/api/grades/columns/${encodeURIComponent(columnId)}/scores`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ teacher_id: teacherId, scores })
+                        }));
+                        edits.filter(edit => !edit.custom).forEach(edit => requests.push(fetch('/api/grades/records/score', {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                teacher_id: Number(localStorage.getItem('teacher_id') || localStorage.getItem('user_id')),
-                                scores: [{ student_id: studentId, score }]
+                                teacher_id: teacherId,
+                                category: edit.category,
+                                record_id: edit.recordId,
+                                score: edit.score
                             })
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(data.detail || 'Unable to save score.');
+                        })));
+                        const responses = await Promise.all(requests);
+                        for (const response of responses) {
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.detail || 'Unable to save score.');
+                        }
+                        this.pendingEdits[category] = Object.fromEntries(
+                            Object.entries(this.pendingEdits[category]).filter(([, edit]) => edit.columnKey !== columnKey)
+                        );
+                        this.editMode[category][columnKey] = false;
+                        await this.loadSheet();
                     } catch (error) {
                         this.saveError = error.message || 'Unable to save score.';
-                        await this.loadSheet();
+                    } finally {
+                        this.savingCategory = '';
                     }
                 },
                 async openSelectedClass() {

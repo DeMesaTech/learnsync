@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <link rel="stylesheet" href="../css/lms.css?v=student-announcements-compact-20260927">
     <script src="../js/file-transfer.js" defer></script>
 </head>
 
@@ -103,14 +103,14 @@
             <!-- Announcements + Learning Materials: two-column layout -->
             <section class="lms-grid lms-grid-2 gap-4">
                 <!-- Announcements -->
-                <section class="lms-panel" :class="announcementsOpen ? 'collapsed' : ''">
+                <section class="lms-panel student-announcements-panel" :class="announcementsOpen ? 'collapsed' : ''">
                     <div class="lms-task-top">
                         <h3>Announcements</h3>
                     </div>
-                    <div class="lms-list">
+                    <div class="lms-list student-announcements-list">
                         <span class="lms-badge" x-text="announcements.length + ' posts'"></span>
                         <template x-for="announcement in announcements" :key="announcement.title">
-                            <button class="lms-row lms-announcement-button" type="button"
+                            <button class="lms-row lms-announcement-button student-announcement-button" type="button"
                                 @click="openAnnouncement(announcement)">
                                 <strong x-text="announcement.title"></strong>
                                 <span class="lms-meta" x-text="announcement.message"></span>
