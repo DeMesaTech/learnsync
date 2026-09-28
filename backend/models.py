@@ -130,10 +130,12 @@ class StudentClassResponse(BaseModel):
     class_id: int
     section: str
     teacher_name: str
+    school_year: str = ""
+    semester: str = ""
 
 class ChatRequest(BaseModel):
     student_id: int
-    module_id: int
+    subject_id: int
     messages: list[dict[str, str]] = Field(min_length=1, max_length=30)
 
 

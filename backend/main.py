@@ -3,12 +3,14 @@ LearnSync Backend - FastAPI Application
 Organized modular structure with routers, models, and database helpers
 """
 
-import os
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+
+from local_env import load_local_env
+
+load_local_env()
 
 # Import routers
 from routers.auth import auth_router
@@ -20,6 +22,10 @@ from routers.ai import ai_router
 from routers.quizzes import quiz_router
 from routers.admin import admin_router
 from routers.bug_reports import bug_reports_router
+from routers.academic import academic_router
+from routers.faculty_syllabus import syllabus_router
+from routers.faculty_work import work_router
+from routers.learning_content import content_router
 
 # ============= APP INITIALIZATION =============
 app = FastAPI(
@@ -57,6 +63,10 @@ app.include_router(ai_router)
 app.include_router(quiz_router)
 app.include_router(admin_router)
 app.include_router(bug_reports_router)
+app.include_router(academic_router)
+app.include_router(syllabus_router)
+app.include_router(work_router)
+app.include_router(content_router)
 
 
 # ============= SERVE STATIC FILES =============
@@ -64,6 +74,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 STATIC_DIR = BASE_DIR.parent / "static"      # or "static" if your folder is lowercase
 UPLOADS_DIR = BASE_DIR / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 print(STATIC_DIR)
 print(UPLOADS_DIR)

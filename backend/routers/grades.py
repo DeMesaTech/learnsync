@@ -22,7 +22,7 @@ class GradingColumnRequest(BaseModel):
     section: str
     grading_period: Literal["Midterm", "Finals"] = "Midterm"
     teacher_id: int
-    category: Literal["attendance", "activity", "quiz"]
+    category: Literal["attendance", "activity", "quiz", "exam"]
     label: str = Field(min_length=1, max_length=255)
     total_items: float = Field(gt=0)
     record_date: Optional[date] = None
@@ -112,6 +112,16 @@ def upsert_grading_scores(cur, column_id: int, total_items: float, scores: list[
         )
 
 
+def invalidate_publications(cur, class_id: int, section: str | None = None):
+    """A published snapshot must be reviewed again after its underlying scores change."""
+    if section is None:
+        cur.execute("DELETE FROM grade_publication WHERE class_id=%s", (class_id,))
+    else:
+        cur.execute("""DELETE FROM grade_publication gp USING section s
+                       WHERE gp.class_id=%s AND gp.section_id=s.section_id AND s.section=%s""",
+                    (class_id, section))
+
+
 @grades_router.post("/columns")
 async def create_grading_column(payload: GradingColumnRequest):
     conn = get_db_connection()
@@ -132,6 +142,7 @@ async def create_grading_column(payload: GradingColumnRequest):
         )
         column = cur.fetchone()
         upsert_grading_scores(cur, column[0], payload.total_items, payload.scores)
+        invalidate_publications(cur, payload.class_id, payload.section)
         conn.commit()
         return {
             "column_id": column[0],
@@ -162,12 +173,13 @@ async def delete_grading_column(column_id: int, teacher_id: int = Query(...)):
     cur = conn.cursor()
     try:
         ensure_grading_tables(conn)
-        cur.execute("SELECT class_id FROM grading_column WHERE column_id = %s", (column_id,))
+        cur.execute("SELECT class_id, section FROM grading_column WHERE column_id = %s", (column_id,))
         column = cur.fetchone()
         if not column:
             raise HTTPException(status_code=404, detail="Grading column not found.")
         assert_teacher_class(cur, column[0], teacher_id)
         cur.execute("DELETE FROM grading_column WHERE column_id = %s", (column_id,))
+        invalidate_publications(cur, column[0], column[1])
         conn.commit()
         return {"column_id": column_id, "deleted": True}
     except HTTPException:
@@ -201,6 +213,7 @@ async def update_grading_scores(column_id: int, payload: GradingScoreUpdate):
         assert_teacher_class(cur, column[0], payload.teacher_id)
         assert_score_students(cur, column[0], column[1], payload.scores)
         upsert_grading_scores(cur, column_id, float(column[2]), payload.scores)
+        invalidate_publications(cur, column[0], column[1])
         conn.commit()
         return {"column_id": column_id, "saved": len(payload.scores)}
     except HTTPException:
@@ -247,6 +260,13 @@ async def update_legacy_score(payload: LegacyScoreUpdate):
         cur.execute(query, params)
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Score record not found or not owned by this teacher.")
+        table_join = {
+            "attendance": "SELECT class_id FROM attendance WHERE attendance_id=%s",
+            "quiz": "SELECT q.class_id FROM quiz_score qs JOIN quiz q ON q.quiz_id=qs.quiz_id WHERE qs.score_id=%s",
+            "activity": "SELECT a.class_id FROM act_submission s JOIN activity a ON a.activity_id=s.activity_id WHERE s.act_submission_id=%s",
+        }
+        cur.execute(table_join[payload.category], (payload.record_id,))
+        invalidate_publications(cur, cur.fetchone()[0])
         conn.commit()
         return {"saved": True, "record_id": payload.record_id}
     except HTTPException:
@@ -568,6 +588,34 @@ async def get_student_final_grades(
                 "remark": "Passed" if grade is not None and grade >= 75 else "Failed" if grade is not None else "Grade not available yet",
             })
 
+        # New assigned offerings expose only explicit faculty publication snapshots.
+        # Legacy classes keep their existing visibility behavior until migrated.
+        for course in courses:
+            cur.execute("SELECT workflow_status FROM class WHERE class_id=%s", (course["id"],))
+            status = cur.fetchone()
+            if not status or status["workflow_status"] != "active":
+                continue
+            cur.execute(
+                """SELECT gp.grading_period,gp.snapshot FROM grade_publication gp
+                   JOIN enrollment e ON e.class_id=gp.class_id AND e.section_id=gp.section_id
+                   WHERE gp.class_id=%s AND e.student_id=%s AND gp.grading_period IN (%s,'Course')
+                   ORDER BY CASE WHEN gp.grading_period=%s THEN 0 ELSE 1 END LIMIT 1""",
+                (course["id"], student_id, grading_period, grading_period),
+            )
+            publication = cur.fetchone()
+            grade = None
+            if publication:
+                record = next((item for item in publication["snapshot"]["students"]
+                               if item["student_id"] == student_id), None)
+                if record:
+                    grade = record["periods"][grading_period]["grade"]
+                    if publication["grading_period"] == "Course":
+                        course["course_grade"] = record["course_grade"]
+            course["grade"] = grade
+            threshold = (publication["snapshot"].get("passing_threshold", 75)
+                         if publication else 75)
+            course["remark"] = ("Grade not available yet" if grade is None else
+                                "Passed" if grade >= float(threshold) else "Failed")
         return {"courses": courses, "grading_period": grading_period}
     except HTTPException:
         raise
@@ -600,7 +648,8 @@ async def get_class_grading_sheet(
                    COALESCE(gp.exam_weight, 0) AS exam_weight,
                    COALESCE(
                        (SELECT ARRAY_AGG(s.section ORDER BY s.section)
-                        FROM section s WHERE s.class_id = c.class_id),
+                        FROM class_section cs JOIN section s ON s.section_id=cs.section_id
+                        WHERE cs.class_id = c.class_id),
                        ARRAY[]::varchar[]
                    ) AS sections
             FROM class c
