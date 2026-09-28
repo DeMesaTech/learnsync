@@ -1,0 +1,38 @@
+@echo off
+title LearnSync Launcher
+
+REM Go to project folder
+cd /d "%~dp0"
+
+REM Start Cloudflare Tunnel in a separate window
+start "LearnSync Tunnel" cmd /k "cloudflared tunnel --url http://localhost:8000"
+
+REM Configure environment variables
+REM Set GROQ_API_KEY in the environment before running if AI features are needed
+
+REM Check if API key is configured
+if defined GROQ_API_KEY (
+    echo API key configured
+) else (
+    echo API key missing
+)
+
+if not defined SMTP_HOST set SMTP_HOST=smtp.gmail.com
+if not defined SMTP_PORT set SMTP_PORT=587
+if not defined SMTP_USERNAME set SMTP_USERNAME=learnsyncadmin.gmvcc@gmail.com
+REM learnsyncadmin.gmvcc@gmail.com
+REM if not defined SMTP_PASSWORD set /p SMTP_PASSWORD=Enter Gmail app password: set "SMTP_PASSWORD=%SMTP_PASSWORD: =%"
+REM Set SMTP_PASSWORD in the environment when using authenticated SMTP
+if not defined MAIL_FROM set "MAIL_FROM=LearnSync Admin <learnsyncadmin.gmvcc@gmail.com>"
+
+REM Activate virtual environment
+call venv\Scripts\activate.bat
+
+REM Move to backend folder
+cd backend
+
+REM Run FastAPI with uvicorn
+python -m uvicorn main:app --reload --log-config logging.conf
+
+
+pause

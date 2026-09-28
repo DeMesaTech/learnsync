@@ -1,5 +1,7 @@
 # LearnSync Database and Frontend Schema Analysis
 
+> Historical analysis of the original class and grading model. The current shared roster, syllabus versions, and grade publication model are documented in [FACULTY_FLOW.md](FACULTY_FLOW.md) and [ACADEMIC_API.md](ACADEMIC_API.md).
+
 ## Applied connection
 
 The teacher grading sheet now loads records for a selected `class_id` through `GET /api/grades/class/{class_id}`. The subject workspace links to that URL, and the final-grade link preserves the selected class. The existing grading tabs and four data-column table layout were kept.
