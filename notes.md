@@ -1,11 +1,5 @@
 # To DO
--- Teacher AI quiz → Preview → Approve → Save/Publish
--- Student quiz → Attempt → Submit → Score
--- Teacher grading → Midterm/Final → Calculate final grade
 -- Student progress/performance page
--- Student AI assistant → module context → grounded response
--- Fix grading-period/database inconsistencies
--- Finish clickable module/activity/quiz detail views
 -- End-to-end testing
 -- UI polish and empty/error states
 -- Confirmations popup modals
