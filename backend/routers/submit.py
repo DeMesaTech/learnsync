@@ -97,9 +97,11 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
                 s.act_submission_id,
                 s.file_path AS submission_file_path,
                 s.submission_date,
-                s.score,
-                s.submission_status,
-                s.feedback,
+                CASE WHEN gp.class_id IS NOT NULL THEN s.score ELSE NULL END AS score,
+                CASE WHEN s.score IS NOT NULL AND gp.class_id IS NOT NULL THEN 'Graded'
+                     WHEN s.score IS NOT NULL THEN 'Submitted'
+                     ELSE s.submission_status END AS submission_status,
+                CASE WHEN gp.class_id IS NOT NULL THEN s.feedback ELSE NULL END AS feedback,
                 s.attempt_number,
                 s.st_notes
             FROM activity a
@@ -110,6 +112,8 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
             LEFT JOIN act_submission s
                 ON s.activity_id = a.activity_id
                 AND s.student_id = st.student_id
+            LEFT JOIN grade_publication gp ON gp.class_id=a.class_id
+                AND gp.section_id=e.section_id AND gp.grading_period=a.grading_period
             WHERE st.student_id = %s
                 AND a.class_id = %s
                 AND a.activity_id = %s
@@ -324,11 +328,12 @@ async def grade_submission(submission_id: int, payload: dict = Body(...)):
             UPDATE act_submission
             SET score = %s,
                 feedback = %s,
-                graded_at= NOW()
+                submission_status = CASE WHEN %s IS NULL THEN 'Submitted' ELSE 'Graded' END,
+                graded_at = CASE WHEN %s IS NULL THEN NULL ELSE NOW() END
             WHERE act_submission_id = %s
             RETURNING act_submission_id, student_id, activity_id, score, feedback
             """,
-            (score, feedback, submission_id)
+            (score, feedback, score, score, submission_id)
         )
 
         row = cur.fetchone()
