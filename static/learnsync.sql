@@ -291,6 +291,10 @@ CREATE TABLE IF NOT EXISTS public.syllabus_topic
         REFERENCES public.class (class_id) ON DELETE CASCADE
 );
 
+ALTER TABLE IF EXISTS public.module
+    ADD COLUMN IF NOT EXISTS topic_id bigint
+    REFERENCES public.syllabus_topic (topic_id) ON DELETE SET NULL;
+
 CREATE TABLE IF NOT EXISTS public.student_topic_progress
 (
     topic_id bigint NOT NULL,

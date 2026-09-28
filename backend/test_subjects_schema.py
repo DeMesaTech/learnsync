@@ -41,6 +41,7 @@ class EnsureSyllabusTablesTests(unittest.TestCase):
         combined_sql = "\n".join(executed_sql)
 
         self.assertIn('ALTER TABLE IF EXISTS public.syllabus_topic ADD COLUMN IF NOT EXISTS display_order', combined_sql)
+        self.assertIn('ALTER TABLE IF EXISTS public.module ADD COLUMN IF NOT EXISTS topic_id', combined_sql)
         self.assertIn('CREATE TABLE IF NOT EXISTS public.syllabus_topic', combined_sql)
 
 

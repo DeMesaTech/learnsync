@@ -53,30 +53,7 @@ def ensure_syllabus_progress_tables(conn):
             );
             """
         )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.syllabus_topic ADD COLUMN IF NOT EXISTS display_order integer NOT NULL DEFAULT 0;"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS completed boolean NOT NULL DEFAULT false;"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS completed_at timestamp without time zone;"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP;"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS file_name varchar(255);"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS file_path varchar(255);"
-        )
-        cur.execute(
-            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP;"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx ON public.syllabus_topic (class_id, display_order, topic_id);"
-        )
+    
         conn.commit()
     finally:
         cur.close()
@@ -89,6 +66,15 @@ def assert_student_enrolled(cur, student_id: int, class_id: int):
     )
     if not cur.fetchone():
         raise HTTPException(status_code=403, detail="Student is not enrolled in this class.")
+
+
+def _apply_module_coverage(topics):
+    for topic in topics:
+        topic["module_assigned"] = bool(topic["module_assigned"])
+        topic["module_completion_percent"] = 100 if topic["module_assigned"] else 0
+    module_topics = sum(topic["module_assigned"] for topic in topics)
+    coverage_percent = round(module_topics * 100 / len(topics)) if topics else 0
+    return module_topics, coverage_percent
 
 
 def assert_teacher_owns_class(cur, class_id: int, teacher_id: int):
@@ -114,7 +100,11 @@ async def get_teacher_syllabus_progress(class_id: int):
         cur.execute(
             """
             SELECT topic.topic_id, topic.title, topic.display_order,
-                   COALESCE(COUNT(progress.student_id) FILTER (WHERE progress.completed IS TRUE), 0) AS completed_students
+                   COALESCE(COUNT(progress.student_id) FILTER (WHERE progress.completed IS TRUE), 0) AS completed_students,
+                   EXISTS (
+                       SELECT 1 FROM public.module
+                       WHERE module.topic_id = topic.topic_id
+                   ) AS module_assigned
             FROM syllabus_topic topic
             LEFT JOIN student_topic_progress progress ON progress.topic_id = topic.topic_id
             WHERE topic.class_id = %s
@@ -124,6 +114,7 @@ async def get_teacher_syllabus_progress(class_id: int):
             (class_id,),
         )
         topics = [dict(row) for row in cur.fetchall()]
+        module_topics, module_coverage_percent = _apply_module_coverage(topics)
 
         for topic in topics:
             topic["completed_students"] = int(topic.get("completed_students") or 0)
@@ -143,6 +134,9 @@ async def get_teacher_syllabus_progress(class_id: int):
             "topics": topics,
             "syllabus": dict(syllabus) if syllabus else None,
             "total_students": total_students,
+            "total_topics": len(topics),
+            "module_topics": module_topics,
+            "module_coverage_percent": module_coverage_percent,
             "overall_completion_percent": round(completed_total * 100 / total_possible) if total_possible else 0,
         }
     except psycopg2.Error as exc:
@@ -151,6 +145,8 @@ async def get_teacher_syllabus_progress(class_id: int):
             "topics": [],
             "syllabus": None,
             "total_students": 0,
+            "total_topics": 0,
+            "module_coverage_percent": 0,
             "overall_completion_percent": 0,
             "error": f"Database error: {str(exc)}",
         }
@@ -297,6 +293,10 @@ async def get_student_syllabus_progress(student_id: int, class_id: int):
             """
             SELECT topic.topic_id, topic.title, topic.display_order,
                    COALESCE(progress.completed, false) AS completed,
+                   EXISTS (
+                       SELECT 1 FROM public.module
+                       WHERE module.topic_id = topic.topic_id
+                   ) AS module_assigned,
                    progress.completed_at
             FROM syllabus_topic topic
             LEFT JOIN student_topic_progress progress
@@ -308,11 +308,14 @@ async def get_student_syllabus_progress(student_id: int, class_id: int):
         )
         topics = [dict(row) for row in cur.fetchall()]
         completed = sum(topic["completed"] for topic in topics)
+        module_topics, module_coverage_percent = _apply_module_coverage(topics)
         return {
             "topics": topics,
             "completed_topics": completed,
             "total_topics": len(topics),
             "completion_percent": round(completed * 100 / len(topics)) if topics else 0,
+            "module_topics": module_topics,
+            "module_coverage_percent": module_coverage_percent,
         }
     except psycopg2.Error as e:
         conn.rollback()
@@ -580,6 +583,7 @@ async def upload_module(
     title: str = Form(...),
     summary: str = Form(""),
     sections: str = Form(...),  # JSON string from frontend
+    topic_id: int = Form(...),
     file: UploadFile = File(...)
 ):
     """
@@ -612,6 +616,14 @@ async def upload_module(
     file_location = None
 
     try:
+        ensure_syllabus_progress_tables(conn)
+        cursor.execute(
+            "SELECT 1 FROM public.syllabus_topic WHERE topic_id = %s AND class_id = %s",
+            (topic_id, class_id),
+        )
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Syllabus chapter not found for this class.")
+
         upload_dir = Path(__file__).resolve().parents[1] / "uploads" / "modules"
         upload_dir.mkdir(parents=True, exist_ok=True)
         stored_name = f"{uuid.uuid4().hex}{extension}"
@@ -663,9 +675,10 @@ async def upload_module(
                 file_path,
                 summary,
                 class_id,
+                topic_id,
                 upload_date
             )
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING module_id
             """,
             (
@@ -674,6 +687,7 @@ async def upload_module(
                 file_location,
                 summary,
                 class_id,
+                topic_id,
                 datetime.now()
             )
         )
@@ -1091,6 +1105,12 @@ async def delete_module(module_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("UPDATE quiz SET module_id = NULL WHERE module_id = %s", (module_id,))
+        cursor.execute(
+            """DELETE FROM query_context
+               WHERE text_id IN (SELECT text_id FROM module_content WHERE module_id = %s)""",
+            (module_id,),
+        )
         cursor.execute("DELETE FROM module_sections WHERE module_id = %s", (module_id,))
         cursor.execute("DELETE FROM module_content WHERE module_id = %s", (module_id,))
         cursor.execute("DELETE FROM module WHERE module_id = %s RETURNING module_id", (module_id,))
@@ -1098,6 +1118,9 @@ async def delete_module(module_id: int):
             raise HTTPException(status_code=404, detail="Module not found")
         conn.commit()
         return {"module_id": module_id}
+    except psycopg2.Error as error:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail="Unable to delete module.") from error
     finally:
         cursor.close()
         conn.close()
@@ -1122,11 +1145,15 @@ async def delete_activity(activity_id: int):
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM activity_sections WHERE activity_id = %s", (activity_id,))
+        cursor.execute("DELETE FROM act_submission WHERE activity_id = %s", (activity_id,))
         cursor.execute("DELETE FROM activity WHERE activity_id = %s RETURNING activity_id", (activity_id,))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Activity not found")
         conn.commit()
         return {"activity_id": activity_id}
+    except psycopg2.Error as error:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail="Unable to delete activity.") from error
     finally:
         cursor.close()
         conn.close()

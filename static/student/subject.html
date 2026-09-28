@@ -104,33 +104,33 @@
                 <div class="lms-task-top">
                     <div>
                         <h3>Syllabus Progress</h3>
-                        <span class="lms-meta" x-text="syllabusProgress.completed_topics + ' of ' + syllabusProgress.total_topics + ' topics complete'"></span>
+                        <span class="lms-meta" x-text="syllabusProgress.module_topics + ' of ' + syllabusProgress.total_topics + ' chapters have modules'"></span>
                     </div>
-                    <span class="lms-badge good" x-text="syllabusProgress.completion_percent + '% complete'"></span>
+                    <span class="lms-badge good" x-text="syllabusProgress.module_coverage_percent + '% modules assigned'"></span>
                 </div>
                 <div class="syllabus-topic-stepper" x-show="syllabusProgress.topics.length">
-                    <div class="syllabus-progress-stepper" role="group" aria-label="Your progress by syllabus topic">
+                    <div class="syllabus-progress-stepper" role="group" aria-label="Teacher module coverage by syllabus chapter">
                         <div class="syllabus-progress-stepper-track" role="progressbar"
-                            aria-label="Your overall syllabus completion" aria-valuemin="0" aria-valuemax="100"
-                            :aria-valuenow="syllabusProgress.completion_percent">
+                            aria-label="Syllabus chapter module coverage" aria-valuemin="0" aria-valuemax="100"
+                            :aria-valuenow="syllabusProgress.module_coverage_percent">
                             <span class="syllabus-progress-stepper-fill"
-                                :style="'width: ' + syllabusProgress.completion_percent + '%' "></span>
+                                :style="'width: ' + syllabusProgress.module_coverage_percent + '%' "></span>
                         </div>
                         <ol class="syllabus-progress-steps" aria-label="Syllabus topics in course order">
                             <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
                                 <li class="syllabus-progress-step"
-                                    :aria-label="'Topic ' + (index + 1) + ': ' + topic.title + ', ' + (topic.completed ? 'complete' : 'not complete')"
+                                    :aria-label="'Chapter ' + (index + 1) + ': ' + topic.title + ', ' + (topic.module_assigned ? 'module assigned' : 'no module assigned') + '; '"
                                     :class="{
                                         'is-first': index === 0,
                                         'is-last': index === syllabusProgress.topics.length - 1,
-                                        'is-complete': topic.completed
+                                        'is-complete': topic.module_completion_percent >= 100
                                     }">
                                     <span class="syllabus-progress-step-dot" aria-hidden="true"></span>
                                     <span class="syllabus-topic-step-title" role="tooltip"
                                         :id="'student-syllabus-topic-title-' + topic.topic_id" x-text="topic.title"></span>
-                                    <strong class="syllabus-topic-step-label" x-text="'Topic ' + (index + 1)"></strong>
+                                    <strong class="syllabus-topic-step-label" x-text="'Chapter ' + (index + 1)"></strong>
                                     <span class="syllabus-topic-step-count lms-meta"
-                                        x-text="topic.completed ? 'Completed' : 'Not completed'"></span>
+                                        x-text="topic.module_assigned ? 'Module available' : 'No module assigned'"></span>
                                 </li>
                             </template>
                         </ol>
@@ -310,7 +310,7 @@
                 activities: [],
                 quizzes: [],
                 studentId: null,
-                syllabusProgress: { topics: [], completed_topics: 0, total_topics: 0, completion_percent: 0 },
+                syllabusProgress: { topics: [], completed_topics: 0, total_topics: 0, completion_percent: 0, module_topics: 0, module_coverage_percent: 0 },
                 syllabusProgressError: '',
                 updatingTopicId: null,
                 submissionStatus: '',

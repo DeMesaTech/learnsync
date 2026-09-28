@@ -136,7 +136,7 @@
                         </svg></span>
                         <div class="flex items-center justify-between gap-2">
                             <strong x-text="nums.modules || '0'"></strong>
-                            <button class="lms-icon-btn" type="button" @click="modal = 'classModule'">
+                            <button class="lms-icon-btn" type="button" @click="selectedModuleTopicId = ''; modal = 'classModule'">
                                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
                                 </svg>
@@ -183,38 +183,34 @@
                 <div class="lms-task-top">
                     <div>
                         <h3>Syllabus Progress</h3>
-                        <span class="lms-meta" x-text="syllabusProgress.total_students + ' enrolled students'">Loading progress...</span>
+                        <span class="lms-meta" x-text="syllabusProgress.total_topics + ' syllabus chapters'">Loading progress...</span>
                     </div>
-                    <span class="lms-badge good" x-text="syllabusProgress.overall_completion_percent + '% complete'"></span>
+                    <span class="lms-badge good" x-text="syllabusProgress.module_coverage_percent + '% modules assigned'"></span>
                 </div>
                 <div class="syllabus-topic-stepper" x-show="syllabusProgress.topics.length">
                     <div class="syllabus-progress-stepper" role="group" aria-label="Progress by syllabus topic">
                         <div class="syllabus-progress-stepper-track" role="progressbar"
-                            aria-label="Overall syllabus completion" aria-valuemin="0" aria-valuemax="100"
-                            :aria-valuenow="syllabusProgress.overall_completion_percent">
+                            aria-label="Syllabus chapter module coverage" aria-valuemin="0" aria-valuemax="100"
+                            :aria-valuenow="syllabusProgress.module_coverage_percent">
                             <span class="syllabus-progress-stepper-fill"
-                                :style="'width: ' + syllabusProgress.overall_completion_percent + '%' "></span>
+                                :style="'width: ' + syllabusProgress.module_coverage_percent + '%' "></span>
                         </div>
                         <ol class="syllabus-progress-steps" aria-label="Syllabus topics in course order">
                             <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
                                 <li class="syllabus-progress-step"
-                                    :aria-label="syllabusTopicLabel(topic, index) + ': ' + topic.title + ', ' + topic.completion_percent + '% complete; ' + topic.completed_students + ' of ' + topic.total_students + ' students complete'"
+                                    :aria-label="syllabusTopicLabel(topic, index) + ': ' + topic.title"
                                     :class="{
                                         'is-first': index === 0,
                                         'is-last': index === syllabusProgress.topics.length - 1,
-                                        'is-complete': topic.completion_percent >= 100,
-                                        'is-in-progress': topic.completion_percent > 0 && topic.completion_percent < 100,
-                                        'is-final': index === syllabusProgress.topics.length - 1 && syllabusProgress.overall_completion_percent >= 100
+                                        'is-complete': topic.module_completion_percent >= 100,
+                                        'is-in-progress': topic.module_completion_percent > 0 && topic.module_completion_percent < 100,
+                                        'is-final': index === syllabusProgress.topics.length - 1 && syllabusProgress.module_coverage_percent >= 100
                                     }">
                                     <span class="syllabus-progress-step-dot" aria-hidden="true"></span>
                                     <span class="syllabus-topic-step-title" role="tooltip"
                                         :id="'syllabus-topic-title-' + topic.topic_id" x-text="topic.title"></span>
                                     <strong class="syllabus-topic-step-label"
                                         x-text="syllabusTopicLabel(topic, index)"></strong>
-                                    <span class="syllabus-topic-step-count lms-meta"
-                                        x-text="topic.completed_students + '/' + topic.total_students + ' students'"></span>
-                                    <span class="syllabus-topic-step-percent"
-                                        x-text="topic.completion_percent + '% complete'"></span>
                                     <button class="lms-icon-btn syllabus-topic-remove" type="button"
                                         :aria-label="'Remove ' + topic.title" :title="'Remove ' + topic.title"
                                         @click="deleteSyllabusTopic(topic)">
@@ -464,6 +460,12 @@
                     <template x-if="modal === 'classModule'">
                         <div class="lms-grid">
                             <input class="lms-input" x-ref="moduleTitle" placeholder="Module title">
+                            <select class="lms-select" x-model="selectedModuleTopicId" required>
+                                <option value="" x-text="syllabusProgress.topics.length ? 'Select a syllabus chapter' : 'No syllabus chapters available'"></option>
+                                <template x-for="topic in syllabusProgress.topics" :key="topic.topic_id">
+                                    <option :value="topic.topic_id" x-text="topic.title"></option>
+                                </template>
+                            </select>
                             <label class="lms-input file-input">
                                 <input type="file" x-ref="moduleFile"
                                     accept=".pdf,.docx,.xlsx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -905,7 +907,7 @@
                 teacherClasses: [],
                 nums: { students: null, modules: null, activities: null, quizzes: null },
                 teacherId: null,
-                syllabusProgress: { topics: [], total_students: 0, overall_completion_percent: 0 },
+                syllabusProgress: { topics: [], total_students: 0, total_topics: 0, module_coverage_percent: 0, overall_completion_percent: 0 },
                 syllabusProgressError: '',
                 syllabusUploading: false,
                 syllabusUploadError: '',
@@ -917,6 +919,7 @@
                 enrollSection: '',
                 fileName: 'Choose file',
                 selectedSections: [],
+                selectedModuleTopicId: '',
                 announcementTitle: '',
                 announcementMessage: '',
                 announcementDate: '',
@@ -1371,6 +1374,12 @@
                     const file = this.$refs.moduleFile?.files?.[0];
                     const summary = this.$refs.moduleSummary?.value || '';
                     const selectedSections = this.selectedSections;
+                    const topicId = this.selectedModuleTopicId;
+
+                    if (!topicId) {
+                        alert('Please select a syllabus chapter');
+                        return;
+                    }
 
                     console.log('Selected sections:', selectedSections);
                     // Validation
@@ -1405,6 +1414,7 @@
                         formData.append('file', file);
                         formData.append('summary', summary);
                         formData.append('sections', JSON.stringify(selectedSections));
+                        formData.append('topic_id', topicId);
 
                         for (const [key, value] of formData.entries()) {
                             console.log(key, value);
@@ -1431,10 +1441,12 @@
                         this.$refs.moduleTitle.value = '';
                         this.$refs.moduleFile.value = '';
                         this.$refs.moduleSummary.value = '';
+                        this.selectedModuleTopicId = '';
                         this.fileName = 'Choose file';
                         this.modal = null;
                         await this.load_modules();
                         await this.loadKPIs();
+                        await this.loadSyllabusProgress();
                     } catch (err) {
                         console.error('Module upload error:', err);
                         alert('Module upload failed: ' + (err.message || err));
