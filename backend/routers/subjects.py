@@ -22,30 +22,60 @@ def ensure_syllabus_progress_tables(conn):
     try:
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS syllabus_topic (
+            CREATE TABLE IF NOT EXISTS public.syllabus_topic (
                 topic_id bigserial PRIMARY KEY,
-                class_id bigint NOT NULL REFERENCES class(class_id) ON DELETE CASCADE,
+                class_id bigint NOT NULL REFERENCES public.class(class_id) ON DELETE CASCADE,
                 title varchar(255) NOT NULL,
                 display_order integer NOT NULL DEFAULT 0,
                 created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
-            CREATE TABLE IF NOT EXISTS student_topic_progress (
-                topic_id bigint NOT NULL REFERENCES syllabus_topic(topic_id) ON DELETE CASCADE,
-                student_id integer NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
+            """
+        )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS public.student_topic_progress (
+                topic_id bigint NOT NULL REFERENCES public.syllabus_topic(topic_id) ON DELETE CASCADE,
+                student_id integer NOT NULL REFERENCES public.student(student_id) ON DELETE CASCADE,
                 completed boolean NOT NULL DEFAULT false,
                 completed_at timestamp without time zone,
                 updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (topic_id, student_id)
             );
-            CREATE TABLE IF NOT EXISTS class_syllabus (
-                class_id bigint PRIMARY KEY REFERENCES class(class_id) ON DELETE CASCADE,
+            """
+        )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS public.class_syllabus (
+                class_id bigint PRIMARY KEY REFERENCES public.class(class_id) ON DELETE CASCADE,
                 file_name varchar(255) NOT NULL,
                 file_path varchar(255) NOT NULL,
                 uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
-            CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx
-                ON syllabus_topic (class_id, display_order, topic_id);
             """
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.syllabus_topic ADD COLUMN IF NOT EXISTS display_order integer NOT NULL DEFAULT 0;"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS completed boolean NOT NULL DEFAULT false;"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS completed_at timestamp without time zone;"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.student_topic_progress ADD COLUMN IF NOT EXISTS updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP;"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS file_name varchar(255);"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS file_path varchar(255);"
+        )
+        cur.execute(
+            "ALTER TABLE IF EXISTS public.class_syllabus ADD COLUMN IF NOT EXISTS uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP;"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx ON public.syllabus_topic (class_id, display_order, topic_id);"
         )
         conn.commit()
     finally:
@@ -73,45 +103,60 @@ def assert_teacher_owns_class(cur, class_id: int, teacher_id: int):
 @subject_router.get("/{class_id}/teacher/syllabus-progress")
 async def get_teacher_syllabus_progress(class_id: int):
     conn = get_db_connection()
+    cur = None
     try:
         ensure_syllabus_progress_tables(conn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
+
         cur.execute("SELECT COUNT(*) AS total FROM enrollment WHERE class_id = %s", (class_id,))
         total_students = cur.fetchone()["total"] or 0
+
         cur.execute(
             """
             SELECT topic.topic_id, topic.title, topic.display_order,
-                   COUNT(progress.student_id) FILTER (WHERE progress.completed) AS completed_students
+                   COALESCE(COUNT(progress.student_id) FILTER (WHERE progress.completed IS TRUE), 0) AS completed_students
             FROM syllabus_topic topic
             LEFT JOIN student_topic_progress progress ON progress.topic_id = topic.topic_id
             WHERE topic.class_id = %s
-            GROUP BY topic.topic_id
+            GROUP BY topic.topic_id, topic.title, topic.display_order
             ORDER BY topic.display_order, topic.topic_id
             """,
             (class_id,),
         )
         topics = [dict(row) for row in cur.fetchall()]
+
         for topic in topics:
+            topic["completed_students"] = int(topic.get("completed_students") or 0)
             topic["total_students"] = total_students
             topic["completion_percent"] = round(topic["completed_students"] * 100 / total_students) if total_students else 0
+
         cur.execute(
             "SELECT file_name, file_path, uploaded_at FROM class_syllabus WHERE class_id = %s",
             (class_id,),
         )
         syllabus = cur.fetchone()
+
         total_possible = len(topics) * total_students
         completed_total = sum(topic["completed_students"] for topic in topics)
+
         return {
             "topics": topics,
             "syllabus": dict(syllabus) if syllabus else None,
             "total_students": total_students,
             "overall_completion_percent": round(completed_total * 100 / total_possible) if total_possible else 0,
         }
-    except psycopg2.Error as e:
+    except psycopg2.Error as exc:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        return {
+            "topics": [],
+            "syllabus": None,
+            "total_students": 0,
+            "overall_completion_percent": 0,
+            "error": f"Database error: {str(exc)}",
+        }
     finally:
-        cur.close()
+        if cur is not None:
+            cur.close()
         conn.close()
 
 

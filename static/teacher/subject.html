@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+    <link rel="stylesheet" href="../css/lms.css?v=syllabus-topic-hover-20260928">
     <script src="../js/file-transfer.js" defer></script>
 </head>
 
@@ -178,6 +178,7 @@
                 </div>
             </section>
 
+            <!-- Syllabus Progress Panel -->
             <section class="lms-panel syllabus-progress-panel">
                 <div class="lms-task-top">
                     <div>
@@ -186,44 +187,69 @@
                     </div>
                     <span class="lms-badge good" x-text="syllabusProgress.overall_completion_percent + '% complete'"></span>
                 </div>
-                <div class="syllabus-progress-track" role="progressbar" aria-label="Class syllabus completion"
-                    aria-valuemin="0" aria-valuemax="100" :aria-valuenow="syllabusProgress.overall_completion_percent">
-                    <span class="syllabus-progress-fill"
-                        :style="'width: ' + syllabusProgress.overall_completion_percent + '%' "></span>
+                <div class="syllabus-topic-stepper" x-show="syllabusProgress.topics.length">
+                    <div class="syllabus-progress-stepper" role="group" aria-label="Progress by syllabus topic">
+                        <div class="syllabus-progress-stepper-track" role="progressbar"
+                            aria-label="Overall syllabus completion" aria-valuemin="0" aria-valuemax="100"
+                            :aria-valuenow="syllabusProgress.overall_completion_percent">
+                            <span class="syllabus-progress-stepper-fill"
+                                :style="'width: ' + syllabusProgress.overall_completion_percent + '%' "></span>
+                        </div>
+                        <ol class="syllabus-progress-steps" aria-label="Syllabus topics in course order">
+                            <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
+                                <li class="syllabus-progress-step"
+                                    :aria-label="syllabusTopicLabel(topic, index) + ': ' + topic.title + ', ' + topic.completion_percent + '% complete; ' + topic.completed_students + ' of ' + topic.total_students + ' students complete'"
+                                    :class="{
+                                        'is-first': index === 0,
+                                        'is-last': index === syllabusProgress.topics.length - 1,
+                                        'is-complete': topic.completion_percent >= 100,
+                                        'is-in-progress': topic.completion_percent > 0 && topic.completion_percent < 100,
+                                        'is-final': index === syllabusProgress.topics.length - 1 && syllabusProgress.overall_completion_percent >= 100
+                                    }">
+                                    <span class="syllabus-progress-step-dot" aria-hidden="true"></span>
+                                    <span class="syllabus-topic-step-title" role="tooltip"
+                                        :id="'syllabus-topic-title-' + topic.topic_id" x-text="topic.title"></span>
+                                    <strong class="syllabus-topic-step-label"
+                                        x-text="syllabusTopicLabel(topic, index)"></strong>
+                                    <span class="syllabus-topic-step-count lms-meta"
+                                        x-text="topic.completed_students + '/' + topic.total_students + ' students'"></span>
+                                    <span class="syllabus-topic-step-percent"
+                                        x-text="topic.completion_percent + '% complete'"></span>
+                                    <button class="lms-icon-btn syllabus-topic-remove" type="button"
+                                        :aria-label="'Remove ' + topic.title" :title="'Remove ' + topic.title"
+                                        @click="deleteSyllabusTopic(topic)">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-9 0 1 13h8l1-13" />
+                                        </svg>
+                                    </button>
+                                </li>
+                            </template>
+                        </ol>
+                    </div>
                 </div>
-                <div x-show="syllabusProgress.syllabus" class="syllabus-file-link">
+                <div x-show="syllabusProgress?.syllabus" class="syllabus-file-link">
                     <span class="lms-meta">Current syllabus</span>
-                    <a :href="'/' + syllabusProgress.syllabus.file_path" target="_blank" rel="noopener"
-                        x-text="syllabusProgress.syllabus.file_name"></a>
-                    <span class="lms-meta" x-text="'Uploaded ' + formatDateTime(syllabusProgress.syllabus.uploaded_at)"></span>
+                    <a :href="syllabusProgress?.syllabus ? '/' + syllabusProgress.syllabus.file_path : '#'" target="_blank" rel="noopener"
+                        x-text="syllabusProgress?.syllabus?.file_name || ''"></a>
+                    <span class="lms-meta" x-text="syllabusProgress?.syllabus ? 'Uploaded ' + formatDateTime(syllabusProgress.syllabus.uploaded_at) : ''"></span>
                 </div>
-                <form class="syllabus-topic-form" @submit.prevent="uploadSyllabus()">
+                <form class="syllabus-topic-form" x-show="!syllabusProgress?.syllabus"
+                    @submit.prevent="uploadSyllabus()">
                     <input class="lms-input" type="file" x-ref="syllabusFile"
                         accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         aria-label="Choose syllabus DOCX or PDF"
-                        @change="syllabusUploadError = ''; syllabusUploadMessage = ''">
-                    <button class="lms-btn" type="submit" :disabled="!$refs.syllabusFile?.files?.length || syllabusUploading"
+                        @change="handleSyllabusFileChange($event)">
+                    <button class="lms-btn" type="submit" :disabled="!syllabusFile || syllabusUploading || !currentClassId"
                         x-text="syllabusUploading ? 'Uploading...' : (syllabusProgress.syllabus ? 'Replace syllabus' : 'Upload syllabus')"></button>
                 </form>
-                <p class="lms-empty" x-show="syllabusUploadError" x-text="syllabusUploadError"></p>
+                <p class="lms-empty" x-show="syllabusUploadError" x-text="syllabusUploadError"></p> 
                 <p class="lms-meta m-0" x-show="syllabusUploadMessage" x-text="syllabusUploadMessage"></p>
                 <p class="lms-empty" x-show="syllabusProgressError" x-text="syllabusProgressError"></p>
-                <div class="syllabus-topic-bubbles">
-                    <template x-for="topic in syllabusProgress.topics" :key="topic.topic_id">
-                        <article class="syllabus-topic-bubble">
-                            <span class="syllabus-topic-count" :class="topic.completed_students ? 'complete' : ''">
-                                <span x-text="topic.completed_students"></span><small>/</small><span x-text="topic.total_students"></span>
-                            </span>
-                            <strong x-text="topic.title"></strong>
-                            <span class="lms-meta" x-text="topic.completion_percent + '% complete'"></span>
-                            <button class="lms-btn lms-btn-danger lms-btn-small" type="button"
-                                @click="deleteSyllabusTopic(topic)">Remove</button>
-                        </article>
-                    </template>
-                    <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Upload a syllabus with a course outline to populate topics and begin tracking progress.</p>
-                </div>
+                <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Upload a syllabus with a course outline to populate topics and begin tracking progress.</p>
             </section>
 
+            <!-- Section Filter -->
             <section class="lms-toolbar"><!-- Section Selector -->
                 <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
                     <option value="all">All sections</option>
@@ -233,9 +259,9 @@
                 </select>
             </section>
 
-            <!-- Announcements + Workspace tabs: two-column layout -->
+            <!-- Announcements and Workspace Content -->
             <section class="lms-grid lms-grid-2 gap-4">
-                <!-- Announcements -->
+                <!-- Announcements Panel -->
                 <section class="lms-panel" :class="!announcementsOpen ? 'collapsed' : ''">
                     <!-- TITLE/HEADER -->
                     <div class="lms-task-top">
@@ -884,6 +910,7 @@
                 syllabusUploading: false,
                 syllabusUploadError: '',
                 syllabusUploadMessage: '',
+                syllabusFile: null,
                 currentClassId: null,
                 group_id: null,
                 subjectTitle: '',
@@ -1092,6 +1119,11 @@
                     })}`;
                 },
 
+                syllabusTopicLabel(topic, index) {
+                    const chapter = String(topic?.title || '').match(/^chapter\s+(\d+)/i);
+                    return chapter ? `Chapter ${chapter[1]}` : `Topic ${index + 1}`;
+                },
+
                 formatSectionVisibility(sections) {
                     const visibleSections = Array.isArray(sections) ? sections.filter(Boolean) : [];
                     if (!visibleSections.length) return 'Visible to all sections';
@@ -1222,8 +1254,14 @@
                         this.syllabusProgressError = error.message || 'Unable to load syllabus progress.';
                     }
                 },
+                handleSyllabusFileChange(event) {
+                    const file = event?.target?.files?.[0] || null;
+                    this.syllabusFile = file;
+                    this.syllabusUploadError = '';
+                    this.syllabusUploadMessage = '';
+                },
                 async uploadSyllabus() {
-                    const file = this.$refs.syllabusFile?.files?.[0];
+                    const file = this.syllabusFile;
                     if (!file || !this.currentClassId) return;
                     if (this.syllabusProgress.topics.length && !confirm('This import removes topics no longer listed in the syllabus and their completion records. Matching topic titles keep their progress. Continue?')) return;
                     this.syllabusUploading = true;
@@ -1240,7 +1278,10 @@
                         );
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to upload syllabus.');
-                        this.$refs.syllabusFile.value = '';
+                        this.syllabusFile = null;
+                        if (this.$refs.syllabusFile) {
+                            this.$refs.syllabusFile.value = '';
+                        }
                         await this.loadSyllabusProgress();
                         this.syllabusUploadMessage = data.topic_warning
                             || `Syllabus uploaded. Imported ${data.topics_imported} topics. Matching topics kept their completion progress.`;

@@ -394,19 +394,217 @@ body.lms-shell {
     margin-bottom: 1rem;
 }
 
-.syllabus-progress-track {
-    height: 0.7rem;
+.syllabus-topic-stepper {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.2rem 0 0.65rem;
+}
+
+.syllabus-progress-stepper {
+    position: relative;
+    width: max-content;
+    min-width: 100%;
+    padding: 4rem 0 0.15rem;
+}
+
+.syllabus-progress-stepper-track {
+    position: absolute;
+    top: 5.2rem;
+    left: 5rem;
+    right: 5rem;
+    height: 0.25rem;
     overflow: hidden;
     border-radius: 999px;
     background: var(--brand-line);
 }
 
-.syllabus-progress-fill {
+.syllabus-progress-stepper-fill {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: #16845d;
+    background: #176bb3;
     transition: width 220ms ease;
+}
+
+.syllabus-progress-steps {
+    position: relative;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.syllabus-progress-step {
+    position: relative;
+    display: grid;
+    flex: 1 0 10rem;
+    justify-items: center;
+    align-content: start;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0 0.4rem;
+    color: #66788a;
+    text-align: center;
+}
+
+.syllabus-progress-step-dot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1.95rem;
+    aspect-ratio: 1;
+    border: 2px solid #c5d3df;
+    border-radius: 50%;
+    background: #fff;
+    transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.syllabus-progress-step-dot::after {
+    width: 0.42rem;
+    height: 0.68rem;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    content: "";
+    opacity: 0;
+    transform: translateY(-0.08rem) rotate(45deg);
+}
+
+.syllabus-progress-step.is-complete .syllabus-progress-step-dot {
+    border-color: #176bb3;
+    background: #176bb3;
+}
+
+.syllabus-progress-step.is-complete .syllabus-progress-step-dot::after {
+    opacity: 1;
+}
+
+.syllabus-progress-step.is-final .syllabus-progress-step-dot {
+    border-color: #16845d;
+    background: #16845d;
+}
+
+.syllabus-topic-step-title {
+    position: absolute;
+    top: -3.4rem;
+    left: 50%;
+    z-index: 5;
+    width: max-content;
+    max-width: min(18rem, calc(100vw - 3rem));
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--brand-line);
+    border-radius: 6px;
+    color: var(--brand-blue-dark);
+    background: white;
+    box-shadow: 0 8px 20px rgb(5 22 36 / 0.18);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 0.3rem);
+    transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+    visibility: hidden;
+}
+
+.syllabus-topic-step-title::after {
+    position: absolute;
+    bottom: -0.3rem;
+    left: 50%;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 1px solid var(--brand-line);
+    border-bottom: 1px solid var(--brand-line);
+    background: white;
+    content: "";
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.syllabus-progress-step.is-first .syllabus-topic-step-title {
+    left: 0;
+    transform: translateY(0.3rem);
+}
+
+.syllabus-progress-step.is-first .syllabus-topic-step-title::after {
+    left: 5rem;
+}
+
+.syllabus-progress-step.is-last .syllabus-topic-step-title {
+    right: 0;
+    left: auto;
+    transform: translateY(0.3rem);
+}
+
+.syllabus-progress-step.is-last .syllabus-topic-step-title::after {
+    right: 5rem;
+    left: auto;
+}
+
+.syllabus-progress-step:hover .syllabus-topic-step-title,
+.syllabus-progress-step:focus-within .syllabus-topic-step-title {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    visibility: visible;
+}
+
+.syllabus-progress-step.is-first:hover .syllabus-topic-step-title,
+.syllabus-progress-step.is-first:focus-within .syllabus-topic-step-title,
+.syllabus-progress-step.is-last:hover .syllabus-topic-step-title,
+.syllabus-progress-step.is-last:focus-within .syllabus-topic-step-title {
+    transform: translateY(0);
+}
+
+.syllabus-topic-step-label {
+    font-size: 0.76rem;
+    line-height: 1.2;
+}
+
+.lms-icon-btn.syllabus-topic-remove {
+    border-color: #f0caca;
+    color: #9f3434;
+    background: white;
+}
+
+.lms-icon-btn.syllabus-topic-remove:hover {
+    border-color: #e3a6a6;
+    color: #8c2828;
+    background: #fde8e8;
+}
+
+.syllabus-topic-remove svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.syllabus-topic-step-count {
+    font-size: 0.7rem;
+}
+
+.syllabus-topic-step-percent {
+    color: var(--brand-blue-dark);
+    font-size: 0.72rem;
+    line-height: 1.2;
+}
+
+.syllabus-progress-step.is-complete .syllabus-topic-step-percent {
+    color: #116145;
+}
+
+.syllabus-progress-step.is-in-progress .syllabus-progress-step-dot {
+    border-color: #176bb3;
+    background: #e7f2fa;
+}
+
+.syllabus-progress-step.is-in-progress .syllabus-progress-step-dot::after {
+    width: 0.48rem;
+    height: 0.48rem;
+    border: 0;
+    border-radius: 50%;
+    background: #176bb3;
+    opacity: 1;
+    transform: none;
 }
 
 .syllabus-topic-form {
@@ -428,49 +626,6 @@ body.lms-shell {
 .syllabus-file-link a {
     overflow-wrap: anywhere;
     font-weight: 700;
-}
-
-.syllabus-topic-bubbles {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: start;
-    gap: 1rem;
-}
-
-.syllabus-topic-bubble {
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 0.35rem;
-    width: min(9rem, 100%);
-    text-align: center;
-    overflow-wrap: anywhere;
-}
-
-.syllabus-topic-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.15rem;
-    width: 3.5rem;
-    aspect-ratio: 1;
-    border: 2px solid var(--brand-blue-soft);
-    border-radius: 50%;
-    color: var(--brand-blue-dark);
-    background: white;
-    font-size: 1rem;
-    font-weight: 800;
-}
-
-.syllabus-topic-count small {
-    color: var(--brand-muted);
-    font-size: 0.75rem;
-}
-
-.syllabus-topic-count.complete {
-    border-color: #16845d;
-    color: #116145;
-    background: #ddf7ed;
 }
 
 .syllabus-student-topics {
