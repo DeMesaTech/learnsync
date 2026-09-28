@@ -6,12 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Teacher Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+<link rel="stylesheet" href="../css/design-system.css">
+<script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -60,7 +62,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn" href="grading.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                <li><a class="sidebar-btn" href="gradebook.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
@@ -105,10 +107,10 @@
             <section class="lms-hero">
                 <div>
                     <h2 class="lms-title">Your Teaching Hub</h2>
-                    <p class="lms-subtitle">Plan classes, publish learning content, review submissions, and keep grading moving.</p>
+                    <p class="lms-subtitle">Open your assigned subjects, prepare syllabi, review submissions, and publish grades.</p>
                 </div>
-                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="classes.html">Manage Classes</a><a
-                        class="lms-btn" href="grading.html">Open Grading</a></div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" href="classes.html">Assigned Subjects</a><a
+                        class="lms-btn" href="gradebook.html">Open Grading</a></div>
             </section>
 
             <section class="lms-grid lms-grid-4 mb-4">
@@ -120,7 +122,7 @@
                         </svg>
                     </span>
                     <strong x-text="nums.classes_count || '0'"></strong>
-                    <span>Classes</span></div>
+                    <span>Assigned Subjects</span></div>
                 <div class="lms-kpi">
                     <span class="lms-kpi-icon">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,21 +153,21 @@
             </section>
 
             <div x-show="Number(nums.classes_count || 0) === 0" class="lms-empty mb-4">
-                <strong>No class created yet</strong>
-                <p class="m-0 mt-2">Create your first class to start adding sections, students, and learning content.</p>
-                <a class="lms-btn lms-btn-secondary mt-3" href="classes.html">Create a Class</a>
+                <strong>No active subject assignment yet</strong>
+                <p class="m-0 mt-2">Your administrator will assign your subjects and sections.</p>
+                <a class="lms-btn lms-btn-secondary mt-3" href="classes.html">View assignments</a>
             </div>
 
             <section class="lms-grid lms-grid-3">
                 <a href="classes.html" class="lms-card"><span class="lms-badge">Class</span>
-                    <h3 class="mt-3">Class and Section Setup</h3>
-                    <p>Create class records tied to employee ID and section ID, then enroll students.</p>
+                    <h3 class="mt-3">Assigned Subjects</h3>
+                    <p>Open the subjects and section rosters assigned by your administrator.</p>
                 </a>
                 <a href="classes.html#modules" class="lms-card"><span class="lms-badge">Content</span>
-                    <h3 class="mt-3">Modules and Activities</h3>
-                    <p>Upload module files, store module text content, and publish activities with due dates.</p>
+                    <h3 class="mt-3">Syllabus and Content</h3>
+                    <p>Import and approve a syllabus, then manage modules and assessments.</p>
                 </a>
-                <a href="grading.html" class="lms-card"><span class="lms-badge">Grades</span>
+                <a href="gradebook.html" class="lms-card"><span class="lms-badge">Grades</span>
                     <h3 class="mt-3">Grading Tables</h3>
                     <p>Record attendance, activity, quiz, and computed grade totals from the ERD grade tables.</p>
                 </a>
@@ -192,7 +194,7 @@
                         </tbody>
                         <tbody x-show="Number(nums.classes_count || 0) === 0">
                             <tr>
-                                <td colspan="4" class="lms-empty">No class created yet.</td>
+                            <td colspan="4" class="lms-empty">No subject assignment yet.</td>
                             </tr>
                         </tbody>
                     </table>

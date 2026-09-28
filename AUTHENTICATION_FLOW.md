@@ -1,5 +1,7 @@
 # LearnSync Authentication Flow & Architecture
 
+> Historical authentication notes. For the current academic and faculty workflow, see [FACULTY_FLOW.md](FACULTY_FLOW.md), [ACADEMIC_API.md](ACADEMIC_API.md), and [README.md](README.md).
+
 ## System Overview
 
 ```

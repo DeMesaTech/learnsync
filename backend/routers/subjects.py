@@ -53,6 +53,8 @@ def ensure_syllabus_progress_tables(conn):
             );
             """
         )
+        cur.execute("ALTER TABLE IF EXISTS public.syllabus_topic ADD COLUMN IF NOT EXISTS display_order integer NOT NULL DEFAULT 0")
+        cur.execute("ALTER TABLE IF EXISTS public.module ADD COLUMN IF NOT EXISTS topic_id bigint REFERENCES public.syllabus_topic(topic_id) ON DELETE SET NULL")
     
         conn.commit()
     finally:
@@ -84,6 +86,25 @@ def assert_teacher_owns_class(cur, class_id: int, teacher_id: int):
     )
     if not cur.fetchone():
         raise HTTPException(status_code=403, detail="You do not own this class.")
+
+
+@subject_router.get("/{class_id}")
+async def get_subject_workspace(class_id: int):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""SELECT c.class_id,c.class_code,c.subject,c.employee_id AS teacher_id,
+                              MIN(s.section) AS section
+                       FROM class c LEFT JOIN class_section cs ON cs.class_id=c.class_id
+                       LEFT JOIN section s ON s.section_id=cs.section_id
+                       WHERE c.class_id=%s AND c.workflow_status='active'
+                       GROUP BY c.class_id""", (class_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Assigned subject not found.")
+        return row
+    finally:
+        conn.close()
 
 
 @subject_router.get("/{class_id}/teacher/syllabus-progress")
@@ -389,13 +410,14 @@ async def get_student_todo(student_id: int):
                 ORDER BY s.submission_date DESC NULLS LAST, s.act_submission_id DESC
                 LIMIT 1
             ) latest ON TRUE
-            WHERE NOT EXISTS (
+            WHERE a.status='Published' AND a.delivery_type='online'
+              AND c.workflow_status='active' AND (NOT EXISTS (
                 SELECT 1 FROM activity_sections visible
                 WHERE visible.activity_id = a.activity_id
             ) OR EXISTS (
                 SELECT 1 FROM activity_sections visible
                 WHERE visible.activity_id = a.activity_id AND visible.section_id = e.section_id
-            )
+            ))
             ORDER BY a.due_date DESC NULLS LAST, a.activity_id DESC
             """,
             (student_id,)
@@ -418,7 +440,8 @@ async def get_student_todo(student_id: int):
                 ORDER BY qs.date_taken DESC NULLS LAST, qs.score_id DESC
                 LIMIT 1
             ) latest ON TRUE
-            WHERE q.status = 'Published' AND (NOT EXISTS (
+            WHERE q.status = 'Published' AND q.delivery_type='online'
+              AND c.workflow_status='active' AND (NOT EXISTS (
                 SELECT 1 FROM quiz_sections visible
                 WHERE visible.quiz_id = q.quiz_id
             ) OR EXISTS (
@@ -433,20 +456,14 @@ async def get_student_todo(student_id: int):
 
         cur.execute(
             """
-            SELECT m.module_id, m.class_id, c.subject AS class_name,
-                   m.title, m.summary AS description, m.upload_date AS date,
-                   m.file_path
-            FROM module m
-            JOIN class c ON c.class_id = m.class_id
-            JOIN enrollment e ON e.class_id = m.class_id AND e.student_id = %s
-            WHERE NOT EXISTS (
-                SELECT 1 FROM module_sections visible
-                WHERE visible.module_id = m.module_id
-            ) OR EXISTS (
-                SELECT 1 FROM module_sections visible
-                WHERE visible.module_id = m.module_id AND visible.section_id = e.section_id
-            )
-            ORDER BY m.upload_date DESC NULLS LAST, m.module_id DESC
+            SELECT r.resource_id AS module_id,r.class_id,c.subject AS class_name,
+                   r.title, left(regexp_replace(r.body_html,'<[^>]+>',' ','g'),250) AS description,
+                   r.published_at AS date,r.file_path
+            FROM learning_resource r
+            JOIN class c ON c.class_id=r.class_id
+            JOIN enrollment e ON e.class_id=r.class_id AND e.student_id=%s
+            WHERE r.kind='module' AND r.status='published' AND c.workflow_status='active'
+            ORDER BY r.published_at DESC NULLS LAST,r.resource_id DESC
             """,
             (student_id,)
         )
@@ -521,6 +538,7 @@ async def get_teacher_dashboard(class_id: int):
 # Enroll students into a specific class
 @subject_router.post("/{class_id}/enroll")
 async def enroll_students(class_id: str, payload: dict = Body(...)):
+    raise HTTPException(status_code=403, detail="Section rosters are managed by administrators.")
     """Enroll a list of student IDs into the given class_id.
 
     Expects JSON: { "student_ids": [123, 456, ...] }
@@ -701,9 +719,9 @@ async def upload_module(
 
             cursor.execute(
                 """
-                SELECT section_id
-                FROM section
-                WHERE section = %s AND class_id = %s
+                SELECT s.section_id
+                FROM class_section cs JOIN section s ON s.section_id=cs.section_id
+                WHERE s.section = %s AND cs.class_id = %s
                 """,
                 (section_code, class_id)
             )
@@ -875,9 +893,9 @@ async def upload_activity(
 
             cursor.execute(
                 """
-                SELECT section_id
-                FROM section
-                WHERE section = %s AND class_id = %s
+                SELECT s.section_id
+                FROM class_section cs JOIN section s ON s.section_id=cs.section_id
+                WHERE s.section = %s AND cs.class_id = %s
                 """,
                 (section_code, class_id)
             )
@@ -982,11 +1000,11 @@ async def post_Announcement(class_id: int, request: AnnouncementCreate):
 
             cursor.execute(
                 """
-                SELECT section_id
-                FROM section
-                WHERE section = %s
+                SELECT s.section_id
+                FROM class_section cs JOIN section s ON s.section_id=cs.section_id
+                WHERE s.section = %s AND cs.class_id = %s
                 """,
-                (section_code,)
+                (section_code, class_id)
             )
 
             row = cursor.fetchone()
@@ -1072,7 +1090,8 @@ async def update_announcement(announcement_id: int, request: AnnouncementCreate)
             raise HTTPException(status_code=404, detail="Announcement not found")
         cursor.execute("DELETE FROM announcement_section WHERE announcement_id = %s", (announcement_id,))
         for section_code in request.sections:
-            cursor.execute("SELECT section_id FROM section WHERE section = %s AND class_id = %s", (section_code, row[0]))
+            cursor.execute("""SELECT s.section_id FROM class_section cs JOIN section s ON s.section_id=cs.section_id
+                              WHERE s.section = %s AND cs.class_id = %s""", (section_code, row[0]))
             section = cursor.fetchone()
             if not section:
                 raise HTTPException(status_code=404, detail=f"Section {section_code} not found")
@@ -1509,10 +1528,12 @@ async def get_student_modules(student_id: str, class_id: str):
                 m.summary
             FROM module m
             JOIN enrollment e ON e.class_id = m.class_id
-            JOIN student st ON st.student_id = e.student_id
-            LEFT JOIN module_sections ans ON m.module_id = ans.module_id
-            LEFT JOIN section s ON ans.section_id = s.section_id
-            WHERE e.student_id = %s AND m.class_id = %s
+            LEFT JOIN syllabus_section_override o ON o.class_id=m.class_id
+                 AND o.section_id=e.section_id AND o.item_type='module' AND o.item_id=m.module_id
+            WHERE e.student_id = %s AND m.class_id = %s AND COALESCE(o.visible,true)
+              AND (NOT EXISTS (SELECT 1 FROM module_sections ms WHERE ms.module_id=m.module_id)
+                   OR EXISTS (SELECT 1 FROM module_sections ms WHERE ms.module_id=m.module_id
+                              AND ms.section_id=e.section_id))
             GROUP BY m.module_id, e.section_id
             ORDER BY m.upload_date DESC;''',
             (student_id, class_id)
@@ -1543,12 +1564,19 @@ async def get_student_quizzes(student_id: str, class_id: str):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """
-            SELECT q.quiz_id, q.title, q.description, q.deadline, q.total_points,
+            SELECT q.quiz_id, q.title, q.description, COALESCE(o.due_at,q.deadline) AS deadline, q.total_points,
+                   q.delivery_type,
                    COUNT(question.question_id) AS question_count,
-                   latest.total_score,
-                   (latest.score_id IS NOT NULL) AS submitted
+                   CASE WHEN q.delivery_type='offline' AND NOT EXISTS (
+                        SELECT 1 FROM grade_publication gp WHERE gp.class_id=q.class_id
+                        AND gp.section_id=e.section_id AND gp.grading_period IN (q.grading_period,'Course')) THEN NULL
+                        ELSE latest.total_score END AS total_score,
+                   CASE WHEN q.delivery_type='offline' THEN FALSE
+                        ELSE latest.score_id IS NOT NULL END AS submitted
             FROM quiz q
             JOIN enrollment e ON e.class_id = q.class_id AND e.student_id = %s
+            LEFT JOIN syllabus_section_override o ON o.class_id=q.class_id
+                 AND o.section_id=e.section_id AND o.item_type='quiz' AND o.item_id=q.quiz_id
             LEFT JOIN question ON question.quiz_id = q.quiz_id
             LEFT JOIN LATERAL (
                 SELECT qs.score_id, qs.total_score
@@ -1559,6 +1587,7 @@ async def get_student_quizzes(student_id: str, class_id: str):
             ) latest ON TRUE
             WHERE q.class_id = %s
               AND q.status = 'Published'
+              AND COALESCE(o.visible,true)
               AND (
                   NOT EXISTS (SELECT 1 FROM quiz_sections visible WHERE visible.quiz_id = q.quiz_id)
                   OR EXISTS (
@@ -1566,7 +1595,7 @@ async def get_student_quizzes(student_id: str, class_id: str):
                       WHERE visible.quiz_id = q.quiz_id AND visible.section_id = e.section_id
                   )
               )
-            GROUP BY q.quiz_id, latest.score_id, latest.total_score
+            GROUP BY q.quiz_id, o.due_at, latest.score_id, latest.total_score, e.section_id
             ORDER BY q.date_created DESC NULLS LAST, q.quiz_id DESC
             """,
             (student_id, class_id),
@@ -1595,11 +1624,17 @@ async def get_student_activities(student_id: str, class_id: str):
                 a.title,
                 a.description,
                 a.file_path,
-                a.due_date
+                a.delivery_type,
+                COALESCE(o.due_at,a.due_date) AS due_date
             FROM activity a
             JOIN enrollment e ON e.class_id = a.class_id
-            JOIN student st ON st.student_id = e.student_id
-            WHERE e.student_id = %s AND a.class_id = %s
+            LEFT JOIN syllabus_section_override o ON o.class_id=a.class_id
+                 AND o.section_id=e.section_id AND o.item_type='activity' AND o.item_id=a.activity_id
+            WHERE e.student_id = %s AND a.class_id = %s AND a.status='Published'
+              AND COALESCE(o.visible,true)
+              AND (NOT EXISTS (SELECT 1 FROM activity_sections ac WHERE ac.activity_id=a.activity_id)
+                   OR EXISTS (SELECT 1 FROM activity_sections ac WHERE ac.activity_id=a.activity_id
+                              AND ac.section_id=e.section_id))
             ORDER BY a.due_date DESC;''',
             # Use parameterized SQL to avoid SQL injection and properly substitute runtime values
             (student_id, class_id)

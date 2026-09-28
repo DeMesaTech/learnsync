@@ -13,6 +13,7 @@ classes_router = APIRouter(prefix="/api/classes", tags=["classes"])
 # Create a new class for a teacher
 @classes_router.post("/create", response_model=ClassResponse)
 async def create_class(request: CreateClassRequest):
+    raise HTTPException(status_code=403, detail="An administrator assigns subjects and sections in Academic Setup.")
     """
     Create a new class for a teacher
     
@@ -127,7 +128,8 @@ async def get_class_details(class_id: str):
                       t.employee_id AS teacher_id,
                       u.name as teacher_name
                FROM class c
-               JOIN section s ON s.class_id = c.class_id
+               JOIN class_section cs ON cs.class_id = c.class_id
+               JOIN section s ON s.section_id = cs.section_id
                JOIN teacher t ON c.employee_id = t.employee_id
                JOIN account u ON t.user_id = u.user_id
                LEFT JOIN grading_policy gp ON gp.class_id = c.class_id
@@ -151,6 +153,7 @@ async def get_class_details(class_id: str):
 # Enroll a student using a class code
 @classes_router.post("/student/{student_id}/enroll")
 async def enroll_student_by_class_code(student_id: int, payload: dict = Body(...)):
+    raise HTTPException(status_code=403, detail="Request section membership for administrator approval instead.")
     class_code = str(payload.get("class_code", "")).strip()
     if not class_code:
         raise HTTPException(status_code=400, detail="Class code is required")
@@ -228,8 +231,9 @@ async def get_teacher_classes(teacher_id: int):
                       COALESCE((SELECT COUNT(*) FROM activity a WHERE a.class_id = c.class_id), 0) AS activity_count,
                       COALESCE((SELECT COUNT(*) FROM quiz q WHERE q.class_id = c.class_id), 0) AS quiz_count
                FROM class c
-               JOIN section s ON s.class_id = c.class_id
-               WHERE c.employee_id = %s
+               JOIN class_section cs ON cs.class_id = c.class_id
+               JOIN section s ON s.section_id = cs.section_id
+               WHERE c.employee_id = %s AND c.workflow_status = 'active'
                GROUP BY c.class_id
                ORDER BY c.subject''',
             (teacher_id,)
@@ -334,19 +338,19 @@ async def get_student_dashboard(student_id: int):
         #2. Count existing classes for this student
         cur.execute(
             '''SELECT COUNT(*) AS enrolled_classes
-                FROM enrollment
-                WHERE student_id =  %s''',
+                FROM enrollment e JOIN class c ON c.class_id=e.class_id
+                WHERE e.student_id=%s AND c.workflow_status='active' ''',
             (student_id,)
         )
         enrolled_classes = cur.fetchone()['enrolled_classes'] or 0
         
         #3. Count modules in all subjects
         cur.execute(
-            '''SELECT COUNT(m.module_id) AS total_modules
-                FROM enrollment e
-                JOIN module m
-                ON e.class_id = m.class_id
-                WHERE e.student_id = %s''',
+            '''SELECT COUNT(r.resource_id) AS total_modules
+                FROM enrollment e JOIN class c ON c.class_id=e.class_id
+                JOIN learning_resource r ON r.class_id=e.class_id
+                WHERE e.student_id=%s AND c.workflow_status='active'
+                  AND r.kind='module' AND r.status='published' ''',
             (student_id,)
         )
         module_count = cur.fetchone()['total_modules'] or 0
@@ -357,12 +361,15 @@ async def get_student_dashboard(student_id: int):
                     -- Pending Activities
                     SELECT COUNT(*)
                     FROM enrollment e
+                    JOIN class c ON c.class_id=e.class_id
                     JOIN activity a
                         ON e.class_id = a.class_id
                     LEFT JOIN act_submission s
                         ON s.activity_id = a.activity_id
                     AND s.student_id = e.student_id
                     WHERE e.student_id = %s
+                    AND c.workflow_status='active' AND a.status='Published'
+                    AND a.delivery_type='online'
                     AND s.act_submission_id IS NULL
                 )
                 +
@@ -370,12 +377,15 @@ async def get_student_dashboard(student_id: int):
                     -- Pending Quizzes
                     SELECT COUNT(*)
                     FROM enrollment e
+                    JOIN class c ON c.class_id=e.class_id
                     JOIN quiz q
                         ON e.class_id = q.class_id
                     LEFT JOIN quiz_score qs
                         ON qs.quiz_id = q.quiz_id
                     AND qs.student_id = e.student_id
                     WHERE e.student_id = %s
+                    AND c.workflow_status='active' AND q.status='Published'
+                    AND q.delivery_type='online'
                     AND qs.score_id IS NULL
                 ) AS pending_works''',
             (student_id, student_id)
@@ -386,14 +396,18 @@ async def get_student_dashboard(student_id: int):
             '''SELECT
                 (
                     SELECT COUNT(*)
-                    FROM act_submission
-                    WHERE student_id = %s
+                    FROM act_submission s JOIN activity a ON a.activity_id=s.activity_id
+                    JOIN class c ON c.class_id=a.class_id
+                    WHERE s.student_id=%s AND c.workflow_status='active'
+                      AND a.delivery_type='online'
                 )
                 +
                 (
                     SELECT COUNT(*)
-                    FROM quiz_score
-                    WHERE student_id = %s
+                    FROM quiz_score s JOIN quiz q ON q.quiz_id=s.quiz_id
+                    JOIN class c ON c.class_id=q.class_id
+                    WHERE s.student_id=%s AND c.workflow_status='active'
+                      AND q.delivery_type='online'
                 ) AS completed_works''',
             (student_id, student_id)
         )
@@ -424,14 +438,18 @@ async def get_student_classes(student_id: int):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         cur.execute(
-            '''SELECT c.subject, c.class_id, sc.section, u.name AS teacher_name
+            '''SELECT c.subject, c.class_id, sc.section, u.name AS teacher_name,
+                      COALESCE(term.school_year,'') AS school_year,
+                      COALESCE(term.semester,'') AS semester
                 FROM CLASS c
                 JOIN teacher t ON t.employee_id = c.employee_id
-                JOIN section sc ON c.class_id = sc.class_id
-                JOIN enrollment e ON e.section_id = sc.section_id
+                JOIN enrollment e ON e.class_id = c.class_id
+                JOIN section sc ON sc.section_id = e.section_id
                 JOIN student s ON s.student_id = e.student_id
                 JOIN account u ON u.user_id = t.user_id
-                WHERE s.student_id = %s''',
+                LEFT JOIN academic_term term ON term.term_id=c.term_id
+                WHERE s.student_id = %s AND c.workflow_status='active'
+                ORDER BY c.class_id''',
             (student_id,)
         )
 

@@ -1,0 +1,26 @@
+# Academic and faculty API
+
+FastAPI also serves interactive endpoint documentation at `/docs`. IDs in requests follow the existing account/session conventions.
+
+| Area | Endpoints | Use |
+| --- | --- | --- |
+| Admin setup | `GET /api/academic/setup`; `POST/PUT/DELETE /api/academic/terms`, `/subjects`, `/sections`, `/offerings` | Set up terms, catalog, sections, adviser, and assigned offerings. Mutations require `admin_user_id`. |
+| Shared roster | `PUT /api/academic/sections/{section_id}/roster`; `DELETE /api/academic/sections/{section_id}/roster/{student_id}` | Add or remove a roster member and synchronize assigned offering enrollments. |
+| Irregular students | `GET /api/academic/subject-enrollments`; `PUT /api/academic/students/{student_id}/subjects/{class_id}` | List current teaching-section enrollment and persist include, exclude, or reset exceptions. Changes archive enrollment history and invalidate affected grade publications. |
+| Student join | `POST /api/academic/join-requests?student_id=&join_code=`; `POST /api/academic/join-requests/{request_id}/decision` | Request section access; admin approves or rejects. |
+| Legacy review | `POST /api/academic/legacy/{class_id}/activate` | Supply `term_id`, `subject_id`, and `section_map` of every legacy section ID to a shared section ID. |
+| Faculty list | `GET /api/academic/faculty/{teacher_id}/offerings` | Assigned active offerings, terms, sections, roster counts. |
+| Syllabus | `/api/faculty/{class_id}/syllabus/import`, `/draft`, `/approve`, `/export/docx`, `/export/pdf`, `/items` | Import, edit, approve, export, and list content for one offering. |
+| Topic and section settings | `/api/faculty/{class_id}/syllabus/item-link`; `/api/faculty/{class_id}/syllabus/section-override` | Link content to a topic and set section visibility or due date. |
+| Outline and content | `GET /api/learning/{class_id}/outline`; `POST /api/learning/{class_id}/contents`; `POST /api/learning/{class_id}/contents/pdf`; `PUT /api/learning/{class_id}/contents/{content_id}` | Approved chapter/subsection/topic outline, manual formatted content, PDF extraction draft, and faculty review/publication. Student reads return published content only; offerings awaiting approval return `status: pending`. |
+| Lessons, references, files | `POST/PUT /api/learning/{class_id}/resources`; `POST /api/learning/{class_id}/resources/upload`; `POST /api/learning/{class_id}/resources/import-legacy` | Draft and publish chapter lesson modules, chapter/topic references, and PDF/DOCX/PPTX/image files; safely match old module uploads to approved chapters. |
+| Activities | `POST /api/learning/{class_id}/activities`; `PATCH /api/learning/{class_id}/activities/{activity_id}/status`; `PUT /api/learning/{class_id}/activities/{activity_id}/offline-scores` | Place online submissions or offline score-only activities at course/chapter/subsection/topic level, target teaching sections, publish, and record offline scores. |
+| Online quiz drafts | `POST /api/quizzes/generate-draft`; `POST /api/quizzes`; `PATCH /api/quizzes/{quiz_id}/status` | Generate a configurable multiple-choice/identification mix from published Learning Materials and External References attached to the chosen placement. Linked reference pages are fetched as HTML, text, or text-based PDF before generation; an unreadable link blocks the request. Review the draft, save with content placement and audience, then publish. |
+| Daily attendance | `GET /api/faculty/{class_id}/attendance`; `POST /api/faculty/{class_id}/attendance/sessions`; `PUT /api/faculty/{class_id}/attendance/sessions/{session_id}` | Weekly view and explicit daily save. Marks: Present, Absent, Late, Excused. One session per date and teaching section. |
+| Face-to-face quiz | `POST /api/faculty/{class_id}/offline-quizzes`; `GET /api/faculty/{class_id}/offline-quizzes`; `PUT /api/faculty/{class_id}/offline-quizzes/{quiz_id}/scores` | Score-only offline quiz with content placement and teaching-section audience. |
+| Gradebook | `GET /api/grades/class/{class_id}`; `POST /api/grades/columns`; `PUT /api/grades/columns/{column_id}/scores` | Roster score grid. Empty score means Pending; 0 is an explicit zero. |
+| Grades | `GET /api/faculty/{class_id}/grades/preview`; `POST /api/faculty/{class_id}/grades/publish`; `GET /api/grades/student/{student_id}` | Preview approved rules, publish a section snapshot, and read published grades. |
+
+`class_id` identifies an assigned subject offering, not a faculty-created class. `section_id` identifies the shared cohort; content may be shared across its assigned sections. The grading API `/api/grades/columns` accepts `attendance`, `quiz`, `activity`, and `exam` manual columns. Quiz, activity, and module delivery honor section settings.
+
+Syllabus approval validates category weights, period shares, transmutation, passing threshold, Late credit, unique outline keys, and reassignment of linked items removed from the outline. Faculty can save incomplete drafts while correcting an import. Approval creates an approved version; subsequent edits create a new draft/version. A new approval archives old grade publications. Publication requires every student in the section to have complete required scores for the requested period. Excused attendance dates are excluded from each student's denominator.

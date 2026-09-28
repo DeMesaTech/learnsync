@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | AI Assistant</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
@@ -34,11 +34,26 @@
         .message-content pre { margin: 0.75rem 0; overflow-x: auto; border-radius: 0.65rem; background: #0f172a; padding: 0.8rem; color: #e2e8f0; }
         .message-content pre code { background: transparent; padding: 0; color: inherit; }
         .bg-cyan-700 .message-content a { color: inherit; }
+        body.ai-shell { min-height: 100vh; height: 100vh; background: var(--ds-canvas); color: var(--ds-ink); }
+        .ai-shell main { height: 100vh; min-height: 0; }
+        .ai-shell main > aside { background: var(--ds-navy); border-color: var(--ds-navy); color: white; }
+        .ai-shell main > aside :is(h1, p, a, button, span) { color: inherit; }
+        .ai-shell main > aside .border-b, .ai-shell main > aside .border-r { border-color: #31576b; }
+        .ai-shell main > aside a:hover { background: #28627c; }
+        .ai-shell main > aside nav div.bg-cyan-50 { background: #28627c; color: white; box-shadow: inset 3px 0 0 #8ed6e8; }
+        .ai-shell .ai-delete-chat:hover, .ai-shell .ai-delete-chat:focus-visible { background: #9f3345; color: white; }
+        .ai-shell .bg-cyan-700 { background: var(--ds-blue); }
+        .ai-shell button.bg-cyan-700:hover { background: var(--ds-blue-strong); }
+        .ai-shell .bg-cyan-50 { background: var(--ds-sky); }
+        .ai-shell section > header, .ai-shell footer { border-color: var(--ds-border); }
+        .ai-shell section > div.flex-1 { min-height: 0; }
+        .ai-subject-menu { bottom: 100%; left: 0; margin-bottom: 0.75rem; width: 22rem; max-width: calc(100vw - 2rem); }
         @media (max-width: 520px) {
             .ai-composer-controls { flex-wrap: wrap; }
             .ai-composer-input { flex-basis: calc(100% - 3.75rem); }
         }
     </style>
+<link rel="stylesheet" href="../css/design-system.css">
 </head>
 
 <body class="ai-shell h-screen overflow-hidden text-slate-900 font-sans text-sm">
@@ -72,24 +87,26 @@
                     <p class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Recent</p>
                     <p x-show="!conversations.length" class="px-2 py-3 text-xs text-slate-500">No conversations yet.</p>
                     <template x-for="conversation in conversations" :key="conversation.id">
-                        <a href="#" @click.prevent="selectConversation(conversation.id)"
-                            class="mt-2 block rounded-xl px-3 py-3 text-slate-700 transition hover:bg-slate-100"
+                        <div class="mt-2 flex items-center gap-1 rounded-xl px-1 text-slate-700 transition"
                             :class="activeConversationId === conversation.id ? 'bg-cyan-50 text-slate-900 ring-1 ring-cyan-100' : ''">
-                            <span class="block truncate font-semibold" x-text="conversation.title"></span>
-                            <span class="mt-1 block truncate text-xs text-slate-500" x-text="conversation.messages.length + (conversation.messages.length === 1 ? ' message' : ' messages')"></span>
-                        </a>
+                            <a href="#" @click.prevent="selectConversation(conversation.id)"
+                                class="min-w-0 flex-1 rounded-lg px-2 py-3 transition hover:bg-slate-100">
+                                <span class="block truncate font-semibold" x-text="conversation.title"></span>
+                                <span class="mt-1 block truncate text-xs text-slate-500" x-text="conversation.messages.length + (conversation.messages.length === 1 ? ' message' : ' messages')"></span>
+                            </a>
+                            <button type="button" @click="deleteConversation(conversation.id)"
+                                :disabled="loading && activeConversationId === conversation.id"
+                                :aria-label="`Delete conversation: ${conversation.title}`"
+                                title="Delete conversation"
+                                class="ai-delete-chat grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-40">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m3 0V4h8v2m-6 4v7m4-7v7" />
+                                </svg>
+                            </button>
+                        </div>
                     </template>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4">
-                    <button class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-slate-600 transition hover:bg-slate-100">
-                        <span class="grid h-9 w-9 place-items-center rounded-full bg-slate-200 font-bold text-slate-700">JD</span>
-                        <span class="min-w-0">
-                            <span class="block truncate font-semibold text-slate-800">Juan Dela Cruz</span>
-                            <span class="block truncate text-xs text-slate-500">Student</span>
-                        </span>
-                    </button>
-                </div>
             </div>
         </aside>
 
@@ -114,9 +131,6 @@
                     <h2 class="truncate text-base font-bold text-slate-900">AI Assistant</h2>
                     <p class="truncate text-xs text-slate-500">Online and ready to help</p>
                 </div>
-                <button @click="clearChat" type="button" class="ml-auto hidden rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:block">
-                    Clear Chat
-                </button>
             </header>
 
             <div class="flex-1 overflow-y-auto px-4 py-6">
@@ -126,23 +140,24 @@
                             <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 font-bold text-white">AI</div>
                             <div>
                                 <h3 class="text-lg font-bold text-slate-900">How can I help you study today?</h3>
-                                <p class="mt-1 leading-6 text-slate-600">Ask for summaries, explanations, quiz questions, project ideas, or help organizing your tasks.</p>
+                                <p class="mt-1 leading-6 text-slate-600">Choose an enrolled subject, then ask about its chapters, topics, materials, quizzes, or activities.</p>
                             </div>
                         </div>
                         <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                            <button @click="usePrompt('Summarize my lesson notes')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
-                                Summarize my lesson notes
+                            <button @click="usePrompt('List the chapters and topics in this subject')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                List chapters and topics
                             </button>
-                            <button @click="usePrompt('Make a quiz for this topic')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
-                                Make a quiz for this topic
+                            <button @click="usePrompt('What core concepts should I learn first in this subject?')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                What should I learn first?
                             </button>
-                            <button @click="usePrompt('Explain a difficult concept')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
-                                Explain a difficult concept
+                            <button @click="usePrompt('Explain a core concept in this subject with an example')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Explain a core concept with an example
                             </button>
-                            <button @click="usePrompt('Help plan my assignment')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
-                                Help plan my assignment
+                            <button @click="usePrompt('Show my activities in this subject')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                                Show my activities
                             </button>
                         </div>
+
                     </section>
 
                     <template x-for="(message, index) in messages" :key="index">
@@ -167,36 +182,36 @@
             <!-- Chat composer -->
             <footer class="shrink-0 border-t border-slate-200 bg-white p-4">
                 <form class="mx-auto flex max-w-4xl flex-col gap-3" @submit.prevent="sendMessage">
-                    <!-- Hidden selector row, shown by the module button -->
+                    <!-- Subject selector -->
                     <div class="relative shrink-0">
-                        <div x-cloak x-show="lessonMenuOpen" @click.outside="lessonMenuOpen = false" x-transition
-                            class="absolute bottom-0 left-full z-20 ml-3 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-cyan-100 bg-white p-2 shadow-[0_8px_24px_rgb(15_23_42/0.12)]">
-                            <p class="px-3 py-2 text-sm font-semibold text-slate-600">Choose a lesson</p>
-                            <p x-show="materialsLoading" class="px-3 py-2 text-xs text-slate-500">Loading enrolled lessons...</p>
-                            <p x-show="!materialsLoading && !materials.length" class="px-3 py-2 text-xs text-slate-500">No published lessons available</p>
-                            <template x-for="material in materials" :key="material.id">
-                                <button @click="selectMaterial(material.id)" type="button"
+                        <div x-cloak x-show="subjectMenuOpen" @click.outside="subjectMenuOpen = false" x-transition
+                            class="ai-subject-menu absolute z-20 overflow-hidden rounded-2xl border border-cyan-100 bg-white p-2 shadow-[0_8px_24px_rgb(15_23_42/0.12)]">
+                            <p class="px-3 py-2 text-sm font-semibold text-slate-600">Choose a subject</p>
+                            <p x-show="subjectsLoading" class="px-3 py-2 text-xs text-slate-500">Loading enrolled subjects...</p>
+                            <p x-show="!subjectsLoading && !subjects.length" class="px-3 py-2 text-xs text-slate-500">No enrolled subjects available</p>
+                            <template x-for="subject in subjects" :key="subject.id">
+                                <button @click="selectSubject(subject.id)" type="button"
                                     class="block w-full rounded-lg px-3 py-2.5 text-left text-sm leading-5 text-slate-800 transition hover:bg-cyan-50"
-                                    :class="selectedMaterialId === material.id ? 'bg-cyan-50 font-semibold text-cyan-800' : ''"
-                                    x-text="material.label"></button>
+                                    :class="selectedSubjectId === subject.id ? 'bg-cyan-50 font-semibold text-cyan-800' : ''"
+                                    x-text="subject.label"></button>
                             </template>
-                            <p x-show="materialsError" x-text="materialsError" class="px-3 py-2 text-xs text-red-700"></p>
+                            <p x-show="subjectsError" x-text="subjectsError" class="px-3 py-2 text-xs text-red-700"></p>
                         </div>
 
                     <!-- Button, chatbox, and send row -->
                     <div class="ai-composer-controls flex w-full items-end gap-3">
-                        <!-- Module-selection button -->
-                        <button @click="lessonMenuOpen = !lessonMenuOpen" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
-                            type="button" aria-label="Show lesson selector" title="Choose a lesson" :aria-expanded="lessonMenuOpen">
+                        <!-- Subject-selection button -->
+                        <button @click="subjectMenuOpen = !subjectMenuOpen" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+                            type="button" aria-label="Show subject selector" title="Choose a subject" :aria-expanded="subjectMenuOpen">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.82l8.48-8.49" />
                             </svg>
                         </button>
-                        <!-- Selected lesson indicator -->
-                        <div x-show="selectedMaterial" class="flex h-11 min-w-0 max-w-xs items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800">
-                            <span class="mr-1 shrink-0 text-cyan-600">Lesson:</span>
-                            <span class="min-w-0 flex-1 truncate" x-text="selectedMaterial ? selectedMaterial.label : ''"></span>
-                            <button @click="clearMaterial" type="button" class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-cyan-700 transition hover:bg-cyan-100" aria-label="Remove selected lesson" title="Remove selected lesson">
+                        <!-- Selected subject indicator -->
+                        <div x-show="selectedSubject" class="flex h-11 min-w-0 max-w-xs items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800">
+                            <span class="mr-1 shrink-0 text-cyan-600">Subject:</span>
+                            <span class="min-w-0 flex-1 truncate" x-text="selectedSubject ? selectedSubject.label : ''"></span>
+                            <button @click="clearSubject" type="button" class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-cyan-700 transition hover:bg-cyan-100" aria-label="Remove selected subject" title="Remove selected subject">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
@@ -211,6 +226,7 @@
                             </svg>
                         </button>
                     </div>
+                    </div>
                 </form>
             </footer>
         </section>
@@ -220,15 +236,20 @@
             return {
                 historyOpen: false,
                 draft: '',
-                lessonMenuOpen: false,
+                subjectMenuOpen: false,
                 loading: false,
                 error: '',
-                materials: [],
-                materialsLoading: false,
-                materialsError: '',
-                selectedMaterialId: '',
-                conversations: JSON.parse(localStorage.getItem('learnsync_ai_conversations') || '[]'),
+                subjects: [],
+                subjectsLoading: false,
+                subjectsError: '',
+                selectedSubjectId: '',
+                conversations: [],
                 activeConversationId: null,
+
+                get historyStorageKey() {
+                    const studentId = localStorage.getItem('student_id');
+                    return studentId ? `learnsync_ai_conversations_${studentId}` : null;
+                },
 
                 get activeConversation() {
                     return this.conversations.find((conversation) => conversation.id === this.activeConversationId);
@@ -238,8 +259,8 @@
                     return this.activeConversation ? this.activeConversation.messages : [];
                 },
 
-                get selectedMaterial() {
-                    return this.materials.find((material) => material.id === this.selectedMaterialId);
+                get selectedSubject() {
+                    return this.subjects.find((subject) => subject.id === this.selectedSubjectId);
                 },
 
                 handleComposerKeydown(event) {
@@ -317,86 +338,90 @@
                 },
 
                 async init() {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem(this.historyStorageKey) || '[]');
+                        this.conversations = Array.isArray(saved) ? saved : [];
+                    } catch (_) {
+                        this.conversations = [];
+                    }
                     const savedConversation = this.conversations[0];
                     if (savedConversation) {
                         this.activeConversationId = savedConversation.id;
-                        this.selectedMaterialId = savedConversation.selectedMaterialId || '';
+                        this.selectedSubjectId = savedConversation.selectedSubjectId || '';
                     }
-                    await this.loadMaterials();
+                    await this.loadSubjects();
                 },
 
-                async loadMaterials() {
+                async loadSubjects() {
                     const studentId = localStorage.getItem('student_id');
                     if (!studentId) {
-                        this.materialsError = 'Please sign in as a student to view enrolled lessons.';
+                        this.subjectsError = 'Please sign in as a student to view enrolled subjects.';
                         return;
                     }
 
-                    this.materialsLoading = true;
-                    this.materialsError = '';
+                    this.subjectsLoading = true;
+                    this.subjectsError = '';
                     try {
-                        const response = await fetch(`/api/subjects/todo/student/${encodeURIComponent(studentId)}`);
+                        const response = await fetch(`/api/ai/subjects/${encodeURIComponent(studentId)}`);
                         const data = await response.json();
-                        if (!response.ok) throw new Error(data.detail || 'Unable to load enrolled lessons.');
-
-                        const lessonNumbers = {};
-                        this.materials = (data.modules || []).map((module) => {
-                            const classKey = String(module.class_id);
-                            lessonNumbers[classKey] = (lessonNumbers[classKey] || 0) + 1;
-                            return {
-                                id: `module-${module.module_id}`,
-                                classId: module.class_id,
-                                moduleId: module.module_id,
-                                label: `${module.class_name}: Lesson ${lessonNumbers[classKey]} - ${module.title}`
-                            };
-                        });
+                        if (!response.ok) throw new Error(data.detail || 'Unable to load enrolled subjects.');
+                        this.subjects = (data.subjects || []).map((subject) => ({
+                            id: `subject-${subject.class_id}`,
+                            classId: subject.class_id,
+                            hasContent: subject.has_content,
+                            label: `${subject.subject}${subject.section ? ` · ${subject.section}` : ''}${subject.has_content ? '' : ' · General guidance only'}`
+                        }));
                     } catch (error) {
-                        this.materialsError = error.message;
+                        this.subjectsError = error.message;
                     } finally {
-                        this.materialsLoading = false;
+                        this.subjectsLoading = false;
                     }
                 },
 
                 persist() {
-                    localStorage.setItem('learnsync_ai_conversations', JSON.stringify(this.conversations));
+                    if (this.historyStorageKey) {
+                        localStorage.setItem(this.historyStorageKey, JSON.stringify(this.conversations));
+                    }
                 },
 
                 newChat() {
                     this.draft = '';
                     this.error = '';
-                    this.selectedMaterialId = '';
+                    this.selectedSubjectId = '';
                     this.activeConversationId = null;
                     this.historyOpen = false;
                 },
 
-                clearChat() {
-                    this.newChat();
-                },
-
                 selectConversation(id) {
                     this.activeConversationId = id;
-                    this.selectedMaterialId = this.activeConversation?.selectedMaterialId || '';
+                    this.selectedSubjectId = this.activeConversation?.selectedSubjectId || '';
                     this.error = '';
                     this.historyOpen = false;
                     this.scrollToBottom();
                 },
 
-                selectMaterial(materialId) {
-                    this.selectedMaterialId = materialId;
-                    this.lessonMenuOpen = false;
-                    if (this.activeConversation) {
-                        this.activeConversation.selectedMaterialId = materialId;
-                        this.persist();
-                    }
+                deleteConversation(id) {
+                    const conversation = this.conversations.find((item) => item.id === id);
+                    if (!conversation || (this.loading && this.activeConversationId === id)) return;
+                    if (!window.confirm(`Delete "${conversation.title}"? This conversation cannot be restored.`)) return;
+                    this.conversations = this.conversations.filter((item) => item.id !== id);
+                    if (this.activeConversationId === id) this.newChat();
+                    this.persist();
                 },
 
-                clearMaterial() {
-                    this.selectedMaterialId = '';
-                    this.lessonMenuOpen = false;
-                    if (this.activeConversation) {
-                        this.activeConversation.selectedMaterialId = '';
-                        this.persist();
+                selectSubject(subjectId) {
+                    if (this.activeConversation?.selectedSubjectId !== subjectId) {
+                        this.activeConversationId = null;
                     }
+                    this.selectedSubjectId = subjectId;
+                    this.subjectMenuOpen = false;
+                    this.error = '';
+                },
+
+                clearSubject() {
+                    this.selectedSubjectId = '';
+                    this.subjectMenuOpen = false;
+                    this.activeConversationId = null;
                 },
 
                 usePrompt(prompt) {
@@ -419,8 +444,14 @@
                     const message = this.draft.trim();
                     if (!message || this.loading) return;
 
-                    if (!this.selectedMaterialId) {
-                        this.error = 'Choose an enrolled lesson before sending a message.';
+                    if (!this.selectedSubjectId) {
+                        this.error = 'Choose an enrolled subject before sending a message.';
+                        return;
+                    }
+
+                    const selectedSubject = this.subjects.find((subject) => subject.id === this.selectedSubjectId);
+                    if (!selectedSubject) {
+                        this.error = 'Choose an available enrolled subject before sending a message.';
                         return;
                     }
 
@@ -429,24 +460,17 @@
                     this.loading = true;
 
                     if (!this.activeConversation) {
-                        this.activeConversationId = Date.now();
+                        this.activeConversationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
                         this.conversations.unshift({
                             id: this.activeConversationId,
                             title: message.slice(0, 48) + (message.length > 48 ? '...' : ''),
-                            selectedMaterialId: this.selectedMaterialId,
+                            selectedSubjectId: this.selectedSubjectId,
                             messages: []
                         });
-                    } else if (!this.activeConversation.selectedMaterialId) {
-                        this.activeConversation.selectedMaterialId = this.selectedMaterialId;
                     }
 
-                    const selectedMaterial = this.materials.find((material) => material.id === this.selectedMaterialId);
-                    if (!selectedMaterial) {
-                        this.error = 'Choose an available enrolled lesson before sending a message.';
-                        this.loading = false;
-                        return;
-                    }
-                    this.activeConversation.messages.push({ role: 'user', content: message });
+                    const conversation = this.activeConversation;
+                    conversation.messages.push({ role: 'user', content: message });
                     this.persist();
                     this.scrollToBottom();
 
@@ -456,23 +480,17 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 student_id: Number(localStorage.getItem('student_id')),
-                                module_id: selectedMaterial.moduleId,
-                                messages: this.messages.slice(-6)
+                                subject_id: selectedSubject.classId,
+                                messages: conversation.messages.slice(-6)
                             })
                         });
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'The AI request failed.');
-                        this.activeConversation.messages.push({ role: 'assistant', content: data.reply });
+                        conversation.messages.push({ role: 'assistant', content: data.reply });
                         this.persist();
                         this.scrollToBottom();
                     } catch (error) {
                         this.error = error.message;
-                        this.activeConversation.messages.pop();
-                        if (!this.activeConversation.messages.length) {
-                            this.conversations = this.conversations.filter((conversation) => conversation.id !== this.activeConversationId);
-                            this.activeConversationId = null;
-                        }
-                        this.persist();
                     } finally {
                         this.loading = false;
                     }

@@ -4,14 +4,17 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import HTTPException
 
+from local_env import load_local_env
+
 
 # ============= DATABASE CONFIGURATION =============
+load_local_env()
 DB_CONFIG = {
-    "host": "localhost",
-    "database": "lms",
-    "user": "postgres",
-    "password": "logiclab",
-    "port": "5432"
+    "host": os.getenv("DB_HOST", "localhost"),
+    "database": os.getenv("DB_NAME", "lms"),
+    "user": os.getenv("DB_USER", "postgres"),
+    "password": os.getenv("DB_PASSWORD", "logiclab"),
+    "port": os.getenv("DB_PORT", "5432"),
 }
 DATABASE_URL = os.getenv("DATABASE_URL")
 

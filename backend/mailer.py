@@ -6,14 +6,16 @@ from email.message import EmailMessage
 
 def send_account_credentials(to_email: str, recipient_name: str, password: str) -> None:
     """Send a newly generated password through the configured SMTP account."""
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_host = os.getenv("SMTP_HOST", "localhost")
+    smtp_port = int(os.getenv("SMTP_PORT", "1025"))
     smtp_username = (os.getenv("SMTP_USERNAME") or "").strip()
     smtp_password = (os.getenv("SMTP_PASSWORD") or "").replace(" ", "").replace("\t", "").strip()
     mail_from = (os.getenv("MAIL_FROM", smtp_username or "") or "").strip()
 
-    if not smtp_username or not smtp_password or not mail_from:
-        raise RuntimeError("SMTP_USERNAME, SMTP_PASSWORD, and MAIL_FROM must be configured")
+    mail_from = mail_from or "learnsync@local.test"
+    use_tls = os.getenv("SMTP_STARTTLS", "false").lower() in {"1", "true", "yes"}
+    if bool(smtp_username) != bool(smtp_password):
+        raise RuntimeError("SMTP_USERNAME and SMTP_PASSWORD must be configured together")
 
     message = EmailMessage()
     message["Subject"] = "Your LearnSync account"
@@ -32,6 +34,8 @@ Please sign in and change this password immediately.
     )
 
     with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as smtp:
-        smtp.starttls()
-        smtp.login(smtp_username, smtp_password)
+        if use_tls:
+            smtp.starttls()
+        if smtp_username:
+            smtp.login(smtp_username, smtp_password)
         smtp.send_message(message)

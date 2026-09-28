@@ -6,12 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | To Do</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+<link rel="stylesheet" href="../css/design-system.css">
+<script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell min-h-screen text-slate-900 font-sans text-sm">
@@ -94,18 +96,8 @@
                     <h3>Activities</h3>
                     <span class="lms-badge" x-text="filteredActivities().length + ' items'"></span>
                 </div>
-                <div class="lms-list">
-                    <template x-for="activity in filteredActivities()" :key="activity.title">
-                        <article class="lms-task-card" :class="activity.submitted ? 'is-submitted' : ''" role="button" tabindex="0" @click="openTask('activity', activity)" @keydown.enter.prevent="openTask('activity', activity)" @keydown.space.prevent="openTask('activity', activity)">
-                            <div class="lms-task-top">
-                                <p class="lms-task-title" x-text="activity.title"></p>
-                                <span class="lms-badge" :class="activity.submitted ? 'good' : 'warn'"
-                                    x-text="activity.submitted ? activity.submission_status : 'Due ' + formatDate(activity.date)"></span>
-                            </div>
-                            <p class="m-0" x-text="activity?.description"></p>
-                            <span class="lms-meta" x-text="activity.class_name"></span>
-                        </article>
-                    </template>
+                <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Activity</th><th>Subject</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody><template x-for="activity in filteredActivities()" :key="activity.activity_id"><tr><td x-text="activity.title"></td><td x-text="activity.class_name"></td><td x-text="formatDate(activity.date)"></td><td x-text="activity.submitted ? activity.submission_status : 'Pending'"></td><td><button class="lms-btn lms-btn-small" @click="openTask('activity', activity)">Open</button></td></tr></template></tbody></table></div>
+                <div>
                     <p class="lms-empty" x-show="filteredActivities().length === 0">No activities for this class.</p>
                 </div>
             </section>
@@ -115,18 +107,8 @@
                     <h3>Quizzes</h3>
                     <span class="lms-badge" x-text="filteredQuizzes().length + ' items'"></span>
                 </div>
-                <div class="lms-list">
-                    <template x-for="quiz in filteredQuizzes()" :key="quiz.title">
-                        <article class="lms-task-card" :class="quiz.submitted ? 'is-submitted' : ''" role="button" tabindex="0" @click="openTask('quiz', quiz)" @keydown.enter.prevent="openTask('quiz', quiz)" @keydown.space.prevent="openTask('quiz', quiz)">
-                            <div class="lms-task-top">
-                                <p class="lms-task-title" x-text="quiz.title"></p>
-                                <span class="lms-badge" :class="quiz.submitted ? 'good' : 'warn'"
-                                    x-text="quiz.submitted ? 'Submitted' : 'Pending'"></span>
-                            </div>
-                            <p class="m-0" x-text="quiz?.description"></p>
-                            <span class="lms-meta" x-text="quiz.class_name + ' | ' + (quiz.submitted && quiz.total_score !== null ? 'Latest score: ' + quiz.total_score : 'Added ' + formatDate(quiz.date))"></span>
-                        </article>
-                    </template>
+                <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Quiz</th><th>Subject</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody><template x-for="quiz in filteredQuizzes()" :key="quiz.quiz_id"><tr><td x-text="quiz.title"></td><td x-text="quiz.class_name"></td><td x-text="formatDate(quiz.date)"></td><td x-text="quiz.submitted?'Submitted':'Pending'"></td><td><button class="lms-btn lms-btn-small" @click="openTask('quiz', quiz)">Open</button></td></tr></template></tbody></table></div>
+                <div>
                     <p class="lms-empty" x-show="filteredQuizzes().length === 0">No quizzes for this class.</p>
                 </div>
             </section>
@@ -136,17 +118,8 @@
                     <h3>Compiled Modules</h3>
                     <span class="lms-badge" x-text="filteredModules().length + ' files'"></span>
                 </div>
-                <div class="lms-list">
-                    <template x-for="module in filteredModules()" :key="module.title">
-                        <article class="lms-task-card" role="button" tabindex="0" @click="openTask('module', module)" @keydown.enter.prevent="openTask('module', module)" @keydown.space.prevent="openTask('module', module)">
-                            <div class="lms-task-top">
-                                <p class="lms-task-title" x-text="module.title"></p>
-                                <span class="lms-badge good" x-text="formatDate(module.date)"></span>
-                            </div>
-                            <p class="m-0" x-text="module?.description"></p>
-                            <span class="lms-meta" x-text="module.class_name + ' | Uploaded ' + formatDate(module.date)"></span>
-                        </article>
-                    </template>
+                <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Module</th><th>Subject</th><th>Uploaded</th><th>Action</th></tr></thead><tbody><template x-for="module in filteredModules()" :key="module.module_id"><tr><td x-text="module.title"></td><td x-text="module.class_name"></td><td x-text="formatDate(module.date)"></td><td><button class="lms-btn lms-btn-small" @click="openTask('module', module)">Open</button></td></tr></template></tbody></table></div>
+                <div>
                     <p class="lms-empty" x-show="filteredModules().length === 0">No compiled modules for this class.</p>
                 </div>
             </section>
@@ -232,6 +205,10 @@
                     }
                     if (type === 'quiz') {
                         window.location.href = `quiz-take.html?quiz=${encodeURIComponent(item.quiz_id)}`;
+                        return;
+                    }
+                    if (type === 'module') {
+                        window.location.href = `outline.html?class_id=${encodeURIComponent(item.class_id)}`;
                     }
                 }
             }

@@ -10,6 +10,25 @@ submit_router = APIRouter(prefix="/api/submissions", tags=["submissions"])
 ALLOWED_SUBMISSION_STATUSES = ["Submitted", "Late", "Returned", "Missing"]
 
 
+def _student_activity(cur, student_id: int, class_id: int, activity_id: int):
+    cur.execute("""SELECT COALESCE(o.due_at, a.due_date) AS due_date
+                   FROM activity a JOIN enrollment e ON e.class_id=a.class_id
+                     AND e.student_id=%s
+                   LEFT JOIN syllabus_section_override o ON o.class_id=a.class_id
+                     AND o.section_id=e.section_id AND o.item_type='activity'
+                     AND o.item_id=a.activity_id
+                   WHERE a.activity_id=%s AND a.class_id=%s AND a.status='Published'
+                     AND (o.visible IS DISTINCT FROM FALSE)
+                     AND (NOT EXISTS (SELECT 1 FROM activity_sections ac WHERE ac.activity_id=a.activity_id)
+                          OR EXISTS (SELECT 1 FROM activity_sections ac WHERE ac.activity_id=a.activity_id
+                                     AND ac.section_id=e.section_id))""",
+                (student_id, activity_id, class_id))
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Activity unavailable for this section.")
+    return row["due_date"] if isinstance(row, dict) else row[0]
+
+
 def get_submission_status_for_activity(activity_due_date: object | None = None) -> str:
     """Return the submission status based on the activity deadline."""
     if activity_due_date is None:
@@ -61,6 +80,7 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
     try:
         ensure_submission_notes_column(conn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
+        _student_activity(cur, student_id, class_id, activity_id)
 
         # SQL query uses parameterized values for safety and clarity.
         # It joins activity, enrollment, and student to make sure the student is enrolled
@@ -70,7 +90,7 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
                 a.activity_id,
                 a.title,
                 a.description,
-                a.due_date,
+                COALESCE(o.due_at, a.due_date) AS due_date,
                 a.file_path AS attachment,
                 a.points,
                 a.status,
@@ -84,6 +104,8 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
                 s.st_notes
             FROM activity a
             JOIN enrollment e ON e.class_id = a.class_id
+            LEFT JOIN syllabus_section_override o ON o.class_id=a.class_id
+                AND o.section_id=e.section_id AND o.item_type='activity' AND o.item_id=a.activity_id
             JOIN student st ON st.student_id = e.student_id
             LEFT JOIN act_submission s
                 ON s.activity_id = a.activity_id
@@ -103,6 +125,8 @@ async def get_student_activity_submission(student_id: int, class_id: int, activi
 
         return result
 
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -133,12 +157,7 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
         # prefer explicit file_path param if provided
         path_to_store = file_path or upload_location
 
-        cur.execute(
-            "SELECT due_date FROM activity WHERE activity_id = %s AND class_id = %s",
-            (activity_id, class_id),
-        )
-        activity_row = cur.fetchone()
-        due_date = activity_row[0] if activity_row else None
+        due_date = _student_activity(cur, student_id, class_id, activity_id)
         submission_status = get_submission_status_for_activity(due_date)
 
         # Insert submission record
@@ -170,10 +189,13 @@ async def submit_activity(student_id: int, class_id: int, activity_id: int, file
         )
 
         submission_id = cur.fetchone()[0]
+        cur.execute("DELETE FROM grade_publication WHERE class_id=%s", (class_id,))
         conn.commit()
 
         return {"act_submission_id": submission_id, "file_path": path_to_store}
 
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -189,6 +211,7 @@ async def unsubmit_activity(student_id: int, class_id: int, activity_id: int):
     cur = conn.cursor()
 
     try:
+        _student_activity(cur, student_id, class_id, activity_id)
         # Check if the submission exists
         cur.execute(
             """
@@ -211,9 +234,13 @@ async def unsubmit_activity(student_id: int, class_id: int, activity_id: int):
             (submission[0],)
         )
 
+        cur.execute("DELETE FROM grade_publication WHERE class_id=%s", (class_id,))
+
         conn.commit()
         return {"message": "Submission successfully removed."}
 
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -307,6 +334,10 @@ async def grade_submission(submission_id: int, payload: dict = Body(...)):
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail='Submission not found')
+
+        cur.execute("""DELETE FROM grade_publication WHERE class_id=(SELECT a.class_id FROM activity a
+                       JOIN act_submission s ON s.activity_id=a.activity_id WHERE s.act_submission_id=%s)""",
+                    (submission_id,))
 
         conn.commit()
         return {

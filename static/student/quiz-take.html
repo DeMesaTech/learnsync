@@ -6,12 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Take Quiz</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+<link rel="stylesheet" href="../css/design-system.css">
+<script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -108,6 +110,7 @@
                         <h3>Quiz Status</h3>
                         <span class="lms-badge good">Submitted</span>
                     </div>
+                    <p class="lms-meta" x-text="`${quiz.answered_count || 0} of ${quiz.questions.length} questions answered in your latest submission.`"></p>
                 </section>
             </section>
         </main>
@@ -202,6 +205,7 @@
                     }
                 },
                 answeredCount() {
+                    if (this.quiz.canAttempt === false) return Number(this.quiz.answered_count || 0);
                     return Object.values(this.answers).filter((answer) => String(answer || '').trim().length > 0).length;
                 }
             };
