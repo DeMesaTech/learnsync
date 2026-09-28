@@ -20,7 +20,11 @@ def get_submission_status_for_activity(activity_due_date: object | None = None) 
         activity_due_date = datetime.fromisoformat(activity_due_date)
 
     if isinstance(activity_due_date, datetime):
-        now = datetime.now(activity_due_date.tzinfo or timezone.utc)
+        now = (
+            datetime.now(activity_due_date.tzinfo)
+            if activity_due_date.tzinfo is not None
+            else datetime.now()
+        )
         return "Late" if now > activity_due_date else "Submitted"
 
     return "Submitted"

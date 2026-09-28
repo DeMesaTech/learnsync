@@ -34,6 +34,10 @@
         .message-content pre { margin: 0.75rem 0; overflow-x: auto; border-radius: 0.65rem; background: #0f172a; padding: 0.8rem; color: #e2e8f0; }
         .message-content pre code { background: transparent; padding: 0; color: inherit; }
         .bg-cyan-700 .message-content a { color: inherit; }
+        @media (max-width: 520px) {
+            .ai-composer-controls { flex-wrap: wrap; }
+            .ai-composer-input { flex-basis: calc(100% - 3.75rem); }
+        }
     </style>
 </head>
 
@@ -180,7 +184,7 @@
                         </div>
 
                     <!-- Button, chatbox, and send row -->
-                    <div class="flex w-full items-end gap-3">
+                    <div class="ai-composer-controls flex w-full items-end gap-3">
                         <!-- Module-selection button -->
                         <button @click="lessonMenuOpen = !lessonMenuOpen" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
                             type="button" aria-label="Show lesson selector" title="Choose a lesson" :aria-expanded="lessonMenuOpen">
@@ -197,7 +201,7 @@
                             </button>
                         </div>
                         <!-- Chat message input -->
-                        <textarea x-model="draft" @keydown.enter="handleComposerKeydown($event)" class="min-w-0 flex-1 max-h-36 min-h-11 resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15"
+                        <textarea x-model="draft" @keydown.enter="handleComposerKeydown($event)" class="ai-composer-input min-w-0 flex-1 max-h-36 min-h-11 resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15"
                             rows="1" placeholder="Message LearnSync AI..." aria-label="Message"></textarea>
                         <!-- Send message button -->
                         <button :disabled="loading || !draft.trim()" class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"

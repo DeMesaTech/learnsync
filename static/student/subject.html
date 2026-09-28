@@ -108,26 +108,37 @@
                     </div>
                     <span class="lms-badge good" x-text="syllabusProgress.completion_percent + '% complete'"></span>
                 </div>
-                <div class="syllabus-progress-track" role="progressbar" aria-label="Your syllabus completion"
-                    aria-valuemin="0" aria-valuemax="100" :aria-valuenow="syllabusProgress.completion_percent">
-                    <span class="syllabus-progress-fill" :style="'width: ' + syllabusProgress.completion_percent + '%' "></span>
+                <div class="syllabus-topic-stepper" x-show="syllabusProgress.topics.length">
+                    <div class="syllabus-progress-stepper" role="group" aria-label="Your progress by syllabus topic">
+                        <div class="syllabus-progress-stepper-track" role="progressbar"
+                            aria-label="Your overall syllabus completion" aria-valuemin="0" aria-valuemax="100"
+                            :aria-valuenow="syllabusProgress.completion_percent">
+                            <span class="syllabus-progress-stepper-fill"
+                                :style="'width: ' + syllabusProgress.completion_percent + '%' "></span>
+                        </div>
+                        <ol class="syllabus-progress-steps" aria-label="Syllabus topics in course order">
+                            <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
+                                <li class="syllabus-progress-step"
+                                    :aria-label="'Topic ' + (index + 1) + ': ' + topic.title + ', ' + (topic.completed ? 'complete' : 'not complete')"
+                                    :class="{
+                                        'is-first': index === 0,
+                                        'is-last': index === syllabusProgress.topics.length - 1,
+                                        'is-complete': topic.completed
+                                    }">
+                                    <span class="syllabus-progress-step-dot" aria-hidden="true"></span>
+                                    <span class="syllabus-topic-step-title" role="tooltip"
+                                        :id="'student-syllabus-topic-title-' + topic.topic_id" x-text="topic.title"></span>
+                                    <strong class="syllabus-topic-step-label" x-text="'Topic ' + (index + 1)"></strong>
+                                    <span class="syllabus-topic-step-count lms-meta"
+                                        x-text="topic.completed ? 'Completed' : 'Not completed'"></span>
+                                </li>
+                            </template>
+                        </ol>
+                        <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Your teacher has not added syllabus topics yet.</p>
+                    </div>
                 </div>
                 <p class="lms-empty" x-show="syllabusProgressError" x-text="syllabusProgressError"></p>
-                <div class="syllabus-student-topics">
-                    <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
-                        <article class="syllabus-student-topic">
-                            <span class="syllabus-topic-count" :class="topic.completed ? 'complete' : ''" x-text="index + 1"></span>
-                            <div class="syllabus-student-topic-copy">
-                                <strong x-text="topic.title"></strong>
-                                <span class="lms-meta" x-text="topic.completed ? 'Completed' : 'Not completed'"></span>
-                            </div>
-                            <button class="lms-btn lms-btn-small" type="button" :disabled="updatingTopicId === topic.topic_id"
-                                @click="toggleTopicCompletion(topic)"
-                                x-text="topic.completed ? 'Undo' : 'Mark complete'"></button>
-                        </article>
-                    </template>
-                    <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Your teacher has not added syllabus topics yet.</p>
-                </div>
+                
             </section>
 
             <!-- Announcements + Learning Materials: two-column layout -->
@@ -150,88 +161,76 @@
                     </div>
                 </section>
 
-                <!-- Right column: stack AI + Learning materials -->
-                <div>
-                    <section class="lms-panel">
-                        <h3>AI Study Context</h3>
-                        <p>Saved AI queries connect to module content for better review context.</p>
-                        <div class="lms-list">
-                            <div class="lms-row"><strong>Summarize Chapter 1 objectives</strong><span class="lms-meta">Linked to Research Problem module</span></div>
-                            <div class="lms-row"><strong>Generate quiz questions for ethics</strong><span class="lms-meta">Linked to Research Ethics module</span></div>
+                <!-- Right column: Learning materials -->
+                <section class="lms-panel">
+                    <section class="lms-tabs" aria-label="Subject tabs">
+                        <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'modules'">Modules</button>
+                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'activities'">Activities</button>
+                        <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
+                            @click="activeTab = 'quizzes'">Quizzes</button>
+                    </section>
+
+                    <!-- Modules Section -->
+                    <section class="mt-4" x-show="activeTab === 'modules'">
+                        <div class="lms-task-top">
+                            <h3>Modules</h3>
+                            <span class="lms-badge" x-text="modules.length + ' files'"></span>
                         </div>
+
+                        <template x-for="module in modules" :key="module.title">
+                            <ul class="lms-list">
+                                <li>
+                                    <a :href="'/' + module.file_path" target="_blank" class="lms-module-link">
+                                        <strong x-text="module.title"></strong>
+                                        <p class="m-0" x-text="module.summary"></p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </template>
                     </section>
 
-                    <section class="lms-panel mt-4">
-                        <section class="lms-tabs" aria-label="Subject tabs">
-                            <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
-                                @click="activeTab = 'modules'">Modules</button>
-                            <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
-                                @click="activeTab = 'activities'">Activities</button>
-                            <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
-                                @click="activeTab = 'quizzes'">Quizzes</button>
-                        </section>
-
-                        <!-- Modules Section -->
-                        <section class="mt-4" x-show="activeTab === 'modules'">
-                            <div class="lms-task-top">
-                                <h3>Modules</h3>
-                                <span class="lms-badge" x-text="modules.length + ' files'"></span>
-                            </div>
-
-                            <template x-for="module in modules" :key="module.title">
-                                <ul class="lms-list">
-                                    <li>
-                                        <a :href="'/' + module.file_path" target="_blank" class="lms-module-link">
-                                            <strong x-text="module.title"></strong>
-                                            <p class="m-0" x-text="module.summary"></p>
-                                        </a>
-                                    </li>
-                                </ul>
+                    <!-- Activities Section -->
+                    <section class="mt-4" x-cloak x-show="activeTab === 'activities'">
+                        <div class="lms-task-top">
+                            <h3>Activities</h3>
+                            <span class="lms-badge" x-text="activities.length + ' items'"></span>
+                        </div>
+                        <ul class="lms-list">
+                            <template x-for="activity in activities" :key="activity.title">
+                                <li role="button" tabindex="0" @click="openStudentItem('activity', activity.activity_id)"
+                                    @keydown.enter.prevent="openStudentItem('activity', activity.activity_id)"
+                                    @keydown.space.prevent="openStudentItem('activity', activity.activity_id)">
+                                    <span class="lms-badge" 
+                                            :class="`lms-badge ${activity.badgeClass}`"
+                                            x-text="activity.submissionStatus"></span>
+                                    <strong class="block mt-2" x-text="activity.title"></strong>
+                                    <p class="m-0" x-text="activity?.description"></p>
+                                </li>
                             </template>
-                        </section>
-
-                        <!-- Activities Section -->
-                        <section class="mt-4" x-cloak x-show="activeTab === 'activities'">
-                            <div class="lms-task-top">
-                                <h3>Activities</h3>
-                                <span class="lms-badge" x-text="activities.length + ' items'"></span>
-                            </div>
-                            <ul class="lms-list">
-                                <template x-for="activity in activities" :key="activity.title">
-                                    <li role="button" tabindex="0" @click="openStudentItem('activity', activity.activity_id)"
-                                        @keydown.enter.prevent="openStudentItem('activity', activity.activity_id)"
-                                        @keydown.space.prevent="openStudentItem('activity', activity.activity_id)">
-                                        <span class="lms-badge" 
-                                                :class="`lms-badge ${activity.badgeClass}`"
-                                                x-text="activity.submissionStatus"></span>
-                                        <strong class="block mt-2" x-text="activity.title"></strong>
-                                        <p class="m-0" x-text="activity?.description"></p>
-                                    </li>
-                                </template>
-                            </ul>
-                        </section>
-
-                        <!-- Quizzes Section -->
-                        <section class="mt-4" x-cloak x-show="activeTab === 'quizzes'">
-                            <div class="lms-task-top">
-                                <h3>Quizzes</h3><span class="lms-badge" x-text="quizzes.length + ' items'"></span>
-                            </div>
-                            <ul class="lms-list">
-                                <template x-for="quiz in quizzes" :key="quiz.quiz_id">
-                                    <li role="button" tabindex="0" @click="openStudentItem('quiz', quiz.quiz_id)"
-                                        @keydown.enter.prevent="openStudentItem('quiz', quiz.quiz_id)"
-                                        @keydown.space.prevent="openStudentItem('quiz', quiz.quiz_id)">
-                                        <span class="lms-badge" :class="quiz.badgeClass" x-text="quiz.statusText"></span>
-                                        <strong class="block mt-2" x-text="quiz.title"></strong>
-                                        <p class="m-0" x-text="quiz.description || quiz.details"></p>
-                                    </li>
-                                </template>
-                                <li class="lms-empty" x-show="quizzes.length === 0">No quizzes available.</li>
-                            </ul>
-                        </section>
+                        </ul>
                     </section>
-                </div>
-            </section>
+
+                    <!-- Quizzes Section -->
+                    <section class="mt-4" x-cloak x-show="activeTab === 'quizzes'">
+                        <div class="lms-task-top">
+                            <h3>Quizzes</h3><span class="lms-badge" x-text="quizzes.length + ' items'"></span>
+                        </div>
+                        <ul class="lms-list">
+                            <template x-for="quiz in quizzes" :key="quiz.quiz_id">
+                                <li role="button" tabindex="0" @click="openStudentItem('quiz', quiz.quiz_id)"
+                                    @keydown.enter.prevent="openStudentItem('quiz', quiz.quiz_id)"
+                                    @keydown.space.prevent="openStudentItem('quiz', quiz.quiz_id)">
+                                    <span class="lms-badge" :class="quiz.badgeClass" x-text="quiz.statusText"></span>
+                                    <strong class="block mt-2" x-text="quiz.title"></strong>
+                                    <p class="m-0" x-text="quiz.description || quiz.details"></p>
+                                </li>
+                            </template>
+                            <li class="lms-empty" x-show="quizzes.length === 0">No quizzes available.</li>
+                        </ul>
+                    </section>
+                </section>
             </section>
 
             <!-- Final Grade: full width row -->
