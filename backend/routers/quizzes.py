@@ -109,6 +109,10 @@ def _quiz_payload(cur, quiz_id: int, include_answers: bool = True) -> dict:
     return result
 
 
+def _can_submit_attempt(attempt_count: int, max_attempts: Optional[int]) -> bool:
+    return attempt_count < (max_attempts or 1)
+
+
 SUPPORTED_QUESTION_TYPES = {
     "multiple_choice", "true_false", "modified_true_false", "fill_in_the_blank",
     "matching", "short_answer", "essay", "problem_solving", "enumeration",
@@ -415,13 +419,21 @@ def list_class_quizzes(class_id: int):
 
 
 @quiz_router.get("/{quiz_id}")
-def get_quiz(quiz_id: int):
+def get_quiz(quiz_id: int, student_id: Optional[int] = None):
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         quiz = _quiz_payload(cur, quiz_id, include_answers=False)
         if quiz["status"] != "Published":
             raise HTTPException(status_code=404, detail="Quiz is not published.")
+        if student_id is not None:
+            cur.execute(
+                "SELECT COUNT(*) AS attempt_count FROM quiz_score WHERE quiz_id = %s AND student_id = %s",
+                (quiz_id, student_id),
+            )
+            attempt_count = cur.fetchone()["attempt_count"]
+            quiz["attempt_count"] = attempt_count
+            quiz["can_attempt"] = _can_submit_attempt(attempt_count, quiz["max_attempts"])
         return quiz
     finally:
         conn.close()
@@ -480,7 +492,7 @@ def submit_quiz(quiz_id: int, request: QuizSubmitRequest):
         )
         attempt_count = cur.fetchone()["attempt_count"]
         max_attempts = locked_quiz["max_attempts"]
-        if max_attempts is not None and attempt_count >= max_attempts:
+        if not _can_submit_attempt(attempt_count, max_attempts):
             raise HTTPException(status_code=409, detail="You have reached the attempt limit for this quiz.")
         cur.execute("SELECT question_id, correct_answer, points FROM question WHERE quiz_id = %s", (quiz_id,))
         questions = {row["question_id"]: row for row in cur.fetchall()}

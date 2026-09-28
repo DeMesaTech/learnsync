@@ -74,7 +74,7 @@
                     </div>
                 </aside>
 
-                <form class="lms-panel" @submit.prevent="submitQuiz">
+                <form class="lms-panel" @submit.prevent="submitQuiz" x-show="quiz.canAttempt !== false">
                     <div class="lms-task-top">
                         <h3>Answer Sheet</h3>
                         <span class="lms-badge" :class="submitted ? 'good' : ''" x-text="submitted ? 'Submitted' : quiz.mode"></span>
@@ -103,6 +103,12 @@
                     <p class="lms-empty mt-4" x-show="error" x-text="error"></p>
                     <p class="lms-empty mt-4" x-show="submitted" x-cloak x-text="result ? `Score: ${result.score} / ${result.max_score} (${result.percentage}%)` : 'Quiz submitted.'"></p>
                 </form>
+                <section class="lms-panel" x-show="quiz.canAttempt === false" x-cloak>
+                    <div class="lms-task-top">
+                        <h3>Quiz Status</h3>
+                        <span class="lms-badge good">Submitted</span>
+                    </div>
+                </section>
             </section>
         </main>
     </div>
@@ -137,7 +143,9 @@
                     if (!Number.isInteger(quizId)) return;
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/quizzes/${quizId}`);
+                        const studentId = localStorage.getItem('student_id');
+                        const attemptQuery = studentId ? `?student_id=${encodeURIComponent(studentId)}` : '';
+                        const response = await fetch(`/api/quizzes/${quizId}${attemptQuery}`);
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to load quiz.');
                         this.quiz = {
@@ -146,6 +154,7 @@
                             timeLimit: data.time_limit_minutes || 0,
                             points: data.total_points || 0,
                             mode: data.status || 'Online',
+                            canAttempt: data.can_attempt,
                             instructions: [],
                             questions: (data.questions || []).map((question) => ({
                                 ...question,
