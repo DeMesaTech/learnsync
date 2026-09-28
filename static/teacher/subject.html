@@ -6,13 +6,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Subject Workspace</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=syllabus-topic-hover-20260928">
     <script src="../js/file-transfer.js" defer></script>
+<link rel="stylesheet" href="../css/design-system.css">
+<script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -105,9 +107,13 @@
                     </p>
                 </div>
                 <div class="lms-actions">
+                    <a class="lms-btn lms-btn-secondary" :href="'syllabus.html?class_id=' + encodeURIComponent(currentClassId)">Course Syllabus</a>
+                    <a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id=' + encodeURIComponent(currentClassId)">Chapters & content</a>
+                    <a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id=' + encodeURIComponent(currentClassId)">Activities & quizzes</a>
+                    <a class="lms-btn lms-btn-secondary" :href="'attendance.html?class_id=' + encodeURIComponent(currentClassId)">Attendance</a>
+                    <a class="lms-btn lms-btn-secondary" :href="'grade-review.html?class_id=' + encodeURIComponent(currentClassId)">Grade Review</a>
                     <a class="lms-btn"
-                        :href="currentClassId ? 'grading.html?class_id=' + encodeURIComponent(currentClassId) + '&section=' + encodeURIComponent(enrollSection) : 'grading.html'">Open
-                        Grading</a>
+                        :href="currentClassId ? 'gradebook.html?class_id=' + encodeURIComponent(currentClassId) : 'gradebook.html'">Open Gradebook</a>
                 </div>
             </section>
 
@@ -120,11 +126,6 @@
                         </svg></span>
                         <div class="flex items-center justify-between gap-2">
                             <strong x-text="nums.students || '0'"></strong>
-                            <button class="lms-icon-btn" type="button" @click="modal = 'enrollment'">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
-                                </svg>
-                            </button>
                         </div>
                         <span>Students</span>
                 </div>
@@ -152,7 +153,7 @@
                         </svg></span>
                         <div class="flex items-center justify-between gap-2">
                             <strong x-text="nums.activities || '0'"></strong>
-                            <button class="lms-icon-btn" type="button" @click="modal = 'classActivity'">
+                            <button class="lms-icon-btn" type="button" @click="location.href='assessments.html?class_id='+currentClassId+'&kind=activity'">
                                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
                                 </svg>
@@ -168,7 +169,7 @@
                         </svg></span>
                         <div class="flex items-center justify-between gap-2">
                             <strong x-text="nums.quizzes || '0'"></strong>
-                            <button class="lms-icon-btn" type="button" @click="openQuizCreator()">
+                            <button class="lms-icon-btn" type="button" @click="location.href='assessments.html?class_id='+currentClassId+'&kind=quiz'">
                                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
                                 </svg>
@@ -176,76 +177,7 @@
                         </div>
                         <span>Quizzes</span>
                 </div>
-            </section>
-
-            <!-- Syllabus Progress Panel -->
-            <section class="lms-panel syllabus-progress-panel">
-                <div class="lms-task-top">
-                    <div>
-                        <h3>Syllabus Progress</h3>
-                        <span class="lms-meta" x-text="syllabusProgress.total_topics + ' syllabus chapters'">Loading progress...</span>
-                    </div>
-                    <span class="lms-badge good" x-text="syllabusProgress.module_coverage_percent + '% modules assigned'"></span>
-                </div>
-                <div class="syllabus-topic-stepper" x-show="syllabusProgress.topics.length">
-                    <div class="syllabus-progress-stepper" role="group" aria-label="Progress by syllabus topic">
-                        <div class="syllabus-progress-stepper-track" role="progressbar"
-                            aria-label="Syllabus chapter module coverage" aria-valuemin="0" aria-valuemax="100"
-                            :aria-valuenow="syllabusProgress.module_coverage_percent">
-                            <span class="syllabus-progress-stepper-fill"
-                                :style="'width: ' + syllabusProgress.module_coverage_percent + '%' "></span>
-                        </div>
-                        <ol class="syllabus-progress-steps" aria-label="Syllabus topics in course order">
-                            <template x-for="(topic, index) in syllabusProgress.topics" :key="topic.topic_id">
-                                <li class="syllabus-progress-step"
-                                    :aria-label="syllabusTopicLabel(topic, index) + ': ' + topic.title"
-                                    :class="{
-                                        'is-first': index === 0,
-                                        'is-last': index === syllabusProgress.topics.length - 1,
-                                        'is-complete': topic.module_completion_percent >= 100,
-                                        'is-in-progress': topic.module_completion_percent > 0 && topic.module_completion_percent < 100,
-                                        'is-final': index === syllabusProgress.topics.length - 1 && syllabusProgress.module_coverage_percent >= 100
-                                    }">
-                                    <span class="syllabus-progress-step-dot" aria-hidden="true"></span>
-                                    <span class="syllabus-topic-step-title" role="tooltip"
-                                        :id="'syllabus-topic-title-' + topic.topic_id" x-text="topic.title"></span>
-                                    <strong class="syllabus-topic-step-label"
-                                        x-text="syllabusTopicLabel(topic, index)"></strong>
-                                    <button class="lms-icon-btn syllabus-topic-remove" type="button"
-                                        :aria-label="'Remove ' + topic.title" :title="'Remove ' + topic.title"
-                                        @click="deleteSyllabusTopic(topic)">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3m-9 0 1 13h8l1-13" />
-                                        </svg>
-                                    </button>
-                                </li>
-                            </template>
-                        </ol>
-                    </div>
-                </div>
-                <div x-show="syllabusProgress?.syllabus" class="syllabus-file-link">
-                    <span class="lms-meta">Current syllabus</span>
-                    <a :href="syllabusProgress?.syllabus ? '/' + syllabusProgress.syllabus.file_path : '#'" target="_blank" rel="noopener"
-                        x-text="syllabusProgress?.syllabus?.file_name || ''"></a>
-                    <span class="lms-meta" x-text="syllabusProgress?.syllabus ? 'Uploaded ' + formatDateTime(syllabusProgress.syllabus.uploaded_at) : ''"></span>
-                </div>
-                <form class="syllabus-topic-form" x-show="!syllabusProgress?.syllabus"
-                    @submit.prevent="uploadSyllabus()">
-                    <input class="lms-input" type="file" x-ref="syllabusFile"
-                        accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        aria-label="Choose syllabus DOCX or PDF"
-                        @change="handleSyllabusFileChange($event)">
-                    <button class="lms-btn" type="submit" :disabled="!syllabusFile || syllabusUploading || !currentClassId"
-                        x-text="syllabusUploading ? 'Uploading...' : (syllabusProgress.syllabus ? 'Replace syllabus' : 'Upload syllabus')"></button>
-                </form>
-                <p class="lms-empty" x-show="syllabusUploadError" x-text="syllabusUploadError"></p> 
-                <p class="lms-meta m-0" x-show="syllabusUploadMessage" x-text="syllabusUploadMessage"></p>
-                <p class="lms-empty" x-show="syllabusProgressError" x-text="syllabusProgressError"></p>
-                <p class="lms-meta m-0" x-show="!syllabusProgress.topics.length">Upload a syllabus with a course outline to populate topics and begin tracking progress.</p>
-            </section>
-
-            <!-- Section Filter -->
+            </section><!-- Section Filter -->
             <section class="lms-toolbar"><!-- Section Selector -->
                 <select id="section-filter" class="lms-select" x-model="sectionFilter" aria-label="Filter by section">
                     <option value="all">All sections</option>
@@ -441,21 +373,6 @@
                 <!-- MODALS -->
                 <div class="lms-grid">
                     <!-- KPI-->
-                    <template x-if="modal === 'enrollment'">
-                        <div class="lms-grid">
-                            <p class="lms-meta m-0" x-text="subjectTitle + ' enrollment'"></p>
-                            <select class="lms-select" aria-label="Enrollment section"
-                                x-model="enrollSection"><!-- Section Selector -->
-                                <template x-for="section in sections" :key="section">
-                                    <option :value="section" x-text="section"></option>
-                                </template>
-                            </select>
-                            <textarea class="lms-input" x-ref="enrollInput" rows="7"
-                                placeholder="Paste one student ID per line, or CSV rows: Student ID, Last Name, First Name"></textarea>
-                            <p class="lms-meta m-0">Students are added directly to the selected class section.</p>
-                            <button class="lms-btn" type="button" @click="enrollStudents()">Enroll Students</button>
-                        </div>
-                    </template>
 
                     <template x-if="modal === 'classModule'">
                         <div class="lms-grid">
@@ -521,6 +438,7 @@
                     <template x-if="modal === 'classQuiz'">
                         <div class="lms-grid">
                             <input class="lms-input" x-model="quizTitle" placeholder="Quiz title">
+                            <select class="lms-select" x-model="quizPeriod" aria-label="Quiz grading period"><option value="Midterm">Midterm</option><option value="Finals">Finals</option></select>
                             <select class="lms-select" x-model="quizModuleId">
                                 <option value="">Select a source module</option>
                                 <template x-for="module in modules" :key="module.module_id">
@@ -952,6 +870,7 @@
                 quizDraft: null,
                 editingQuizId: null,
                 quizTitle: '',
+                quizPeriod: 'Midterm',
                 quizTime: '',
                 quizDeadline: '',
                 quizSections: [],
@@ -1650,6 +1569,16 @@
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to generate quiz draft.');
                         this.quizDraft = data;
+                        const saved = await fetch('/api/quizzes', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+                            class_id:Number(this.getTargetClassId()), module_id:Number(this.quizModuleId), title,
+                            description:data.description || '', status:'Draft', origin:'ai', grading_period:this.quizPeriod,
+                            sections:this.quizSections, questions:data.questions.map((question,index)=>({...question,display_order:index+1}))
+                        })});
+                        const stored = await saved.json();
+                        if(!saved.ok) throw new Error(stored.detail || 'Could not save generated draft.');
+                        this.editingQuizId = stored.quiz_id;
+                        await this.load_quizzes();
+                        this.quizError = 'AI draft saved in this subject. Review and publish it when ready.';
                     } catch (error) {
                         this.quizError = error.message || 'Unable to generate quiz draft.';
                     } finally {
@@ -1682,6 +1611,7 @@
                                 time_limit_minutes: this.quizTime ? Number(this.quizTime) : null,
                                 deadline: this.quizDeadline || null,
                                 status: 'Draft',
+                                grading_period: this.quizPeriod,
                                 sections: this.quizSections,
                                 questions: this.quizDraft.questions.map((question, index) => ({ ...question, display_order: index + 1 }))
                             })

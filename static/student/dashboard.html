@@ -6,12 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LearnSync | Student Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js" defer></script>
+    <script src="../js/alpine_cdn.min.js" defer></script>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
+<link rel="stylesheet" href="../css/design-system.css">
+<script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -116,8 +118,8 @@
                         </svg></span>
                     <div class="flex items-center justify-between gap-2">
                         <strong x-text="kpis.enrolled_classes"></strong>
-                        <button class="lms-icon-btn" type="button" aria-label="Enroll in a class"
-                            title="Enroll in a class" @click="enrollmentModal = true; enrollmentMessage = ''">
+                        <button class="lms-icon-btn" type="button" aria-label="Request section access"
+                            title="Request section access" @click="enrollmentModal = true; enrollmentMessage = ''">
                             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 5v14M5 12h14" />
@@ -152,18 +154,12 @@
                 </div>
             </section>
 
-            <section class="lms-grid lms-grid-3">
+            <section class="lms-panel">
                 <div x-show="classes.length === 0" class="lms-empty">
                     <strong>No class enrolled yet</strong>
                     <p class="m-0 mt-2">Your enrolled classes will appear here once you are added to a class.</p>
                 </div>
-                <template x-for="cls in classes" :key="cls.subject">
-                    <a :href="`subject.html?class_id=${cls.class_id}`" class="lms-card">
-                        <span class="lms-badge">Class</span>
-                        <h3 class="mt-3" x-text="cls.subject"></h3>
-                        <p x-text="'Section ' + cls.section + ' with Prof. ' + cls.teacher_name"></p>
-                    </a>
-                </template>
+                <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Subject</th><th>Section</th><th>Term</th><th>Faculty</th><th>Action</th></tr></thead><tbody><template x-for="cls in classes" :key="cls.class_id"><tr><td x-text="cls.subject"></td><td x-text="cls.section"></td><td x-text="cls.semester+' '+cls.school_year"></td><td x-text="cls.teacher_name"></td><td><a class="lms-btn lms-btn-small" :href="`subject.html?class_id=${cls.class_id}`">Open subject</a></td></tr></template></tbody></table></div>
                 <!-- Classes Section -->
             </section>
 
@@ -172,14 +168,14 @@
                     <h3>Your Learning Flow</h3>
                     <ul class="lms-list">
                         <li><strong>Modules</strong>
-                            <p class="m-0">Teacher-uploaded files and module content chunks for lessons and AI context.
+                            <p class="m-0">Published lessons for an entire chapter, with related files and reviewed content.
                             </p>
                         </li>
                         <li><strong>Activities</strong>
-                            <p class="m-0">Submit files, track submission dates, and view teacher scores.</p>
+                            <p class="m-0">Submit online work; offline activities are recorded by faculty.</p>
                         </li>
                         <li><strong>Quizzes</strong>
-                            <p class="m-0">Answer questions online and receive quiz score records.</p>
+                            <p class="m-0">Take published online quizzes; face-to-face quiz scores appear after grade publication.</p>
                         </li>
                     </ul>
                 </div>
@@ -205,7 +201,7 @@
                 @click.self="enrollmentModal = false" @keydown.escape.window="enrollmentModal = false">
                 <section class="lms-modal" role="dialog" aria-modal="true" aria-labelledby="enroll-class-title">
                     <div class="lms-modal-head">
-                        <h3 id="enroll-class-title">Enroll in a Class</h3>
+                        <h3 id="enroll-class-title">Request Section Access</h3>
                         <button class="lms-icon-btn" type="button" aria-label="Close enrollment dialog"
                             @click="enrollmentModal = false">
                             <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -215,12 +211,12 @@
                         </button>
                     </div>
                     <div class="lms-modal-body">
-                        <p class="lms-meta m-0">Enter the class code provided by your teacher.</p>
-                        <input class="lms-input" type="text" placeholder="Class code" x-model="classCode"
+                        <p class="lms-meta m-0">Enter the section code from your administrator. Your request will be reviewed.</p>
+                        <input class="lms-input" type="text" placeholder="Section code" x-model="classCode"
                             @keydown.enter="enrollWithCode()" :disabled="enrolling" autofocus>
                         <p x-show="enrollmentMessage" class="lms-meta m-0" x-text="enrollmentMessage"></p>
                         <button class="lms-btn" type="button" @click="enrollWithCode()" :disabled="enrolling">
-                            <span x-text="enrolling ? 'Enrolling...' : 'Enroll'"></span>
+                            <span x-text="enrolling ? 'Sending...' : 'Request access'"></span>
                         </button>
                     </div>
                 </section>
@@ -291,33 +287,28 @@
             },
             async enrollWithCode() {
                 const student_id = localStorage.getItem("student_id");
-                const class_code = this.classCode.trim();
+                const join_code = this.classCode.trim();
 
                 if (!student_id) {
                     this.enrollmentMessage = "Student ID not found.";
                     return;
                 }
-                if (!class_code) {
-                    this.enrollmentMessage = "Enter a class code.";
+                if (!join_code) {
+                    this.enrollmentMessage = "Enter a section code.";
                     return;
                 }
 
                 this.enrolling = true;
                 this.enrollmentMessage = '';
                 try {
-                    const res = await fetch(`/api/classes/student/${encodeURIComponent(student_id)}/enroll`, {
+                    const res = await fetch(`/api/academic/join-requests?student_id=${encodeURIComponent(student_id)}&join_code=${encodeURIComponent(join_code)}`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ class_code })
                     });
                     const data = await res.json().catch(() => ({}));
-                    if (!res.ok) throw new Error(data.detail || 'Unable to enroll in class.');
+                    if (!res.ok) throw new Error(data.detail || 'Unable to request section access.');
 
                     this.classCode = '';
-                    this.enrollmentMessage = `Enrolled in ${data.subject}.`;
-                    await this.fetchClasses();
-                    this.kpis.enrolled_classes = this.classes.length;
-                    setTimeout(() => { this.enrollmentModal = false; this.enrollmentMessage = ''; }, 700);
+                    this.enrollmentMessage = 'Request sent. An administrator will review it.';
                 } catch (err) {
                     this.enrollmentMessage = err.message;
                 } finally {
