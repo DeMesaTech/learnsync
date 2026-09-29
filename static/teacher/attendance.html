@@ -50,14 +50,29 @@
             <section class="ds-card" x-show="sectionId">
                 <h2 x-text="weekLabel"></h2>
                 <p class="ds-help" x-show="!sessions.length">No attendance dates saved this week.</p>
-                <div class="ds-grid"><template x-for="session in sessions" :key="session.session_id">
-                        <div class="lms-card"><strong x-text="session.session_date"></strong>
-                            <p class="ds-help"
-                                x-text="session.grading_period+' · '+Object.keys(session.marks).length+' marks'"></p>
-                            <button class="lms-btn lms-btn-secondary lms-btn-small" @click="edit(session)">Review
-                                marks</button>
-                        </div>
-                    </template></div>
+                <div class="ds-table-wrap" x-show="sessions.length">
+                    <table class="ds-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Grading period</th>
+                                <th>Marks recorded</th>
+                                <th aria-label="Actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="session in sessions" :key="session.session_id">
+                                <tr>
+                                    <td><strong x-text="session.session_date"></strong></td>
+                                    <td x-text="session.grading_period"></td>
+                                    <td x-text="Object.keys(session.marks).length"></td>
+                                    <td><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                            @click="edit(session)">Review marks</button></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
             </section>
             <section class="ds-card ds-stack" x-show="draft">
                 <h2 x-text="draft?.session_id ? 'Edit attendance' : 'New attendance date'"></h2>
