@@ -200,9 +200,8 @@
           </section>
           <section>
             <h3>Learning Materials</h3><template x-for="item in selectedMaterials" :key="item.resource_id">
-              <div class="subject-item"><strong x-text="item.title"></strong>
-                <div class="subject-content" x-html="item.body_html"></div><a x-show="item.file_path"
-                  :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
+              <div class="subject-content lms-btn lms-btn-secondary lms-btn-small" x-html="item.body_html"></div><a x-show="item.file_path"
+                :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
               </div>
             </template>
             <p class="ds-help" x-show="!selectedMaterials.length">No materials yet.</p>
