@@ -16,7 +16,7 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD", "9Ea2XuAeV6YyPdUxHIkVDOA04F926xBX"),
     "port": os.getenv("DB_PORT", "5432"),
 }
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("postgresql://logiclab:9Ea2XuAeV6YyPdUxHIkVDOA04F926xBX@dpg-datgqc093c1s73ai0gog-a/lms_nivi")
 
 
 def get_db_connection():
