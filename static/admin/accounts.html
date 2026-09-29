@@ -132,8 +132,8 @@
     <link rel="stylesheet" href="../css/lms.css">
     <link rel="stylesheet" href="admin.css?v=bug-reports-20260927">
     <script src="../js/file-transfer.js" defer></script>
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm" x-data="{ open: false }">
@@ -170,8 +170,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 5h16v14H4V5Zm3 4h10M7 13h6M7 16h4" />
                     </svg><span>Manage Accounts</span></a></li>
-                    <li><a class="sidebar-btn" href="terms.html"><span>Academic Setup</span></a></li>
-                    <li><a class="sidebar-btn" href="bug-reports.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4" /></svg><span>Bug Reports</span></a></li>
+            <li><a class="sidebar-btn" href="terms.html"><span>Academic Setup</span></a></li>
+            <li><a class="sidebar-btn" href="bug-reports.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4" />
+                    </svg><span>Bug Reports</span></a></li>
             <li><a class="sidebar-btn" href="../index.html"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -196,19 +200,27 @@
                     <p class="admin-muted" x-text="filteredAccounts.length + ' account(s) found'"></p>
                 </div>
                 <div class="admin-actions">
-                    <input class="admin-input" style="min-width:220px" type="search" x-model="query"
+                    <input class="admin-input" style="min-width:220px" type="search" x-model="query" @input="currentPage = 1"
                         placeholder="Search name or email" aria-label="Search accounts">
-                    <select class="admin-select" style="width:auto" x-model="roleFilter" aria-label="Filter by role">
+                    <select class="admin-select" style="width:auto" x-model="roleFilter" @change="currentPage = 1" aria-label="Filter by role">
                         <option value="all">All roles</option>
                         <option value="teacher">Teachers</option>
                         <option value="student">Students</option>
                     </select>
                 </div>
             </div>
+            <div class="admin-bulk-actions" x-show="selectedAccountIds.length" x-cloak>
+                <span x-text="selectedAccountIds.length + ' account' + (selectedAccountIds.length === 1 ? '' : 's') + ' selected'"></span>
+                <button class="lms-btn lms-btn-secondary" type="button" :disabled="selectedAccountIds.length !== 1"
+                    @click="editSelectedAccount()">Edit selected</button>
+                <button class="lms-btn admin-btn-danger" type="button" @click="deleteSelectedAccounts()">Delete selected</button>
+            </div>
             <div class="admin-table-wrap">
                 <table class="admin-table">
                     <thead>
                         <tr>
+                            <th class="admin-check-column"><input type="checkbox" aria-label="Select all accounts on this page"
+                                    :checked="allVisibleSelected" @change="toggleVisibleAccounts($event.target.checked)"></th>
                             <th>Name</th>
                             <th>Role</th>
                             <th>Email</th>
@@ -216,8 +228,10 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody><template x-for="account in filteredAccounts" :key="account.email">
+                    <tbody><template x-for="account in paginatedAccounts" :key="account.user_id">
                             <tr>
+                                <td class="admin-check-column"><input type="checkbox" :checked="selectedAccountIds.includes(account.user_id)"
+                                        @change="toggleAccountSelection(account.user_id, $event.target.checked)" :aria-label="'Select ' + account.name"></td>
                                 <td><strong x-text="account.name"></strong><small class="block admin-muted"
                                         x-text="account.idNumber"></small></td>
                                 <td><span class="admin-badge" :class="account.role" x-text="account.role"></span></td>
@@ -248,11 +262,21 @@
                             </tr>
                         </template>
                         <tr x-show="filteredAccounts.length === 0">
-                            <td colspan="5" class="text-center admin-muted">No matching accounts. Create the first
+                            <td colspan="6" class="text-center admin-muted">No matching accounts. Create the first
                                 account to get started.</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="admin-pagination" x-show="filteredAccounts.length > pageSize" x-cloak>
+                <span x-text="paginationSummary"></span>
+                <div class="admin-pagination-controls">
+                    <button class="lms-btn lms-btn-secondary" type="button" :disabled="currentPage === 1"
+                        @click="currentPage--">Previous</button>
+                    <span x-text="'Page ' + displayedPage + ' of ' + pageCount"></span>
+                    <button class="lms-btn lms-btn-secondary" type="button" :disabled="displayedPage === pageCount"
+                        @click="currentPage++">Next</button>
+                </div>
             </div>
             <p class="admin-notice m-4">Account emails should contain a one-time activation link. The backend should
                 generate credentials and send them securely.</p>
@@ -318,6 +342,10 @@
                     <button class="admin-modal-close" type="button" aria-label="Close import accounts dialog"
                         @click="showImportModal = false">&times;</button>
                 </div>
+                <div x-show="importMessage" x-cloak class="admin-import-error-toast" role="alert" aria-live="assertive">
+                    <span x-text="importMessage"></span>
+                    <button type="button" aria-label="Dismiss import error" @click="importMessage = ''">&times;</button>
+                </div>
                 <div class="admin-notice mb-6">Required columns: <strong>email</strong>, <strong>firstName</strong>,
                     <strong>lastName</strong>, and <strong>idNumber</strong>. The first row must contain these headers.
                 </div>
@@ -333,7 +361,6 @@
                                 <option value="teacher">Teacher</option>
                             </select></div>
                     </div>
-                    <p x-show="importMessage" class="admin-notice mb-5" x-text="importMessage"></p>
                     <div class="flex justify-end gap-3"><button class="lms-btn lms-btn-secondary" type="button"
                             @click="showImportModal = false">Cancel</button><button class="lms-btn" type="submit"
                             :disabled="importing" x-text="importing ? 'Importing...' : 'Import accounts'"></button>
@@ -348,7 +375,8 @@
                     x-text="sendingState === 'loading' ? 'Sending email' : (sendingState === 'success' ? 'Success' : 'Error')">Sending
                     email</span>
                 <div x-show="sendingState === 'loading'" class="admin-sending-dots" aria-hidden="true">
-                    <span>.</span><span>.</span><span>.</span></div>
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
                 <span x-show="sendingState !== 'loading'" class="admin-sending-message" x-text="sendingMessage"></span>
                 <button x-show="sendingState !== 'loading'" type="button" class="admin-sending-ok"
                     @click="closeSendingModal()">OK</button>
@@ -358,7 +386,7 @@
     <script>
         function accountDirectory() {
             return {
-                query: '', roleFilter: 'all', accounts: [], error: '', showCreateModal: false, showImportModal: false, submitting: false, importing: false, formMessage: '', importMessage: '', editingAccountId: null, importFile: null, importRole: '',
+                query: '', roleFilter: 'all', accounts: [], error: '', showCreateModal: false, showImportModal: false, submitting: false, importing: false, formMessage: '', importMessage: '', editingAccountId: null, importFile: null, importRole: '', selectedAccountIds: [], currentPage: 1, pageSize: 10,
                 showSendingModal: false, sendingMessage: 'Sending email', sendingState: 'loading',
                 form: { role: '', email: '', firstName: '', lastName: '', idNumber: '', sendEmail: true },
                 beginSending(message = 'Sending email') {
@@ -391,8 +419,8 @@
                         if (new URLSearchParams(window.location.search).get('create') === '1') this.openCreateModal();
                     } catch (error) { this.error = error.message; }
                 },
-                openCreateModal() { 
-                    this.formMessage = ''; 
+                openCreateModal() {
+                    this.formMessage = '';
                     this.editingAccountId = null; this.form = { role: '', email: '', firstName: '', lastName: '', idNumber: '', sendEmail: true }; this.showCreateModal = true;
                 },
                 openImportModal() { this.importMessage = ''; this.importFile = null; this.importRole = ''; this.showImportModal = true; },
@@ -406,6 +434,39 @@
                 get filteredAccounts() {
                     const query = this.query.toLowerCase();
                     return this.accounts.filter(account => (this.roleFilter === 'all' || account.role === this.roleFilter) && (!query || `${account.name} ${account.email}`.toLowerCase().includes(query)));
+                },
+                get pageCount() {
+                    return Math.max(1, Math.ceil(this.filteredAccounts.length / this.pageSize));
+                },
+                get displayedPage() {
+                    return Math.min(this.currentPage, this.pageCount);
+                },
+                get paginatedAccounts() {
+                    const start = (this.displayedPage - 1) * this.pageSize;
+                    return this.filteredAccounts.slice(start, start + this.pageSize);
+                },
+                get paginationSummary() {
+                    const start = this.filteredAccounts.length ? ((this.displayedPage - 1) * this.pageSize) + 1 : 0;
+                    const end = Math.min(this.displayedPage * this.pageSize, this.filteredAccounts.length);
+                    return `Showing ${start}-${end} of ${this.filteredAccounts.length}`;
+                },
+                get allVisibleSelected() {
+                    return this.paginatedAccounts.length > 0 && this.paginatedAccounts.every(account => this.selectedAccountIds.includes(account.user_id));
+                },
+                toggleVisibleAccounts(shouldSelect) {
+                    const visibleIds = this.paginatedAccounts.map(account => account.user_id);
+                    this.selectedAccountIds = shouldSelect
+                        ? [...new Set([...this.selectedAccountIds, ...visibleIds])]
+                        : this.selectedAccountIds.filter(id => !visibleIds.includes(id));
+                },
+                toggleAccountSelection(userId, shouldSelect) {
+                    this.selectedAccountIds = shouldSelect
+                        ? [...new Set([...this.selectedAccountIds, userId])]
+                        : this.selectedAccountIds.filter(id => id !== userId);
+                },
+                editSelectedAccount() {
+                    const account = this.accounts.find(item => item.user_id === this.selectedAccountIds[0]);
+                    if (account) this.openEditModal(account);
                 },
                 async resend(account) {
                     this.beginSending('Sending activation email');
@@ -430,6 +491,28 @@
                         return;
                     }
                     this.accounts = this.accounts.filter(item => item.user_id !== account.user_id);
+                    this.selectedAccountIds = this.selectedAccountIds.filter(id => id !== account.user_id);
+                },
+                async deleteSelectedAccounts() {
+                    const selectedAccounts = this.accounts.filter(account => this.selectedAccountIds.includes(account.user_id));
+                    if (!selectedAccounts.length || !confirm(`Delete ${selectedAccounts.length} selected account${selectedAccounts.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+                    const failed = [];
+                    for (const account of selectedAccounts) {
+                        try {
+                            const response = await fetch(`/api/admin/accounts/${account.user_id}`, { method: 'DELETE' });
+                            if (!response.ok) {
+                                const result = await response.json();
+                                failed.push(`${account.name}: ${result.detail || 'Unable to delete account.'}`);
+                            } else {
+                                this.accounts = this.accounts.filter(item => item.user_id !== account.user_id);
+                            }
+                        } catch (error) {
+                            failed.push(`${account.name}: ${error.message || 'Unable to delete account.'}`);
+                        }
+                    }
+                    this.selectedAccountIds = [];
+                    if (failed.length) this.showError(`Some accounts could not be deleted.\n${failed.join('\n')}`);
+                    else this.showSuccess(`${selectedAccounts.length} account${selectedAccounts.length === 1 ? '' : 's'} deleted successfully.`);
                 },
                 async submitAccount() {
                     this.formMessage = ''; this.submitting = true;
@@ -512,11 +595,11 @@
                                 fileTransfer.progress('Importing accounts...', (processed / normalizedRows.length) * 100);
                             }
                         }
-                        this.showImportModal = false;
                         if (errors.length) {
                             const summary = `Import completed. ${normalizedRows.length} rows processed, ${imported} account${imported === 1 ? '' : 's'} imported successfully, ${errors.length} failed.\n\n${errors.map(error => `Row ${error.row}: ${error.message}`).join('\n')}`;
-                            this.showError(summary);
+                            this.importMessage = summary;
                         } else {
+                            this.showImportModal = false;
                             this.showSuccess(`Import completed successfully. ${normalizedRows.length} rows processed, ${imported} account${imported === 1 ? '' : 's'} imported.`);
                         }
                     } catch (error) {

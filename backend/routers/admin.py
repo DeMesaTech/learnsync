@@ -73,6 +73,11 @@ async def create_account(request: AdminAccountCreate):
             (name, request.email, hash_password(temporary_password), request.role),
         )
         account = cur.fetchone()
+        # Process the ID number, removing dashes and whitespace, and ensure it's numeric for students
+        idNumber = request.idNumber.strip() if request.idNumber else None
+        if idNumber:
+            idNumber = idNumber.replace("-", "").strip()
+        request.idNumber = idNumber 
 
         if request.role == "student":
             if not request.idNumber or not request.idNumber.isdigit():
