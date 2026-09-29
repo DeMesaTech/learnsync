@@ -68,6 +68,15 @@
       margin: .65rem 0
     }
 
+    .subject-collapsible summary {
+      cursor: pointer;
+      list-style: none
+    }
+
+    .subject-collapsible summary::-webkit-details-marker {
+      display: none
+    }
+
     @media(max-width:1100px) {
       .subject-layout {
         grid-template-columns: 14rem minmax(0, 1fr)
@@ -200,9 +209,11 @@
           </section>
           <section>
             <h3>Learning Materials</h3><template x-for="item in selectedMaterials" :key="item.resource_id">
-              <div class="subject-content lms-btn lms-btn-secondary lms-btn-small" x-html="item.body_html"></div><a x-show="item.file_path"
-                :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
-              </div>
+              <a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
+              <details class="subject-item subject-collapsible" open>
+                <summary><strong x-text="item.title"></strong></summary>
+                <div class="subject-content" x-html="item.body_html"></div>
+              </details>
             </template>
             <p class="ds-help" x-show="!selectedMaterials.length">No materials yet.</p>
           </section>
