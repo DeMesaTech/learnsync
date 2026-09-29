@@ -21,7 +21,7 @@
                     <h1 class="lms-title">Activities and quizzes</h1>
                     <p class="lms-subtitle">Choose content placement and teaching sections separately. Publish drafts
                         after review.</p>
-                </div><a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id='+classId">Chapter outline</a>
+                </div><div class="lms-actions"><a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id='+classId">Chapter outline</a><a class="lms-btn lms-btn-secondary" :href="'student-progress.html?class_id='+classId">Student progress</a></div>
             </section>
             <p class="ds-error" x-show="error" x-text="error" role="alert"></p>
             <p class="ds-help" x-show="loading">Loading assessments…</p>

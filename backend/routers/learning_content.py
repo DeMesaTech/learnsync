@@ -201,6 +201,70 @@ def outline(class_id: int, student_id: int | None = None, teacher_id: int | None
         conn.close()
 
 
+@content_router.get("/{class_id}/student-progress")
+def student_progress(class_id: int, teacher_id: int):
+    """Return every enrolled student and each assessment visible to their section."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _teacher(cur, class_id, teacher_id)
+        cur.execute("""SELECT e.student_id, e.section_id, a.name, s.section
+                       FROM enrollment e
+                       JOIN student st ON st.student_id=e.student_id
+                       JOIN account a ON a.user_id=st.user_id
+                       LEFT JOIN section s ON s.section_id=e.section_id
+                       WHERE e.class_id=%s
+                       ORDER BY a.name, e.student_id""", (class_id,))
+        students = [dict(row) for row in cur.fetchall()]
+
+        cur.execute("""SELECT a.activity_id AS id, a.title, a.points AS total_points,
+                              a.status, a.grading_period, a.delivery_type,
+                              ARRAY(SELECT section_id FROM activity_sections
+                                    WHERE activity_id=a.activity_id) AS section_ids
+                       FROM activity a WHERE a.class_id=%s
+                       ORDER BY a.activity_id""", (class_id,))
+        activities = [dict(row, kind="Activity") for row in cur.fetchall()]
+
+        cur.execute("""SELECT q.quiz_id AS id, q.title, q.total_points,
+                              q.status, q.grading_period, q.delivery_type,
+                              ARRAY(SELECT section_id FROM quiz_sections
+                                    WHERE quiz_id=q.quiz_id) AS section_ids
+                       FROM quiz q WHERE q.class_id=%s
+                       ORDER BY q.quiz_id""", (class_id,))
+        quizzes = [dict(row, kind="Quiz") for row in cur.fetchall()]
+        items = activities + quizzes
+
+        cur.execute("""SELECT DISTINCT ON (s.student_id, s.activity_id)
+                              s.student_id, s.activity_id AS id, s.score
+                       FROM act_submission s
+                       JOIN activity a ON a.activity_id=s.activity_id
+                       WHERE a.class_id=%s
+                       ORDER BY s.student_id, s.activity_id,
+                                s.submission_date DESC NULLS LAST, s.act_submission_id DESC""",
+                    (class_id,))
+        activity_scores = {(row["student_id"], row["id"]): row["score"] for row in cur.fetchall()}
+
+        cur.execute("""SELECT DISTINCT ON (qs.student_id, qs.quiz_id)
+                              qs.student_id, qs.quiz_id AS id, qs.total_score AS score
+                       FROM quiz_score qs
+                       JOIN quiz q ON q.quiz_id=qs.quiz_id
+                       WHERE q.class_id=%s
+                       ORDER BY qs.student_id, qs.quiz_id,
+                                qs.submitted_at DESC NULLS LAST, qs.score_id DESC""",
+                    (class_id,))
+        quiz_scores = {(row["student_id"], row["id"]): row["score"] for row in cur.fetchall()}
+
+        for item in items:
+            scores = activity_scores if item["kind"] == "Activity" else quiz_scores
+            item["scores"] = {
+                student["student_id"]: scores.get((student["student_id"], item["id"]))
+                for student in students
+            }
+        return {"students": students, "items": items}
+    finally:
+        conn.close()
+
+
 @content_router.post("/{class_id}/contents")
 def save_content(class_id: int, payload: ContentInput):
     conn = get_db_connection()

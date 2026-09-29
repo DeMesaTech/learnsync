@@ -226,3 +226,7 @@ API key.txt
 run.bat
 run_wireless_server.bat
 uploads/
+
+# Copilot skill downloads
+.agents/
+skills-lock.json

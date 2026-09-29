@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>LearnSync | Student progress</title>
+    <script src="../js/alpine_cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
+    <style>
+        .progress-cell { min-width: 7.5rem; text-align: center; font-weight: 600; border-radius: .5rem; }
+        .progress-blank { background: #f8fafc; color: #64748b; }
+        .progress-failed { background: #fee2e2; color: #b91c1c; }
+        .progress-score { background: #dcfce7; color: #166534; }
+        .progress-unassigned { color: #94a3b8; font-weight: 400; }
+        .progress-legend { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+        .progress-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+        .progress-key { width: 1rem; height: 1rem; border-radius: .25rem; display: inline-block; }
+    </style>
+</head>
+
+<body class="lms-shell" x-data="studentProgressPage()" x-init="load()">
+    <main>
+        <div class="ds-page ds-stack">
+            <section class="lms-hero">
+                <div>
+                    <h1 class="lms-title">Student progress</h1>
+                    <p class="lms-subtitle">All enrolled students and their activity and quiz results.</p>
+                </div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id='+classId">Activities and quizzes</a><a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id='+classId">Chapter outline</a></div>
+            </section>
+
+            <p class="ds-error" x-show="error" x-text="error" role="alert"></p>
+            <p class="ds-help" x-show="loading">Loading student progress…</p>
+
+            <section class="ds-card ds-stack" x-show="!loading">
+                <div class="progress-legend" aria-label="Score color legend">
+                    <strong>Legend:</strong>
+                    <span><i class="progress-key progress-blank"></i>Blank / not yet graded</span>
+                    <span><i class="progress-key progress-failed"></i>Failed (below 60%)</span>
+                    <span><i class="progress-key progress-score"></i>Score (60% and above)</span>
+                </div>
+            </section>
+
+            <section class="ds-card ds-stack" x-show="!loading">
+                <p class="ds-help" x-show="!items.length">No activities or quizzes have been created for this subject.</p>
+                <div class="ds-table-wrap" x-show="items.length">
+                    <table class="ds-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Section</th>
+                                <template x-for="item in items" :key="item.kind+item.id">
+                                    <th><span x-text="item.title"></span><br><small x-text="item.kind+' · /'+item.total_points+(item.status !== 'Published' ? ' · '+item.status : '')"></small></th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="student in students" :key="student.student_id">
+                                <tr>
+                                    <th x-text="student.name"></th>
+                                    <td x-text="student.section || '—'"></td>
+                                    <template x-for="item in items" :key="item.kind+item.id">
+                                        <td :class="cellClass(student, item)" x-text="cellText(student, item)"></td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="ds-help" x-show="items.length && !students.length">No students are enrolled in this subject.</p>
+            </section>
+        </div>
+    </main>
+    <script>
+        function studentProgressPage() {
+            const params = new URLSearchParams(location.search);
+            return {
+                classId: Number(params.get('class_id')), teacherId: Number(localStorage.getItem('teacher_id')),
+                students: [], items: [], loading: true, error: '',
+                async load() {
+                    try {
+                        if (!this.classId) throw Error('Choose a subject from Activities and quizzes first.');
+                        const response = await fetch(`/api/learning/${this.classId}/student-progress?teacher_id=${this.teacherId}`);
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok) throw Error(data.detail || `Request failed (${response.status})`);
+                        this.students = data.students || [];
+                        this.items = data.items || [];
+                    } catch (error) { this.error = error.message; }
+                    finally { this.loading = false; }
+                },
+                isAssigned(student, item) { return !(item.section_ids || []).length || item.section_ids.includes(student.section_id); },
+                score(student, item) { return item.scores?.[student.student_id]; },
+                cellText(student, item) {
+                    if (!this.isAssigned(student, item)) return 'Not assigned';
+                    const score = this.score(student, item);
+                    return score === null || score === undefined ? 'Blank' : `${score} / ${item.total_points}`;
+                },
+                cellClass(student, item) {
+                    if (!this.isAssigned(student, item)) return 'progress-unassigned';
+                    const score = this.score(student, item);
+                    if (score === null || score === undefined) return 'progress-cell progress-blank';
+                    return Number(score) / Number(item.total_points) < .6
+                        ? 'progress-cell progress-failed' : 'progress-cell progress-score';
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>
