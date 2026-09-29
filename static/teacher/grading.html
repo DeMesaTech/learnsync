@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=grading-table-admin-20260927">
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -26,16 +26,23 @@
                 </svg>
             </button>
             <img src="../img/gmvcc.png" alt="GMVCC logo" class="header-logo" />
-            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
+            <h1 class="header-title"><span class="header-title-short">GMVCC</span><span
+                    class="header-title-long">Governor Mariano E. Villafuerte Community College</span></h1>
             <button class="header-icon-btn" aria-label="Notifications">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+                </svg>
             </button>
             <button class="header-icon-btn" aria-label="Profile">
-                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" /></svg>
+                <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0" />
+                </svg>
             </button>
         </header>
         <div x-show="open" x-transition.opacity @click="open = false" class="mobile-overlay"></div>
-        
+
         <nav class="sidebar" :class="open ? 'sidebar-open' : 'sidebar-closed'">
             <ul class="sidebar-list">
                 <div class="sidebar-logo">
@@ -56,14 +63,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn-active" href="grading.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none"
+                <li><a class="sidebar-btn-active" href="grading.html"
+                        @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
                         </svg><span>Grading</span></a></li>
                 <!-- Account Information -->
-                <li><a href="Account.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="Account.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
@@ -71,8 +78,7 @@
                         <span>Account Information</span>
                     </a></li>
                 <!-- About -->
-                <li><a href="about.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="about.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-10v6m0-10h.01" />
@@ -80,17 +86,16 @@
                         <span>About</span>
                     </a></li>
                 <!-- Report Bug -->
-                <li><a href="report-bug.html" @click="open=false"
-                        class="sidebar-btn">
+                <li><a href="report-bug.html" @click="open=false" class="sidebar-btn">
                         <svg class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 8a4 4 0 0 1 8 0v1H8V8Zm-1 1h10v6a5 5 0 0 1-10 0V9Zm-3 2h3m10 0h3M4 17h4m8 0h4M9 4l1.5 2M15 4l-1.5 2M12 9v10" />
                         </svg>
                         <span>Report Bug</span>
                     </a></li>
-                    <!-- Log Out -->
-                <li><a class="sidebar-btn" href="/"><svg class="sidebar-icon" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
+                <!-- Log Out -->
+                <li><a class="sidebar-btn" href="/"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
                         </svg><span>Logout</span></a></li>
@@ -108,12 +113,14 @@
                     </p>
                 </div>
                 <div class="lms-actions">
-                    <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('class')">Change Class</button>
+                    <button class="lms-btn lms-btn-secondary" type="button" @click="openSelector('class')">Change
+                        Class</button>
                 </div>
             </section>
             <!-- Toolbar -->
             <section class="lms-toolbar">
-                <select class="lms-select" x-model="selectedTerm" @change="loadSheet()" aria-label="Filter by grading period">
+                <select class="lms-select" x-model="selectedTerm" @change="loadSheet()"
+                    aria-label="Filter by grading period">
                     <template x-for="period in periods" :key="period">
                         <option :value="period" x-text="period"></option>
                     </template>
@@ -136,16 +143,19 @@
                 <div class="lms-table-head">
                     <div>
                         <h3>Attendance Records</h3>
-                        <span class="lms-meta"><span x-text="selectedTerm"></span> attendance entries with total item values shown above each column.</span>
+                        <span class="lms-meta"><span x-text="selectedTerm"></span> attendance entries with total item
+                            values shown above each column.</span>
                     </div>
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
-                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addAttendance'">Add Record</button>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                            @click="modal = 'addAttendance'">Add Record</button>
                         <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)"
+                        @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -158,16 +168,23 @@
                                 <template x-for="column in attendanceColumns" :key="column.key">
                                     <th>
                                         <span x-text="column.label"></span>
-                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
+                                        <button class="lms-icon-btn" type="button"
+                                            x-show="!String(column.key).startsWith('empty-')"
                                             @click="toggleEditMode('attendance', column)"
                                             :disabled="Boolean(savingCategory)"
                                             :aria-label="isColumnEditing('attendance', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
                                             :title="isColumnEditing('attendance', column) ? 'Save column scores' : 'Edit column scores'">
-                                            <svg x-show="!isColumnEditing('attendance', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            <svg x-show="!isColumnEditing('attendance', column)"
+                                                class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
                                             </svg>
-                                            <svg x-show="isColumnEditing('attendance', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            <svg x-show="isColumnEditing('attendance', column)"
+                                                class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="m5 12 4 4L19 6" />
                                             </svg>
                                         </button>
                                         <button class="lms-icon-btn" type="button" x-show="column.custom"
@@ -175,8 +192,10 @@
                                             :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
                                             :aria-label="'Delete ' + column.label + ' column'"
                                             :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
-                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
                                             </svg>
                                         </button>
                                     </th>
@@ -189,11 +208,18 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in attendanceColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('attendance', student.student_id, column)" :disabled="!isColumnEditing('attendance', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total"
+                                                :value="scoreValue('attendance', student.student_id, column)"
+                                                :disabled="!isColumnEditing('attendance', column) || Boolean(savingCategory)"
+                                                @change="saveScore(column, student.student_id, $event.target.value)">
+                                        </td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td :colspan="2 + attendanceColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length">
+                                <td :colspan="2 + attendanceColumns.length" class="lms-meta">No students are enrolled in
+                                    this class.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -207,12 +233,14 @@
                     </div>
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
-                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addQuiz'">Add Score</button>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                            @click="modal = 'addQuiz'">Add Score</button>
                         <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)"
+                        @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -225,16 +253,20 @@
                                 <template x-for="column in quizColumns" :key="column.key">
                                     <th>
                                         <span x-text="column.label"></span>
-                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
-                                            @click="toggleEditMode('quiz', column)"
-                                            :disabled="Boolean(savingCategory)"
+                                        <button class="lms-icon-btn" type="button"
+                                            x-show="!String(column.key).startsWith('empty-')"
+                                            @click="toggleEditMode('quiz', column)" :disabled="Boolean(savingCategory)"
                                             :aria-label="isColumnEditing('quiz', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
                                             :title="isColumnEditing('quiz', column) ? 'Save column scores' : 'Edit column scores'">
-                                            <svg x-show="!isColumnEditing('quiz', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            <svg x-show="!isColumnEditing('quiz', column)" class="header-action-icon"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
                                             </svg>
-                                            <svg x-show="isColumnEditing('quiz', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            <svg x-show="isColumnEditing('quiz', column)" class="header-action-icon"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="m5 12 4 4L19 6" />
                                             </svg>
                                         </button>
                                         <button class="lms-icon-btn" type="button" x-show="column.custom"
@@ -242,8 +274,10 @@
                                             :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
                                             :aria-label="'Delete ' + column.label + ' column'"
                                             :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
-                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
                                             </svg>
                                         </button>
                                     </th>
@@ -256,11 +290,18 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in quizColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('quiz', student.student_id, column)" :disabled="!isColumnEditing('quiz', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total"
+                                                :value="scoreValue('quiz', student.student_id, column)"
+                                                :disabled="!isColumnEditing('quiz', column) || Boolean(savingCategory)"
+                                                @change="saveScore(column, student.student_id, $event.target.value)">
+                                        </td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td :colspan="2 + quizColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length">
+                                <td :colspan="2 + quizColumns.length" class="lms-meta">No students are enrolled in this
+                                    class.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -270,16 +311,19 @@
                 <div class="lms-table-head">
                     <div>
                         <h3>Activities and Project Records</h3>
-                        <span class="lms-meta">Class participation, reports, programming projects, and activity scores.</span>
+                        <span class="lms-meta">Class participation, reports, programming projects, and activity
+                            scores.</span>
                     </div>
                     <span class="lms-inline-actions">
                         <span class="lms-badge" x-text="selectedTerm"></span>
-                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button" @click="modal = 'addActivity'">Add Score</button>
+                        <button class="lms-btn lms-btn-secondary lms-btn-small" type="button"
+                            @click="modal = 'addActivity'">Add Score</button>
                         <span class="lms-meta" x-show="saveError" x-text="saveError"></span>
                     </span>
                 </div>
                 <div class="lms-table-wrap">
-                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)" @keydown.arrow-down.prevent="focusNextRow($event)">
+                    <table class="lms-table lms-table-grading" @keydown.enter.prevent="focusNextRow($event)"
+                        @keydown.arrow-down.prevent="focusNextRow($event)">
                         <thead>
                             <tr>
                                 <th rowspan="2">No.</th>
@@ -292,16 +336,22 @@
                                 <template x-for="column in activityColumns" :key="column.key">
                                     <th>
                                         <span x-text="column.label"></span>
-                                        <button class="lms-icon-btn" type="button" x-show="!String(column.key).startsWith('empty-')"
+                                        <button class="lms-icon-btn" type="button"
+                                            x-show="!String(column.key).startsWith('empty-')"
                                             @click="toggleEditMode('activity', column)"
                                             :disabled="Boolean(savingCategory)"
                                             :aria-label="isColumnEditing('activity', column) ? 'Save ' + column.label + ' scores' : 'Edit ' + column.label + ' scores'"
                                             :title="isColumnEditing('activity', column) ? 'Save column scores' : 'Edit column scores'">
-                                            <svg x-show="!isColumnEditing('activity', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
+                                            <svg x-show="!isColumnEditing('activity', column)"
+                                                class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16.862 4.487 18.5 2.85a2.121 2.121 0 0 1 3 3L9 18.35 4 20l1.65-5 11.212-10.513ZM15 6l3 3" />
                                             </svg>
-                                            <svg x-show="isColumnEditing('activity', column)" class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" />
+                                            <svg x-show="isColumnEditing('activity', column)" class="header-action-icon"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="m5 12 4 4L19 6" />
                                             </svg>
                                         </button>
                                         <button class="lms-icon-btn" type="button" x-show="column.custom"
@@ -309,8 +359,10 @@
                                             :disabled="Boolean(savingCategory) || deletingColumnId === column.columnId"
                                             :aria-label="'Delete ' + column.label + ' column'"
                                             :title="deletingColumnId === column.columnId ? 'Deleting column' : 'Delete column'">
-                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
+                                            <svg class="header-action-icon" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6" />
                                             </svg>
                                         </button>
                                     </th>
@@ -323,11 +375,18 @@
                                     <td x-text="index + 1"></td>
                                     <td x-text="student.name"></td>
                                     <template x-for="column in activityColumns" :key="column.key">
-                                        <td><input class="lms-input" type="number" min="0" :max="column.total" :value="scoreValue('activity', student.student_id, column)" :disabled="!isColumnEditing('activity', column) || Boolean(savingCategory)" @change="saveScore(column, student.student_id, $event.target.value)"></td>
+                                        <td><input class="lms-input" type="number" min="0" :max="column.total"
+                                                :value="scoreValue('activity', student.student_id, column)"
+                                                :disabled="!isColumnEditing('activity', column) || Boolean(savingCategory)"
+                                                @change="saveScore(column, student.student_id, $event.target.value)">
+                                        </td>
                                     </template>
                                 </tr>
                             </template>
-                            <tr x-show="!students.length"><td :colspan="2 + activityColumns.length" class="lms-meta">No students are enrolled in this class.</td></tr>
+                            <tr x-show="!students.length">
+                                <td :colspan="2 + activityColumns.length" class="lms-meta">No students are enrolled in
+                                    this class.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -337,7 +396,8 @@
                 <div class="lms-table-head">
                     <div>
                         <h3>Student Progress</h3>
-                        <span class="lms-meta">Academic performance for <span x-text="selectedTerm"></span> in this section.</span>
+                        <span class="lms-meta">Academic performance for <span x-text="selectedTerm"></span> in this
+                            section.</span>
                     </div>
                     <span class="lms-badge" x-text="'Section ' + selectedSection"></span>
                 </div>
@@ -345,24 +405,35 @@
                     <div class="lms-kpis">
                         <article class="lms-kpi">
                             <span class="lms-kpi-icon" aria-hidden="true">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87m-1-11.13a4 4 0 0 1 0 7.75" /></svg>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87m-1-11.13a4 4 0 0 1 0 7.75" />
+                                </svg>
                             </span>
                             <span>Students</span>
                             <strong x-text="progressStudents.length"></strong>
                         </article>
                         <article class="lms-kpi">
                             <span class="lms-kpi-icon" aria-hidden="true">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" /></svg>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="m5 12 4 4L19 6" />
+                                </svg>
                             </span>
                             <span>Completed</span>
-                            <strong x-text="progressStudents.filter(student => student.period_grade !== null && student.period_grade !== undefined).length"></strong>
+                            <strong
+                                x-text="progressStudents.filter(student => student.period_grade !== null && student.period_grade !== undefined).length"></strong>
                         </article>
                         <article class="lms-kpi">
                             <span class="lms-kpi-icon" aria-hidden="true">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
                             </span>
                             <span>Pending</span>
-                            <strong x-text="progressStudents.filter(student => student.period_grade === null || student.period_grade === undefined).length"></strong>
+                            <strong
+                                x-text="progressStudents.filter(student => student.period_grade === null || student.period_grade === undefined).length"></strong>
                         </article>
                     </div>
                     <h4 class="mt-4 mb-2 text-base font-bold text-slate-800">Student Performance</h4>
@@ -380,13 +451,21 @@
                                     <tr>
                                         <td x-text="student.name"></td>
                                         <td x-text="formatProgressGrade(student.period_grade)"></td>
-                                        <td><span class="lms-badge" :class="student.period_grade === null || student.period_grade === undefined ? 'warn' : (student.period_grade >= 75 ? 'good' : 'bad')"
-                                            x-text="student.period_grade === null || student.period_grade === undefined ? 'Pending' : (student.period_grade >= 75 ? 'Good' : 'Needs review')"></span></td>
+                                        <td><span class="lms-badge"
+                                                :class="student.period_grade === null || student.period_grade === undefined ? 'warn' : (student.period_grade >= 75 ? 'good' : 'bad')"
+                                                x-text="student.period_grade === null || student.period_grade === undefined ? 'Pending' : (student.period_grade >= 75 ? 'Good' : 'Needs review')"></span>
+                                        </td>
                                     </tr>
                                 </template>
-                                <tr x-show="progressLoading"><td colspan="3" class="lms-meta">Loading student progress...</td></tr>
-                                <tr x-show="!progressLoading && progressError"><td colspan="3" class="text-red-600" x-text="progressError"></td></tr>
-                                <tr x-show="!progressLoading && !progressError && !progressStudents.length"><td colspan="3" class="lms-meta">No students are enrolled in this section.</td></tr>
+                                <tr x-show="progressLoading">
+                                    <td colspan="3" class="lms-meta">Loading student progress...</td>
+                                </tr>
+                                <tr x-show="!progressLoading && progressError">
+                                    <td colspan="3" class="text-red-600" x-text="progressError"></td>
+                                </tr>
+                                <tr x-show="!progressLoading && !progressError && !progressStudents.length">
+                                    <td colspan="3" class="lms-meta">No students are enrolled in this section.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -394,8 +473,7 @@
             </section>
         </main>
 
-        <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity
-            @click.self="modal = null"
+        <div class="lms-modal-backdrop" x-cloak x-show="modal" x-transition.opacity @click.self="modal = null"
             @keydown.escape.window="modal = null">
             <section class="lms-modal lms-modal-grading" role="dialog" aria-modal="true">
                 <div class="lms-modal-head">
@@ -405,7 +483,8 @@
                     <h3 x-show="modal === 'addQuiz'">Add Quiz Score Column</h3>
                     <button class="lms-icon-btn" type="button" @click="modal = null" aria-label="Close popup">
                         <svg class="header-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18 18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -413,7 +492,8 @@
                 <template x-if="modal === 'classSelector'">
                     <div class="lms-grid lms-modal-body">
                         <p class="lms-meta m-0">Choose the grading page context before viewing records.</p>
-                        <select class="lms-select" x-model="selectedClassId" @change="prepareClassSelection()" aria-label="Class" x-ref="classSelect">
+                        <select class="lms-select" x-model="selectedClassId" @change="prepareClassSelection()"
+                            aria-label="Class" x-ref="classSelect">
                             <option value="">Select a class</option>
                             <template x-for="classItem in classes" :key="classItem.class_id">
                                 <option :value="String(classItem.class_id)" x-text="classItem.subject"></option>
@@ -424,18 +504,23 @@
                                 <option :value="section" x-text="'Section ' + section"></option>
                             </template>
                         </select>
-                        <button class="lms-btn" type="button" :disabled="!selectedClassId" @click="openSelectedClass()">Open Grading Page</button>
+                        <button class="lms-btn" type="button" :disabled="!selectedClassId"
+                            @click="openSelectedClass()">Open Grading Page</button>
                     </div>
                 </template>
 
                 <template x-if="modal === 'addAttendance'">
                     <div class="lms-grid lms-modal-body">
                         <input class="lms-input" x-model="forms.attendance.label" placeholder="Attendance column label">
-                        <input class="lms-input" x-model.number="forms.attendance.total_items" type="number" min="1" placeholder="Total items">
-                        <input class="lms-input" x-model="forms.attendance.record_date" type="date" aria-label="Attendance date">
-                        <input class="lms-input" x-model.number="forms.attendance.default_score" type="number" min="0" placeholder="Default score">
+                        <input class="lms-input" x-model.number="forms.attendance.total_items" type="number" min="1"
+                            placeholder="Total items">
+                        <input class="lms-input" x-model="forms.attendance.record_date" type="date"
+                            aria-label="Attendance date">
+                        <input class="lms-input" x-model.number="forms.attendance.default_score" type="number" min="0"
+                            placeholder="Default score">
                         <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
-                        <button class="lms-btn" type="button" @click="createColumn('attendance')" :disabled="saving"> <span x-text="saving ? 'Saving...' : 'Add Attendance Column'"></span></button>
+                        <button class="lms-btn" type="button" @click="createColumn('attendance')" :disabled="saving">
+                            <span x-text="saving ? 'Saving...' : 'Add Attendance Column'"></span></button>
                     </div>
                 </template>
 
@@ -443,12 +528,16 @@
                     <div class="lms-grid lms-modal-body">
                         <input class="lms-input" x-model="forms.activity.label" placeholder="Activity column label">
                         <div class="lms-grid lms-grid-2">
-                            <input class="lms-input" x-model.number="forms.activity.total_items" type="number" min="1" placeholder="Total items">
-                            <input class="lms-input" x-model="forms.activity.record_date" type="date" aria-label="Activity date">
+                            <input class="lms-input" x-model.number="forms.activity.total_items" type="number" min="1"
+                                placeholder="Total items">
+                            <input class="lms-input" x-model="forms.activity.record_date" type="date"
+                                aria-label="Activity date">
                         </div>
-                        <textarea class="lms-input" x-model="forms.activity.scores" rows="4" placeholder="Paste scores, one per line, or leave blank"></textarea>
+                        <textarea class="lms-input" x-model="forms.activity.scores" rows="4"
+                            placeholder="Paste scores, one per line, or leave blank"></textarea>
                         <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
-                        <button class="lms-btn" type="button" @click="createColumn('activity')" :disabled="saving"><span x-text="saving ? 'Saving...' : 'Add Activity Column'"></span></button>
+                        <button class="lms-btn" type="button" @click="createColumn('activity')" :disabled="saving"><span
+                                x-text="saving ? 'Saving...' : 'Add Activity Column'"></span></button>
                     </div>
                 </template>
 
@@ -456,12 +545,16 @@
                     <div class="lms-grid lms-modal-body">
                         <input class="lms-input" x-model="forms.quiz.label" placeholder="Quiz column label">
                         <div class="lms-grid lms-grid-2">
-                            <input class="lms-input" x-model.number="forms.quiz.total_items" type="number" min="1" placeholder="Total items">
-                            <input class="lms-input" x-model="forms.quiz.record_date" type="date" aria-label="Quiz date">
+                            <input class="lms-input" x-model.number="forms.quiz.total_items" type="number" min="1"
+                                placeholder="Total items">
+                            <input class="lms-input" x-model="forms.quiz.record_date" type="date"
+                                aria-label="Quiz date">
                         </div>
-                        <textarea class="lms-input" x-model="forms.quiz.scores" rows="4" placeholder="Paste quiz scores, one per line, or leave blank"></textarea>
+                        <textarea class="lms-input" x-model="forms.quiz.scores" rows="4"
+                            placeholder="Paste quiz scores, one per line, or leave blank"></textarea>
                         <p class="lms-meta m-0" x-show="saveError" x-text="saveError"></p>
-                        <button class="lms-btn" type="button" @click="createColumn('quiz')" :disabled="saving"><span x-text="saving ? 'Saving...' : 'Add Quiz Column'"></span></button>
+                        <button class="lms-btn" type="button" @click="createColumn('quiz')" :disabled="saving"><span
+                                x-text="saving ? 'Saving...' : 'Add Quiz Column'"></span></button>
                     </div>
                 </template>
             </section>
@@ -648,10 +741,10 @@
                         })
                         .slice(0, this.scoreColumnLimit)
                         .map(column => ({
-                        ...column,
-                        custom: Boolean(column.custom),
-                        total: column.total === '-' ? legacyTotal : column.total
-                    }));
+                            ...column,
+                            custom: Boolean(column.custom),
+                            total: column.total === '-' ? legacyTotal : column.total
+                        }));
                     while (columns.length < this.scoreColumnLimit) {
                         const index = columns.length + 1;
                         columns.push({ key: `empty-${category}-${index}`, label: '-', total: '-', custom: false });

@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -159,7 +159,29 @@
                     <strong>No class enrolled yet</strong>
                     <p class="m-0 mt-2">Your enrolled classes will appear here once you are added to a class.</p>
                 </div>
-                <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Subject</th><th>Section</th><th>Term</th><th>Faculty</th><th>Action</th></tr></thead><tbody><template x-for="cls in classes" :key="cls.class_id"><tr><td x-text="cls.subject"></td><td x-text="cls.section"></td><td x-text="cls.semester+' '+cls.school_year"></td><td x-text="cls.teacher_name"></td><td><a class="lms-btn lms-btn-small" :href="`subject.html?class_id=${cls.class_id}`">Open subject</a></td></tr></template></tbody></table></div>
+                <div class="ds-table-wrap">
+                    <table class="ds-table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Section</th>
+                                <th>Term</th>
+                                <th>Faculty</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody><template x-for="cls in classes" :key="cls.class_id">
+                                <tr>
+                                    <td x-text="cls.subject"></td>
+                                    <td x-text="cls.section"></td>
+                                    <td x-text="cls.semester+' '+cls.school_year"></td>
+                                    <td x-text="cls.teacher_name"></td>
+                                    <td><a class="lms-btn lms-btn-small"
+                                            :href="`subject.html?class_id=${cls.class_id}`">Open subject</a></td>
+                                </tr>
+                            </template></tbody>
+                    </table>
+                </div>
                 <!-- Classes Section -->
             </section>
 
@@ -168,14 +190,16 @@
                     <h3>Your Learning Flow</h3>
                     <ul class="lms-list">
                         <li><strong>Modules</strong>
-                            <p class="m-0">Published lessons for an entire chapter, with related files and reviewed content.
+                            <p class="m-0">Published lessons for an entire chapter, with related files and reviewed
+                                content.
                             </p>
                         </li>
                         <li><strong>Activities</strong>
                             <p class="m-0">Submit online work; offline activities are recorded by faculty.</p>
                         </li>
                         <li><strong>Quizzes</strong>
-                            <p class="m-0">Take published online quizzes; face-to-face quiz scores appear after grade publication.</p>
+                            <p class="m-0">Take published online quizzes; face-to-face quiz scores appear after grade
+                                publication.</p>
                         </li>
                     </ul>
                 </div>
@@ -211,7 +235,8 @@
                         </button>
                     </div>
                     <div class="lms-modal-body">
-                        <p class="lms-meta m-0">Enter the section code from your administrator. Your request will be reviewed.</p>
+                        <p class="lms-meta m-0">Enter the section code from your administrator. Your request will be
+                            reviewed.</p>
                         <input class="lms-input" type="text" placeholder="Section code" x-model="classCode"
                             @keydown.enter="enrollWithCode()" :disabled="enrolling" autofocus>
                         <p x-show="enrollmentMessage" class="lms-meta m-0" x-text="enrollmentMessage"></p>

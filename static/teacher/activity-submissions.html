@@ -188,28 +188,36 @@
 
                 formatDateTime(v) {
                     if (!v) return 'n/a';
+
                     const d = new Date(v);
                     if (Number.isNaN(d.getTime())) return 'n/a';
+
                     return d.toLocaleString();
                 },
 
                 async load() {
                     this.loading = true;
+
                     try {
-                        const query = this.sectionFilter && this.sectionFilter !== 'all' ? '?section=' + encodeURIComponent(this.sectionFilter) : '';
+                        const query = this.sectionFilter && this.sectionFilter !== 'all'
+                            ? '?section=' + encodeURIComponent(this.sectionFilter)
+                            : '';
+
                         const res = await fetch(`/api/submissions/class/${encodeURIComponent(this.class_id)}/activity/${encodeURIComponent(this.activity_id)}${query}`);
                         if (!res.ok) throw new Error(await res.text());
+
                         const data = await res.json();
-                        this.submissions = Array.isArray(data) ? data.map(item => ({
-                            ...item,
-                            tempScore: item.score ?? '',
-                            tempFeedback: item.feedback || ''
-                        })) : [];
+                        this.submissions = Array.isArray(data)
+                            ? data.map(item => ({
+                                ...item,
+                                tempScore: item.score ?? '',
+                                tempFeedback: item.feedback || ''
+                            }))
+                            : [];
 
                         // build unique sections
                         const secs = [...new Set(this.submissions.map(s => s.section).filter(Boolean))];
                         this.sections = secs;
-
                     } catch (err) {
                         console.error(err);
                         alert('Failed to load submissions');
@@ -220,6 +228,7 @@
 
                 async saveRowGrade(sub) {
                     if (!sub.has_submission || !sub.act_submission_id) return;
+
                     try {
                         const res = await fetch(`/api/submissions/${encodeURIComponent(sub.act_submission_id)}/grade`, {
                             method: 'PUT',
@@ -229,6 +238,7 @@
                                 feedback: sub.tempFeedback || ''
                             })
                         });
+
                         if (!res.ok) throw new Error(await res.text());
                         await this.load();
                         alert('Grade saved');

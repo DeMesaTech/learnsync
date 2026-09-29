@@ -1,13 +1,325 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LearnSync | Content workspace</title><script src="../js/alpine_cdn.min.js" defer></script><link rel="stylesheet" href="../css/tailwind.css"><link rel="stylesheet" href="../css/theme.css"><link rel="stylesheet" href="../css/lms.css"><link rel="stylesheet" href="../css/design-system.css"><script src="../js/design-system.js" defer></script><style>
-.cw-layout{display:grid;grid-template-columns:minmax(13rem,16rem) minmax(0,1fr);gap:1rem;align-items:start}.cw-tree{position:sticky;top:5.5rem;max-height:calc(100vh - 6.5rem);overflow:auto}.cw-tree button{width:100%;border:0;background:transparent;border-radius:7px;text-align:left;padding:.5rem;color:var(--ds-navy);cursor:pointer}.cw-tree button:hover,.cw-tree button[aria-current="true"]{background:#e2f1f6}.cw-editor{min-height:12rem;line-height:1.6;white-space:pre-wrap;border:1px solid var(--ds-border);border-radius:8px;padding:.8rem}.cw-editor:focus{outline:3px solid #b9ddea}.cw-editor ul{list-style:disc;margin-left:1.4rem}.cw-item{padding:.8rem;border:1px solid var(--ds-border);border-radius:8px}.cw-list{display:grid;gap:.6rem}@media(max-width:780px){.cw-layout{grid-template-columns:1fr}.cw-tree{position:static;max-height:18rem}}
-</style></head><body class="lms-shell" x-data="contentWorkspace()" x-init="load()"><main><div class="ds-page ds-stack"><section class="lms-hero"><div><h1 class="lms-title">Chapters and content</h1><p class="lms-subtitle">The approved syllabus defines this outline. Publish reviewed content for students.</p></div><div class="lms-actions"><a class="lms-btn lms-btn-secondary" :href="'syllabus.html?class_id='+classId">Syllabus</a><a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id='+classId">Activities & quizzes</a></div></section><p class="ds-error" x-show="error" x-text="error" role="alert"></p><p class="ds-help" x-show="loading">Loading content…</p>
-<div class="cw-layout" x-show="!loading"><aside class="ds-card cw-tree"><h2>Outline <span class="ds-chip" x-text="'v'+outline.version"></span></h2><button class="lms-btn lms-btn-secondary" @click="openOutlineForm('chapter')" :disabled="busy">+ Add chapter</button><button @click="select('course',null,'Course-wide')" :aria-current="selected.level==='course'">Course-wide</button><template x-for="chapter in outline.content.chapters||[]" :key="chapter.key"><div><button @click="select('chapter',chapter.key,chapter.title)" :aria-current="selected.key===chapter.key" x-text="chapter.title"></button><template x-for="topic in chapter.topics||[]" :key="topic.key"><button style="padding-left:1.1rem" @click="select('topic',topic.key,topic.title)" :aria-current="selected.key===topic.key" x-text="topic.title"></button></template><template x-for="subsection in chapter.subsections||[]" :key="subsection.key"><div><button style="padding-left:1.1rem" @click="select('subsection',subsection.key,subsection.title)" :aria-current="selected.key===subsection.key" x-text="subsection.title"></button><template x-for="topic in subsection.topics||[]" :key="topic.key"><button style="padding-left:2rem" @click="select('topic',topic.key,topic.title)" :aria-current="selected.key===topic.key" x-text="topic.title"></button></template></div></template></div></template></aside>
-<div class="ds-stack"><section class="ds-card ds-stack" x-show="syllabusDraft"><strong>Outline draft pending approval</strong><p class="ds-help">Chapter and topic changes remain private until you approve the revised syllabus.</p><button class="lms-btn" @click="approveOutline()" :disabled="busy">Approve outline changes</button></section><section class="ds-card ds-stack" x-show="outlineForm.open"><h2 x-text="'Add '+outlineForm.kind"></h2><label class="ds-field">Title<input x-model="outlineForm.title" @keydown.enter.prevent="addOutlineNode()"></label><div class="ds-toolbar"><button class="lms-btn" @click="addOutlineNode()" :disabled="busy">Save to draft</button><button class="lms-btn lms-btn-secondary" @click="outlineForm.open=false">Cancel</button></div></section><section class="ds-card ds-stack"><div><h2 x-text="selected.title"></h2><p class="ds-help" x-text="selected.level==='chapter'?'Add topics, lessons, references, learning materials, activities and quizzes here.':selected.level==='topic'?'Add references, learning materials, content, activities and quizzes here.':'Select a chapter or topic to add learning content, or add course-wide work here.'"></p></div><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary" x-show="['chapter','subsection'].includes(selected.level)" @click="openOutlineForm('topic')" :disabled="busy">Add topic</button><button class="lms-btn lms-btn-secondary" x-show="['chapter','topic','subsection'].includes(selected.level)" @click="deleteOutlineNode()" :disabled="busy">Delete outline item</button><button class="lms-btn lms-btn-secondary" x-show="selected.level==='chapter'" @click="newResource('module')">Add lesson</button><button class="lms-btn lms-btn-secondary" x-show="['chapter','topic'].includes(selected.level)" @click="newResource('reference')">Add reference</button><button class="lms-btn lms-btn-secondary" x-show="['chapter','topic'].includes(selected.level)" @click="newUpload()">Add learning material</button><button class="lms-btn lms-btn-secondary" x-show="selected.level==='topic'" @click="newContent()">Add topic content</button><a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id='+classId+'&level='+selected.level+'&key='+(selected.key||'')+'&kind=activity'">Add activity</a><a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id='+classId+'&level='+selected.level+'&key='+(selected.key||'')+'&kind=quiz'">Add quiz</a></div></section>
-<section class="ds-card ds-stack" x-show="resourceForm.open"><h2 x-text="resourceForm.id?'Edit '+resourceForm.kind:'Add '+resourceForm.kind"></h2><label class="ds-field">Title<input x-model="resourceForm.title"></label><label class="ds-field" x-show="resourceForm.kind==='reference'">URL (optional)<input type="url" x-model="resourceForm.url" placeholder="https://"></label><div><p class="ds-help" x-text="resourceForm.kind==='reference'?'Add citation notes or a summary for AI quiz context. The URL is included as a source link.':resourceForm.kind==='material'?'Review extracted document text before publishing. Edit or remove any inaccurate content.':'Write a whole-chapter lesson. Optional files can be added as learning materials.'"></p><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('heading')">Heading</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('bold')">Bold</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('italic')">Italic</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('list')">List</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('link')">Link</button><button class="lms-btn lms-btn-secondary lms-btn-small" @click="undo()">Undo</button><button class="lms-btn lms-btn-secondary lms-btn-small" @click="redo()">Redo</button></div><div class="cw-editor" x-ref="editor" contenteditable="true" aria-label="Reviewed resource text" @input="record()" @paste="pastePlain($event)"></div></div><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary" @click="saveResource(false)" :disabled="busy">Save draft</button><button class="lms-btn" @click="saveResource(true)" :disabled="busy">Publish</button><button class="lms-btn lms-btn-secondary" @click="resourceForm.open=false">Cancel</button></div></section>
-<section class="ds-card ds-stack" x-show="uploadForm.open"><h2>Upload learning material</h2><p class="ds-help">PDF, DOCX, PPTX, PNG and JPEG up to 20 MB. The original file is downloadable after publication.</p><label class="ds-field">Title<input x-model="uploadForm.title"></label><label class="ds-field">File<input type="file" accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg" @change="uploadForm.file=$event.target.files[0]"></label><div class="ds-toolbar"><button class="lms-btn" @click="uploadResource()" :disabled="busy||!uploadForm.file">Upload draft</button><button class="lms-btn lms-btn-secondary" @click="uploadForm.open=false">Cancel</button></div></section>
-<section class="ds-card ds-stack" x-show="contentForm.open"><h2>Topic content</h2><label class="ds-field">Title<input x-model="contentForm.title"></label><label class="ds-field">Extract text from PDF<input type="file" accept=".pdf" @change="contentForm.file=$event.target.files[0]"></label><button class="lms-btn lms-btn-secondary" @click="extractPdf()" :disabled="busy||!contentForm.file">Extract PDF draft</button><p class="ds-help">Review extracted text before publishing. Scanned pages need manual text.</p><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('heading','topicEditor')">Heading</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('bold','topicEditor')">Bold</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('italic','topicEditor')">Italic</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('list','topicEditor')">List</button><button class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent @click="format('link','topicEditor')">Link</button><button class="lms-btn lms-btn-secondary lms-btn-small" @click="undo('topicEditor')">Undo</button><button class="lms-btn lms-btn-secondary lms-btn-small" @click="redo('topicEditor')">Redo</button></div><div class="cw-editor" x-ref="topicEditor" contenteditable="true" aria-label="Reviewed topic content" @input="record('topicEditor')" @paste="pastePlain($event)"></div><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary" @click="saveContent(false)" :disabled="busy">Save draft</button><button class="lms-btn" @click="saveContent(true)" :disabled="busy">Publish</button><button class="lms-btn lms-btn-secondary" @click="contentForm.open=false">Cancel</button></div></section>
-<section class="ds-card ds-stack" x-show="['chapter','topic'].includes(selected.level)"><h2>Lessons, references and materials</h2><div class="cw-list"><template x-for="item in currentResources" :key="item.resource_id"><article class="cw-item"><span class="ds-chip" x-text="item.kind+' · '+item.status"></span><strong x-text="item.title"></strong><div x-show="item.kind==='module'" x-html="item.body_html"></div><a x-show="item.url" :href="item.url" target="_blank" rel="noopener noreferrer">Open reference</a><a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small" @click="editResource(item)">Edit</button><button class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.status==='draft'" @click="publishResource(item)">Publish</button><button class="lms-btn lms-btn-secondary lms-btn-small" @click="deleteResource(item)" :disabled="busy">Delete</button></div></article></template></div><p class="ds-help" x-show="!currentResources.length">Nothing added yet.</p></section>
-<section class="ds-card" x-show="selected.level==='topic'"><h2>Topic content</h2><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Content</th><th>Status</th><th>Action</th></tr></thead><tbody><template x-for="item in currentContents" :key="item.content_id"><tr><td x-text="item.title"></td><td x-text="item.status"></td><td><button class="lms-btn lms-btn-secondary lms-btn-small" @click="editContent(item)">Open</button> <button class="lms-btn lms-btn-secondary lms-btn-small" @click="deleteContent(item)" :disabled="busy">Delete</button></td></tr></template></tbody></table></div></section>
-<section class="ds-card"><h2>Activities and quizzes</h2><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody><template x-for="item in currentAssessments" :key="item.kind+item.id"><tr><td x-text="item.title"></td><td x-text="item.type"></td><td x-text="item.status"></td><td><a class="lms-btn lms-btn-secondary lms-btn-small" :href="'assessments.html?class_id='+classId">Manage</a> <button class="lms-btn lms-btn-secondary lms-btn-small" @click="deleteAssessment(item)" :disabled="busy">Delete</button></td></tr></template></tbody></table></div></section>
-<section class="ds-card" x-show="unmatched.length"><h2>Old uploads needing review</h2><p class="ds-help">No unique approved chapter title matched these modules. Files remain preserved.</p><ul><template x-for="item in unmatched" :key="item.module_id"><li x-text="item.title+' · '+(item.chapter_title||'No chapter')"></li></template></ul></section>
-</div></div></div></main><script src="../js/content-workspace.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>LearnSync | Content workspace</title>
+    <script src="../js/alpine_cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
+    <style>
+        .cw-layout {
+            display: grid;
+            grid-template-columns: minmax(13rem, 16rem) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start
+        }
+
+        .cw-tree {
+            position: sticky;
+            top: 5.5rem;
+            max-height: calc(100vh - 6.5rem);
+            overflow: auto
+        }
+
+        .cw-tree button {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            border-radius: 7px;
+            text-align: left;
+            padding: .5rem;
+            color: var(--ds-navy);
+            cursor: pointer
+        }
+
+        .cw-tree button:hover,
+        .cw-tree button[aria-current="true"] {
+            background: #e2f1f6
+        }
+
+        .cw-editor {
+            min-height: 12rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border: 1px solid var(--ds-border);
+            border-radius: 8px;
+            padding: .8rem
+        }
+
+        .cw-editor:focus {
+            outline: 3px solid #b9ddea
+        }
+
+        .cw-editor ul {
+            list-style: disc;
+            margin-left: 1.4rem
+        }
+
+        .cw-item {
+            padding: .8rem;
+            border: 1px solid var(--ds-border);
+            border-radius: 8px
+        }
+
+        .cw-list {
+            display: grid;
+            gap: .6rem
+        }
+
+        @media(max-width:780px) {
+            .cw-layout {
+                grid-template-columns: 1fr
+            }
+
+            .cw-tree {
+                position: static;
+                max-height: 18rem
+            }
+        }
+    </style>
+</head>
+
+<body class="lms-shell" x-data="contentWorkspace()" x-init="load()">
+    <main>
+        <div class="ds-page ds-stack">
+            <section class="lms-hero">
+                <div>
+                    <h1 class="lms-title">Chapters and content</h1>
+                    <p class="lms-subtitle">The approved syllabus defines this outline. Publish reviewed content for
+                        students.</p>
+                </div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary"
+                        :href="'syllabus.html?class_id='+classId">Syllabus</a><a class="lms-btn lms-btn-secondary"
+                        :href="'assessments.html?class_id='+classId">Activities & quizzes</a></div>
+            </section>
+            <p class="ds-error" x-show="error" x-text="error" role="alert"></p>
+            <p class="ds-help" x-show="loading">Loading content…</p>
+            <div class="cw-layout" x-show="!loading">
+                <aside class="ds-card cw-tree">
+                    <h2>Outline <span class="ds-chip" x-text="'v'+outline.version"></span></h2><button
+                        class="lms-btn lms-btn-secondary" @click="openOutlineForm('chapter')" :disabled="busy">+ Add
+                        chapter</button><button @click="select('course',null,'Course-wide')"
+                        :aria-current="selected.level==='course'">Course-wide</button><template
+                        x-for="chapter in outline.content.chapters||[]" :key="chapter.key">
+                        <div><button @click="select('chapter',chapter.key,chapter.title)"
+                                :aria-current="selected.key===chapter.key" x-text="chapter.title"></button><template
+                                x-for="topic in chapter.topics||[]" :key="topic.key"><button style="padding-left:1.1rem"
+                                    @click="select('topic',topic.key,topic.title)"
+                                    :aria-current="selected.key===topic.key"
+                                    x-text="topic.title"></button></template><template
+                                x-for="subsection in chapter.subsections||[]" :key="subsection.key">
+                                <div><button style="padding-left:1.1rem"
+                                        @click="select('subsection',subsection.key,subsection.title)"
+                                        :aria-current="selected.key===subsection.key"
+                                        x-text="subsection.title"></button><template
+                                        x-for="topic in subsection.topics||[]" :key="topic.key"><button
+                                            style="padding-left:2rem" @click="select('topic',topic.key,topic.title)"
+                                            :aria-current="selected.key===topic.key"
+                                            x-text="topic.title"></button></template></div>
+                            </template></div>
+                    </template>
+                </aside>
+                <div class="ds-stack">
+                    <section class="ds-card ds-stack" x-show="syllabusDraft"><strong>Outline draft pending
+                            approval</strong>
+                        <p class="ds-help">Chapter and topic changes remain private until you approve the revised
+                            syllabus.</p><button class="lms-btn" @click="approveOutline()" :disabled="busy">Approve
+                            outline changes</button>
+                    </section>
+                    <section class="ds-card ds-stack" x-show="outlineForm.open">
+                        <h2 x-text="'Add '+outlineForm.kind"></h2><label class="ds-field">Title<input
+                                x-model="outlineForm.title" @keydown.enter.prevent="addOutlineNode()"></label>
+                        <div class="ds-toolbar"><button class="lms-btn" @click="addOutlineNode()" :disabled="busy">Save
+                                to draft</button><button class="lms-btn lms-btn-secondary"
+                                @click="outlineForm.open=false">Cancel</button></div>
+                    </section>
+                    <section class="ds-card ds-stack">
+                        <div>
+                            <h2 x-text="selected.title"></h2>
+                            <p class="ds-help"
+                                x-text="selected.level==='chapter'?'Add topics, lessons, references, learning materials, activities and quizzes here.':selected.level==='topic'?'Add references, learning materials, content, activities and quizzes here.':'Select a chapter or topic to add learning content, or add course-wide work here.'">
+                            </p>
+                        </div>
+                        <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary"
+                                x-show="['chapter','subsection'].includes(selected.level)"
+                                @click="openOutlineForm('topic')" :disabled="busy">Add topic</button><button
+                                class="lms-btn lms-btn-secondary"
+                                x-show="['chapter','topic','subsection'].includes(selected.level)"
+                                @click="deleteOutlineNode()" :disabled="busy">Delete outline item</button><button
+                                class="lms-btn lms-btn-secondary" x-show="selected.level==='chapter'"
+                                @click="newResource('module')">Add lesson</button><button
+                                class="lms-btn lms-btn-secondary" x-show="['chapter','topic'].includes(selected.level)"
+                                @click="newResource('reference')">Add reference</button><button
+                                class="lms-btn lms-btn-secondary" x-show="['chapter','topic'].includes(selected.level)"
+                                @click="newUpload()">Add learning material</button><button
+                                class="lms-btn lms-btn-secondary" x-show="selected.level==='topic'"
+                                @click="newContent()">Add topic content</button><a class="lms-btn lms-btn-secondary"
+                                :href="'assessments.html?class_id='+classId+'&level='+selected.level+'&key='+(selected.key||'')+'&kind=activity'">Add
+                                activity</a><a class="lms-btn lms-btn-secondary"
+                                :href="'assessments.html?class_id='+classId+'&level='+selected.level+'&key='+(selected.key||'')+'&kind=quiz'">Add
+                                quiz</a></div>
+                    </section>
+                    <section class="ds-card ds-stack" x-show="resourceForm.open">
+                        <h2 x-text="resourceForm.id?'Edit '+resourceForm.kind:'Add '+resourceForm.kind"></h2><label
+                            class="ds-field">Title<input x-model="resourceForm.title"></label><label class="ds-field"
+                            x-show="resourceForm.kind==='reference'">URL (optional)<input type="url"
+                                x-model="resourceForm.url" placeholder="https://"></label>
+                        <div>
+                            <p class="ds-help"
+                                x-text="resourceForm.kind==='reference'?'Add citation notes or a summary for AI quiz context. The URL is included as a source link.':resourceForm.kind==='material'?'Review extracted document text before publishing. Edit or remove any inaccurate content.':'Write a whole-chapter lesson. Optional files can be added as learning materials.'">
+                            </p>
+                            <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                    @mousedown.prevent @click="format('heading')">Heading</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                    @click="format('bold')">Bold</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                    @click="format('italic')">Italic</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                    @click="format('list')">List</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                    @click="format('link')">Link</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @click="undo()">Undo</button><button
+                                    class="lms-btn lms-btn-secondary lms-btn-small" @click="redo()">Redo</button></div>
+                            <div class="cw-editor" x-ref="editor" contenteditable="true"
+                                aria-label="Reviewed resource text" @input="record()" @paste="pastePlain($event)"></div>
+                        </div>
+                        <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary" @click="saveResource(false)"
+                                :disabled="busy">Save draft</button><button class="lms-btn" @click="saveResource(true)"
+                                :disabled="busy">Publish</button><button class="lms-btn lms-btn-secondary"
+                                @click="resourceForm.open=false">Cancel</button></div>
+                    </section>
+                    <section class="ds-card ds-stack" x-show="uploadForm.open">
+                        <h2>Upload learning material</h2>
+                        <p class="ds-help">PDF, DOCX, PPTX, PNG and JPEG up to 20 MB. The original file is downloadable
+                            after publication.</p><label class="ds-field">Title<input
+                                x-model="uploadForm.title"></label><label class="ds-field">File<input type="file"
+                                accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg"
+                                @change="uploadForm.file=$event.target.files[0]"></label>
+                        <div class="ds-toolbar"><button class="lms-btn" @click="uploadResource()"
+                                :disabled="busy||!uploadForm.file">Upload draft</button><button
+                                class="lms-btn lms-btn-secondary" @click="uploadForm.open=false">Cancel</button></div>
+                    </section>
+                    <section class="ds-card ds-stack" x-show="contentForm.open">
+                        <h2>Topic content</h2><label class="ds-field">Title<input
+                                x-model="contentForm.title"></label><label class="ds-field">Extract text from PDF<input
+                                type="file" accept=".pdf"
+                                @change="contentForm.file=$event.target.files[0]"></label><button
+                            class="lms-btn lms-btn-secondary" @click="extractPdf()"
+                            :disabled="busy||!contentForm.file">Extract PDF draft</button>
+                        <p class="ds-help">Review extracted text before publishing. Scanned pages need manual text.</p>
+                        <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                @mousedown.prevent @click="format('heading','topicEditor')">Heading</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                @click="format('bold','topicEditor')">Bold</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                @click="format('italic','topicEditor')">Italic</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                @click="format('list','topicEditor')">List</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small" @mousedown.prevent
+                                @click="format('link','topicEditor')">Link</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                @click="undo('topicEditor')">Undo</button><button
+                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                @click="redo('topicEditor')">Redo</button></div>
+                        <div class="cw-editor" x-ref="topicEditor" contenteditable="true"
+                            aria-label="Reviewed topic content" @input="record('topicEditor')"
+                            @paste="pastePlain($event)"></div>
+                        <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary" @click="saveContent(false)"
+                                :disabled="busy">Save draft</button><button class="lms-btn" @click="saveContent(true)"
+                                :disabled="busy">Publish</button><button class="lms-btn lms-btn-secondary"
+                                @click="contentForm.open=false">Cancel</button></div>
+                    </section>
+                    <section class="ds-card ds-stack" x-show="['chapter','topic'].includes(selected.level)">
+                        <h2>Lessons, references and materials</h2>
+                        <div class="cw-list"><template x-for="item in currentResources" :key="item.resource_id">
+                                <article class="cw-item"><span class="ds-chip"
+                                        x-text="item.kind+' · '+item.status"></span><strong
+                                        x-text="item.title"></strong>
+                                    <div x-show="item.kind==='module'" x-html="item.body_html"></div>
+                                    <a x-show="item.url" :href="item.url" target="_blank" rel="noopener noreferrer">Open reference</a>
+                                    <a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
+                                    <div class="ds-toolbar">
+                                        <button class="lms-btn lms-btn-secondary lms-btn-small"
+                                            @click="editResource(item)">Edit</button><button
+                                            class="lms-btn lms-btn-secondary lms-btn-small"
+                                            x-show="item.status==='draft'"
+                                            @click="publishResource(item)">Publish</button><button
+                                            class="lms-btn lms-btn-secondary lms-btn-small"
+                                            @click="deleteResource(item)" :disabled="busy">Delete</button>
+                                    </div>
+                                </article>
+                            </template></div>
+                        <p class="ds-help" x-show="!currentResources.length">Nothing added yet.</p>
+                    </section>
+                    <section class="ds-card" x-show="selected.level==='topic'">
+                        <h2>Topic content</h2>
+                        <div class="ds-table-wrap">
+                            <table class="ds-table">
+                                <thead>
+                                    <tr>
+                                        <th>Content</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody><template x-for="item in currentContents" :key="item.content_id">
+                                        <tr>
+                                            <td x-text="item.title"></td>
+                                            <td x-text="item.status"></td>
+                                            <td><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                                    @click="editContent(item)">Open</button> <button
+                                                    class="lms-btn lms-btn-secondary lms-btn-small"
+                                                    @click="deleteContent(item)" :disabled="busy">Delete</button></td>
+                                        </tr>
+                                    </template></tbody>
+                            </table>
+                        </div>
+                    </section>
+                    <section class="ds-card">
+                        <h2>Activities and quizzes</h2>
+                        <div class="ds-table-wrap">
+                            <table class="ds-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody><template x-for="item in currentAssessments" :key="item.kind+item.id">
+                                        <tr>
+                                            <td x-text="item.title"></td>
+                                            <td x-text="item.type"></td>
+                                            <td x-text="item.status"></td>
+                                            <td><a class="lms-btn lms-btn-secondary lms-btn-small"
+                                                    :href="'assessments.html?class_id='+classId">Manage</a> <button
+                                                    class="lms-btn lms-btn-secondary lms-btn-small"
+                                                    @click="deleteAssessment(item)" :disabled="busy">Delete</button>
+                                            </td>
+                                        </tr>
+                                    </template></tbody>
+                            </table>
+                        </div>
+                    </section>
+                    <section class="ds-card" x-show="unmatched.length">
+                        <h2>Old uploads needing review</h2>
+                        <p class="ds-help">No unique approved chapter title matched these modules. Files remain
+                            preserved.</p>
+                        <ul><template x-for="item in unmatched" :key="item.module_id">
+                                <li x-text="item.title+' · '+(item.chapter_title||'No chapter')"></li>
+                            </template></ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="../js/content-workspace.js"></script>
+</body>
+
+</html>

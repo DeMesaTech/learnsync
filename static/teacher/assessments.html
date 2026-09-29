@@ -1,7 +1,181 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LearnSync | Activities and quizzes</title><script src="../js/alpine_cdn.min.js" defer></script><link rel="stylesheet" href="../css/tailwind.css"><link rel="stylesheet" href="../css/theme.css"><link rel="stylesheet" href="../css/lms.css"><link rel="stylesheet" href="../css/design-system.css"><script src="../js/design-system.js" defer></script></head>
-<body class="lms-shell" x-data="assessmentsPage()" x-init="load()"><main><div class="ds-page ds-stack"><section class="lms-hero"><div><h1 class="lms-title">Activities and quizzes</h1><p class="lms-subtitle">Choose content placement and teaching sections separately. Publish drafts after review.</p></div><a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id='+classId">Chapter outline</a></section><p class="ds-error" x-show="error" x-text="error" role="alert"></p><p class="ds-help" x-show="loading">Loading assessments…</p>
-<section class="ds-card ds-stack"><div class="ds-toolbar"><label class="ds-field">Subject<select x-model.number="classId" @change="loadSubject()"><template x-for="subject in subjects" :key="subject.class_id"><option :value="subject.class_id" x-text="subject.subject"></option></template></select></label><button class="lms-btn" @click="openCreate('activity')">Add activity</button><button class="lms-btn" @click="openCreate('quiz')">Add quiz</button></div><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Title</th><th>Kind</th><th>Placement</th><th>Audience</th><th>Status</th><th>Action</th></tr></thead><tbody><template x-for="item in allItems" :key="item.kind+item.id"><tr><td x-text="item.title"></td><td x-text="item.type"></td><td x-text="placementLabel(item)"></td><td x-text="audienceLabel(item)"></td><td x-text="item.status"></td><td><div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.kind==='quiz'&&item.type!=='Face-to-face quiz'" @click="reviewQuiz(item)">Review</button><button class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.status.toLowerCase()==='draft'" @click="publish(item)" :disabled="busy">Publish</button><a class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.type==='Online activity'" :href="'activity-submissions.html?class_id='+classId+'&activity_id='+item.id">Grade submissions</a><button class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.type==='Offline activity'" @click="openScores(item)">Scores</button><a class="lms-btn lms-btn-secondary lms-btn-small" x-show="item.type==='Face-to-face quiz'" :href="'gradebook.html?class_id='+classId+'&section_id='+(item.section_ids[0]||'')">Gradebook</a><button class="lms-btn lms-btn-secondary lms-btn-small" @click="deleteItem(item)" :disabled="busy">Delete</button></div></td></tr></template></tbody></table></div></section>
-<section class="ds-card ds-stack" x-show="form.open"><h2 x-text="'Add '+form.kind"></h2><div class="ds-grid"><label class="ds-field">Title<input x-model="form.title"></label><label class="ds-field">Type<select x-model="form.type"><template x-if="form.kind==='activity'"><option value="online">Online submission</option></template><template x-if="form.kind==='activity'"><option value="offline">Offline score only</option></template><template x-if="form.kind==='quiz'"><option value="ai">AI-generated online</option></template><template x-if="form.kind==='quiz'"><option value="offline">Face-to-face score only</option></template></select></label><label class="ds-field">Maximum points<input type="number" min="1" x-model.number="form.points"></label><label class="ds-field">Period<select x-model="form.period"><option>Midterm</option><option>Finals</option></select></label><label class="ds-field">Date / deadline<input type="date" x-model="form.date"></label><label class="ds-field">Placement<select x-model="form.placement"><template x-for="place in placements" :key="place.value"><option :value="place.value" x-text="place.label"></option></template></select></label></div><div class="ds-grid" x-show="form.kind==='quiz'&&form.type==='ai'"><label class="ds-field">Multiple choice questions<input type="number" min="0" max="50" x-model.number="form.mcCount"></label><label class="ds-field">Identification questions<input type="number" min="0" max="50" x-model.number="form.idCount"></label></div><label class="ds-field">Instructions<textarea x-model="form.description"></textarea></label><fieldset><legend>Teaching sections</legend><div class="ds-toolbar"><template x-for="section in sections" :key="section.section_id"><label><input type="checkbox" :value="section.section_id" x-model.number="form.sectionIds"> <span x-text="section.section"></span></label></template></div></fieldset><p class="ds-help" x-show="form.kind==='quiz'&&form.type==='ai'">Questions use published Learning Materials and External References attached to this placement. Linked reference pages are read before generation; an unreadable page stops the request. Review the questions below before saving.</p><div class="ds-toolbar"><button class="lms-btn" @click="create()" :disabled="busy" x-text="busy&&form.kind==='quiz'&&form.type==='ai'?'Reading references and generating…':form.kind==='quiz'&&form.type==='ai'?'Generate questions':'Create draft'"></button><button class="lms-btn lms-btn-secondary" @click="form.open=false">Cancel</button></div></section>
-<section class="ds-card ds-stack" x-show="draft"><h2>Review generated questions</h2><p class="ds-help" x-show="draft?.sources_used?.length" x-text="'Context used: '+(draft?.sources_used||[]).map(source=>source.kind+' · '+source.title+(source.page_fetched?' (page read)':'')).join(', ')"></p><p class="ds-help">Correct the questions and answers, then save as a draft. Publish it from the table.</p><template x-for="(question,index) in draft?.questions||[]" :key="index"><div class="ds-card ds-stack"><label class="ds-field" x-text="'Question '+(index+1)"></label><textarea x-model="question.question_text" class="lms-input"></textarea><fieldset x-show="question.question_type==='multiple_choice'"><legend>Multiple-choice options</legend><p class="ds-help">Edit each option, then select the correct answer.</p><div class="ds-stack"><template x-for="(choice,choiceIndex) in question.choices||[]" :key="choiceIndex"><label class="ds-field"><span x-text="'Option '+String.fromCharCode(65+choiceIndex)"></span><span class="ds-toolbar"><input type="radio" :name="'correct-option-'+index" :checked="question.correct_answer===choice" @change="question.correct_answer=question.choices[choiceIndex]" :aria-label="'Mark option '+String.fromCharCode(65+choiceIndex)+' correct'"><input type="text" :value="choice" @input="updateChoice(question,choiceIndex,$event.target.value)" :aria-label="'Option '+String.fromCharCode(65+choiceIndex)" style="flex:1;min-width:12rem"></span></label></template></div></fieldset><label class="ds-field" x-show="question.question_type!=='multiple_choice'">Correct answer<input x-model="question.correct_answer"></label></div></template><div class="ds-toolbar"><button class="lms-btn" @click="saveGenerated()" :disabled="busy">Save quiz draft</button><button class="lms-btn lms-btn-secondary" @click="draft=null">Discard draft</button></div></section>
-<section class="ds-card ds-stack" x-show="scoreForm.open"><h2 x-text="'Record '+scoreForm.title+' scores'"></h2><label class="ds-field">Teaching section<select x-model.number="scoreForm.sectionId" @change="loadRoster()"><template x-for="section in scoreForm.sections" :key="section.section_id"><option :value="section.section_id" x-text="section.section"></option></template></select></label><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Student</th><th>Score</th></tr></thead><tbody><template x-for="student in scoreForm.students" :key="student.student_id"><tr><td x-text="student.name||student.student_id"></td><td><input type="number" min="0" :max="scoreForm.points" x-model="scoreForm.scores[student.student_id]" placeholder="Pending"></td></tr></template></tbody></table></div><div class="ds-toolbar"><button class="lms-btn" @click="saveScores()" :disabled="busy">Save scores</button><button class="lms-btn lms-btn-secondary" @click="scoreForm.open=false">Close</button></div></section>
-</div></main><script src="../js/assessments-page.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>LearnSync | Activities and quizzes</title>
+    <script src="../js/alpine_cdn.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/lms.css">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
+</head>
+
+<body class="lms-shell" x-data="assessmentsPage()" x-init="load()">
+    <main>
+        <div class="ds-page ds-stack">
+            <section class="lms-hero">
+                <div>
+                    <h1 class="lms-title">Activities and quizzes</h1>
+                    <p class="lms-subtitle">Choose content placement and teaching sections separately. Publish drafts
+                        after review.</p>
+                </div><a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id='+classId">Chapter outline</a>
+            </section>
+            <p class="ds-error" x-show="error" x-text="error" role="alert"></p>
+            <p class="ds-help" x-show="loading">Loading assessments…</p>
+            <section class="ds-card ds-stack">
+                <div class="ds-toolbar"><label class="ds-field">Subject<select x-model.number="classId"
+                            @change="loadSubject()"><template x-for="subject in subjects" :key="subject.class_id">
+                                <option :value="subject.class_id" x-text="subject.subject"></option>
+                            </template></select></label><button class="lms-btn" @click="openCreate('activity')">Add
+                        activity</button><button class="lms-btn" @click="openCreate('quiz')">Add quiz</button></div>
+                <div class="ds-table-wrap">
+                    <table class="ds-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Kind</th>
+                                <th>Placement</th>
+                                <th>Audience</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody><template x-for="item in allItems" :key="item.kind+item.id">
+                                <tr>
+                                    <td x-text="item.title"></td>
+                                    <td x-text="item.type"></td>
+                                    <td x-text="placementLabel(item)"></td>
+                                    <td x-text="audienceLabel(item)"></td>
+                                    <td x-text="item.status"></td>
+                                    <td>
+                                        <div class="ds-toolbar"><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                                x-show="item.kind==='quiz'&&item.type!=='Face-to-face quiz'"
+                                                @click="reviewQuiz(item)">Review</button><button
+                                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                                x-show="item.status.toLowerCase()==='draft'" @click="publish(item)"
+                                                :disabled="busy">Publish</button><a
+                                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                                x-show="item.type==='Online activity'"
+                                                :href="'activity-submissions.html?class_id='+classId+'&activity_id='+item.id">Grade
+                                                submissions</a><button class="lms-btn lms-btn-secondary lms-btn-small"
+                                                x-show="item.type==='Offline activity'"
+                                                @click="openScores(item)">Scores</button><a
+                                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                                x-show="item.type==='Face-to-face quiz'"
+                                                :href="'gradebook.html?class_id='+classId+'&section_id='+(item.section_ids[0]||'')">Gradebook</a><button
+                                                class="lms-btn lms-btn-secondary lms-btn-small"
+                                                @click="deleteItem(item)" :disabled="busy">Delete</button></div>
+                                    </td>
+                                </tr>
+                            </template></tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="ds-card ds-stack" x-show="form.open">
+                <h2 x-text="'Add '+form.kind"></h2>
+                <div class="ds-grid"><label class="ds-field">Title<input x-model="form.title"></label><label
+                        class="ds-field">Type<select x-model="form.type"><template x-if="form.kind==='activity'">
+                                <option value="online">Online submission</option>
+                            </template><template x-if="form.kind==='activity'">
+                                <option value="offline">Offline score only</option>
+                            </template><template x-if="form.kind==='quiz'">
+                                <option value="ai">AI-generated online</option>
+                            </template><template x-if="form.kind==='quiz'">
+                                <option value="offline">Face-to-face score only</option>
+                            </template></select></label><label class="ds-field">Maximum points<input type="number"
+                            min="1" x-model.number="form.points"></label><label class="ds-field">Period<select
+                            x-model="form.period">
+                            <option>Midterm</option>
+                            <option>Finals</option>
+                        </select></label><label class="ds-field">Date / deadline<input type="date"
+                            x-model="form.date"></label><label class="ds-field">Placement<select
+                            x-model="form.placement"><template x-for="place in placements" :key="place.value">
+                                <option :value="place.value" x-text="place.label"></option>
+                            </template></select></label></div>
+                <div class="ds-grid" x-show="form.kind==='quiz'&&form.type==='ai'"><label class="ds-field">Multiple
+                        choice questions<input type="number" min="0" max="50"
+                            x-model.number="form.mcCount"></label><label class="ds-field">Identification questions<input
+                            type="number" min="0" max="50" x-model.number="form.idCount"></label></div><label
+                    class="ds-field">Instructions<textarea x-model="form.description"></textarea></label>
+                <fieldset>
+                    <legend>Teaching sections</legend>
+                    <div class="ds-toolbar"><template x-for="section in sections"
+                            :key="section.section_id"><label><input type="checkbox" :value="section.section_id"
+                                    x-model.number="form.sectionIds"> <span
+                                    x-text="section.section"></span></label></template></div>
+                </fieldset>
+                <p class="ds-help" x-show="form.kind==='quiz'&&form.type==='ai'">Questions use published Learning
+                    Materials and External References attached to this placement. Linked reference pages are read before
+                    generation; an unreadable page stops the request. Review the questions below before saving.</p>
+                <div class="ds-toolbar"><button class="lms-btn" @click="create()" :disabled="busy"
+                        x-text="busy&&form.kind==='quiz'&&form.type==='ai'?'Reading references and generating…':form.kind==='quiz'&&form.type==='ai'?'Generate questions':'Create draft'"></button><button
+                        class="lms-btn lms-btn-secondary" @click="form.open=false">Cancel</button></div>
+            </section>
+            <section class="ds-card ds-stack" x-show="draft">
+                <h2>Review generated questions</h2>
+                <p class="ds-help" x-show="draft?.sources_used?.length"
+                    x-text="'Context used: '+(draft?.sources_used||[]).map(source=>source.kind+' · '+source.title+(source.page_fetched?' (page read)':'')).join(', ')">
+                </p>
+                <p class="ds-help">Correct the questions and answers, then save as a draft. Publish it from the table.
+                </p><template x-for="(question,index) in draft?.questions||[]" :key="index">
+                    <div class="ds-card ds-stack"><label class="ds-field"
+                            x-text="'Question '+(index+1)"></label><textarea x-model="question.question_text"
+                            class="lms-input"></textarea>
+                        <fieldset x-show="question.question_type==='multiple_choice'">
+                            <legend>Multiple-choice options</legend>
+                            <p class="ds-help">Edit each option, then select the correct answer.</p>
+                            <div class="ds-stack"><template x-for="(choice,choiceIndex) in question.choices||[]"
+                                    :key="choiceIndex"><label class="ds-field"><span
+                                            x-text="'Option '+String.fromCharCode(65+choiceIndex)"></span><span
+                                            class="ds-toolbar"><input type="radio" :name="'correct-option-'+index"
+                                                :checked="question.correct_answer===choice"
+                                                @change="question.correct_answer=question.choices[choiceIndex]"
+                                                :aria-label="'Mark option '+String.fromCharCode(65+choiceIndex)+' correct'"><input
+                                                type="text" :value="choice"
+                                                @input="updateChoice(question,choiceIndex,$event.target.value)"
+                                                :aria-label="'Option '+String.fromCharCode(65+choiceIndex)"
+                                                style="flex:1;min-width:12rem"></span></label></template></div>
+                        </fieldset><label class="ds-field" x-show="question.question_type!=='multiple_choice'">Correct
+                            answer<input x-model="question.correct_answer"></label>
+                    </div>
+                </template>
+                <div class="ds-toolbar"><button class="lms-btn" @click="saveGenerated()" :disabled="busy">Save quiz
+                        draft</button><button class="lms-btn lms-btn-secondary" @click="draft=null">Discard
+                        draft</button></div>
+            </section>
+            <section class="ds-card ds-stack" x-show="scoreForm.open">
+                <h2 x-text="'Record '+scoreForm.title+' scores'"></h2><label class="ds-field">Teaching section<select
+                        x-model.number="scoreForm.sectionId" @change="loadRoster()"><template
+                            x-for="section in scoreForm.sections" :key="section.section_id">
+                            <option :value="section.section_id" x-text="section.section"></option>
+                        </template></select></label>
+                <div class="ds-table-wrap">
+                    <table class="ds-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody><template x-for="student in scoreForm.students" :key="student.student_id">
+                                <tr>
+                                    <td x-text="student.name||student.student_id"></td>
+                                    <td><input type="number" min="0" :max="scoreForm.points"
+                                            x-model="scoreForm.scores[student.student_id]" placeholder="Pending"></td>
+                                </tr>
+                            </template></tbody>
+                    </table>
+                </div>
+                <div class="ds-toolbar"><button class="lms-btn" @click="saveScores()" :disabled="busy">Save
+                        scores</button><button class="lms-btn lms-btn-secondary"
+                        @click="scoreForm.open=false">Close</button></div>
+            </section>
+        </div>
+    </main>
+    <script src="../js/assessments-page.js"></script>
+</body>
+
+</html>

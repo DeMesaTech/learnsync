@@ -263,13 +263,16 @@
                 students: [],
                 loading: true,
                 error: null,
+
                 async init() {
                     const params = new URLSearchParams(window.location.search);
                     let classId = params.get('class_id');
                     this.selectedSection = params.get('section') || '';
                     this.selectedTerm = ['Midterm', 'Finals'].includes(params.get('grading_period')) ? params.get('grading_period') : 'Midterm';
+
                     try {
                         const teacherId = localStorage.getItem('teacher_id') || localStorage.getItem('user_id');
+
                         if (!classId && teacherId) {
                             const classesResponse = await fetch(`/api/classes/teacher/${encodeURIComponent(teacherId)}`);
                             if (classesResponse.ok) {
@@ -279,17 +282,25 @@
                                 this.selectedSection = this.selectedSection || fallbackClass?.sections?.[0] || '';
                             }
                         }
+
                         if (!classId || !this.selectedSection) {
                             throw new Error('Select a class and section from the grading page first.');
                         }
-                        const query = new URLSearchParams({ section: this.selectedSection, grading_period: this.selectedTerm });
+
+                        const query = new URLSearchParams({
+                            section: this.selectedSection,
+                            grading_period: this.selectedTerm
+                        });
+
                         const response = await fetch(`/api/grades/class/${encodeURIComponent(classId)}/summary?${query}`);
                         if (!response.ok) throw new Error(await response.text() || 'Unable to load computed grades.');
+
                         const data = await response.json();
                         this.selectedClass = data.class?.subject || '';
                         this.weights = data.weights || this.weights;
                         this.visible = Boolean(data.visible);
                         this.students = data.students || [];
+
                         const url = new URL(window.location.href);
                         url.searchParams.set('class_id', classId);
                         url.searchParams.set('section', this.selectedSection);
@@ -301,11 +312,14 @@
                         this.loading = false;
                     }
                 },
+
                 displayGrade(value) {
                     return value === null || value === undefined ? 'Pending' : Number(value).toFixed(2);
                 },
+
                 async setVisibility() {
                     const params = new URLSearchParams(window.location.search);
+
                     try {
                         const response = await fetch('/api/grades/visibility', {
                             method: 'PUT',
@@ -317,6 +331,7 @@
                                 visible: this.visible
                             })
                         });
+
                         if (!response.ok) throw new Error(await response.text() || 'Unable to update visibility.');
                     } catch (err) {
                         this.error = err.message || 'Unable to update visibility.';

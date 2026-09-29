@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=student-announcements-compact-20260927">
     <script src="../js/file-transfer.js" defer></script>
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -99,7 +99,9 @@
                     <h2 class="lms-title" x-text="classTitle"></h2>
                     <p class="lms-subtitle" x-text="'Section ' + classSection"></p>
                 </div>
-                <div class="lms-actions"><a class="lms-btn lms-btn-secondary" :href="'outline.html?class_id='+classId">Chapters & content</a><a class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
+                <div class="lms-actions"><a class="lms-btn lms-btn-secondary"
+                        :href="'outline.html?class_id='+classId">Chapters & content</a><a
+                        class="lms-btn lms-btn-secondary" href="To-Do.html">Submit Work</a></div>
             </section><!-- Announcements + Learning Materials: two-column layout -->
             <section class="lms-grid lms-grid-2 gap-4">
                 <!-- Announcements -->
@@ -125,8 +127,8 @@
                     <section class="lms-tabs" aria-label="Subject tabs">
                         <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
                             @click="activeTab = 'modules'">Modules</button>
-                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'activities'">Activities</button>
+                        <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''"
+                            type="button" @click="activeTab = 'activities'">Activities</button>
                         <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
                             @click="activeTab = 'quizzes'">Quizzes</button>
                     </section>
@@ -158,12 +160,13 @@
                         </div>
                         <ul class="lms-list">
                             <template x-for="activity in activities" :key="activity.activity_id">
-                                <li :role="activity.delivery_type==='offline' ? null : 'button'" :tabindex="activity.delivery_type==='offline' ? -1 : 0" @click="activity.delivery_type!=='offline' && openStudentItem('activity', activity.activity_id)"
+                                <li :role="activity.delivery_type==='offline' ? null : 'button'"
+                                    :tabindex="activity.delivery_type==='offline' ? -1 : 0"
+                                    @click="activity.delivery_type!=='offline' && openStudentItem('activity', activity.activity_id)"
                                     @keydown.enter.prevent="activity.delivery_type!=='offline' && openStudentItem('activity', activity.activity_id)"
                                     @keydown.space.prevent="activity.delivery_type!=='offline' && openStudentItem('activity', activity.activity_id)">
-                                    <span class="lms-badge"
-                                            :class="`lms-badge ${activity.badgeClass}`"
-                                            x-text="activity.delivery_type==='offline' ? 'Offline · score after grade publication' : activity.submissionStatus"></span>
+                                    <span class="lms-badge" :class="`lms-badge ${activity.badgeClass}`"
+                                        x-text="activity.delivery_type==='offline' ? 'Offline · score after grade publication' : activity.submissionStatus"></span>
                                     <strong class="block mt-2" x-text="activity.title"></strong>
                                     <p class="m-0" x-text="activity?.description"></p>
                                 </li>
@@ -178,7 +181,9 @@
                         </div>
                         <ul class="lms-list">
                             <template x-for="quiz in quizzes" :key="quiz.quiz_id">
-                                <li :role="quiz.delivery_type==='offline' ? undefined : 'button'" :tabindex="quiz.delivery_type==='offline' ? undefined : 0" @click="quiz.delivery_type!=='offline' && openStudentItem('quiz', quiz.quiz_id)"
+                                <li :role="quiz.delivery_type==='offline' ? undefined : 'button'"
+                                    :tabindex="quiz.delivery_type==='offline' ? undefined : 0"
+                                    @click="quiz.delivery_type!=='offline' && openStudentItem('quiz', quiz.quiz_id)"
                                     @keydown.enter.prevent="quiz.delivery_type!=='offline' && openStudentItem('quiz', quiz.quiz_id)"
                                     @keydown.space.prevent="quiz.delivery_type!=='offline' && openStudentItem('quiz', quiz.quiz_id)">
                                     <span class="lms-badge" :class="quiz.badgeClass" x-text="quiz.statusText"></span>
@@ -211,7 +216,8 @@
                             <span>Course Grade</span>
                         </div>
                         <div class="lms-card">
-                            <strong class="grade-number" x-text="finalGradeLoading ? 'Loading...' : (finalGrade.midterm === null ? 'Pending' : Number(finalGrade.midterm).toFixed(2))"></strong>
+                            <strong class="grade-number"
+                                x-text="finalGradeLoading ? 'Loading...' : (finalGrade.midterm === null ? 'Pending' : Number(finalGrade.midterm).toFixed(2))"></strong>
                             <span>Midterm Grade</span>
                         </div>
                         <div class="lms-card">
@@ -220,7 +226,8 @@
                             <span>Final Exam</span>
                         </div>
                         <div class="lms-card">
-                            <strong class="grade-number" x-text="finalGradeLoading ? 'Loading...' : finalGrade.remark"></strong>
+                            <strong class="grade-number"
+                                x-text="finalGradeLoading ? 'Loading...' : finalGrade.remark"></strong>
                             <span>Remark</span>
                         </div>
                     </div>

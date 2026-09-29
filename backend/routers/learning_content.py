@@ -381,11 +381,24 @@ def delete_content(class_id: int, content_id: int, teacher_id: int):
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         _teacher(cur, class_id, teacher_id)
-        cur.execute("DELETE FROM learning_content WHERE class_id=%s AND content_id=%s RETURNING content_id",
+        cur.execute("DELETE FROM learning_content WHERE class_id=%s AND content_id=%s RETURNING content_id,file_path",
                     (class_id, content_id))
-        if not cur.fetchone():
+        removed = cur.fetchone()
+        if not removed:
             raise HTTPException(status_code=404, detail="Topic content not found.")
+
+        stored_file = removed["file_path"]
         conn.commit()
+
+        if stored_file:
+            upload_dir = (Path(__file__).resolve().parents[1] / "uploads" / "content").resolve()
+            target = (Path(__file__).resolve().parents[1] / stored_file).resolve()
+            if target.is_relative_to(upload_dir):
+                try:
+                    target.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
         return {"deleted": True}
     finally:
         conn.close()

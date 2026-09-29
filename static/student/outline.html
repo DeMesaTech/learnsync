@@ -1,60 +1,217 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LearnSync | Subject content</title>
   <script src="../js/alpine_cdn.min.js" defer></script>
-  <link rel="stylesheet" href="../css/tailwind.css"><link rel="stylesheet" href="../css/theme.css">
-  <link rel="stylesheet" href="../css/lms.css"><link rel="stylesheet" href="../css/design-system.css">
+  <link rel="stylesheet" href="../css/tailwind.css">
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/lms.css">
+  <link rel="stylesheet" href="../css/design-system.css">
   <script src="../js/design-system.js" defer></script>
   <style>
-    .subject-layout{display:grid;grid-template-columns:minmax(13rem,16rem) minmax(0,1fr) minmax(15rem,19rem);gap:1rem;align-items:start}
-    .subject-tree,.subject-related{position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow:auto}
-    .subject-tree button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:.55rem .65rem;border-radius:.5rem;color:var(--ds-navy);cursor:pointer}
-    .subject-tree button:hover,.subject-tree button[aria-current="true"]{background:#e2f1f6}
-    .subject-topic{padding-left:1.3rem!important}.subject-subtopic{padding-left:2rem!important}
-    .subject-content{line-height:1.65}.subject-content ul{list-style:disc;margin-left:1.5rem}
-    .subject-item{padding:.75rem;border:1px solid var(--ds-border);border-radius:.6rem;margin:.65rem 0}
-    @media(max-width:1100px){.subject-layout{grid-template-columns:14rem minmax(0,1fr)}.subject-related{grid-column:2;position:static;max-height:none}}
-    @media(max-width:700px){.subject-layout{grid-template-columns:1fr}.subject-tree,.subject-related{grid-column:1;position:static;max-height:none}.subject-tree{max-height:17rem}}
+    .subject-layout {
+      display: grid;
+      grid-template-columns: minmax(13rem, 16rem) minmax(0, 1fr) minmax(15rem, 19rem);
+      gap: 1rem;
+      align-items: start
+    }
+
+    .subject-tree,
+    .subject-related {
+      position: sticky;
+      top: 1rem;
+      max-height: calc(100vh - 2rem);
+      overflow: auto
+    }
+
+    .subject-tree button {
+      display: block;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: .55rem .65rem;
+      border-radius: .5rem;
+      color: var(--ds-navy);
+      cursor: pointer
+    }
+
+    .subject-tree button:hover,
+    .subject-tree button[aria-current="true"] {
+      background: #e2f1f6
+    }
+
+    .subject-topic {
+      padding-left: 1.3rem !important
+    }
+
+    .subject-subtopic {
+      padding-left: 2rem !important
+    }
+
+    .subject-content {
+      line-height: 1.65
+    }
+
+    .subject-content ul {
+      list-style: disc;
+      margin-left: 1.5rem
+    }
+
+    .subject-item {
+      padding: .75rem;
+      border: 1px solid var(--ds-border);
+      border-radius: .6rem;
+      margin: .65rem 0
+    }
+
+    @media(max-width:1100px) {
+      .subject-layout {
+        grid-template-columns: 14rem minmax(0, 1fr)
+      }
+
+      .subject-related {
+        grid-column: 2;
+        position: static;
+        max-height: none
+      }
+    }
+
+    @media(max-width:700px) {
+      .subject-layout {
+        grid-template-columns: 1fr
+      }
+
+      .subject-tree,
+      .subject-related {
+        grid-column: 1;
+        position: static;
+        max-height: none
+      }
+
+      .subject-tree {
+        max-height: 17rem
+      }
+    }
   </style>
 </head>
+
 <body class="lms-shell" x-data="studentOutline()" x-init="load()">
-<main><div class="ds-page ds-stack">
-  <section class="lms-hero"><div><h1 class="lms-title">Subject content</h1><p class="lms-subtitle">Browse the approved chapter and topic outline.</p></div><div class="ds-toolbar"><a class="lms-btn lms-btn-secondary" :href="'subject-details.html?class_id='+classId">Announcements & grades</a><a class="lms-btn lms-btn-secondary" href="dashboard.html">My subjects</a></div></section>
-  <p class="ds-error" x-show="error" x-text="error" role="alert"></p><p class="ds-help" x-show="loading">Loading subject content…</p>
-  <section class="ds-card" x-show="outline.status==='pending'"><h2>Syllabus pending faculty approval</h2><p class="ds-help">Your faculty member is preparing this offering.</p></section>
-  <div class="subject-layout" x-show="outline.status==='approved'">
-    <nav class="ds-card subject-tree" aria-label="Course content tree" role="tree">
-      <h2>Course outline</h2>
-      <button role="treeitem" @click="select('course',null,'Course overview')" :aria-current="selected.level==='course'">Course overview</button>
-      <template x-for="chapter in outline.content.chapters||[]" :key="chapter.key">
-        <div role="group">
-          <button role="treeitem" @click="select('chapter',chapter.key,chapter.title)" :aria-current="selected.key===chapter.key" x-text="chapter.title"></button>
-          <template x-for="topic in chapter.topics||[]" :key="topic.key"><button role="treeitem" class="subject-topic" @click="select('topic',topic.key,topic.title)" :aria-current="selected.key===topic.key" x-text="topic.title"></button></template>
-          <template x-for="subsection in chapter.subsections||[]" :key="subsection.key">
-            <div role="group"><button role="treeitem" class="subject-topic" @click="select('subsection',subsection.key,subsection.title)" :aria-current="selected.key===subsection.key" x-text="subsection.title"></button>
-              <template x-for="topic in subsection.topics||[]" :key="topic.key"><button role="treeitem" class="subject-subtopic" @click="select('topic',topic.key,topic.title)" :aria-current="selected.key===topic.key" x-text="topic.title"></button></template>
+  <main>
+    <div class="ds-page ds-stack">
+      <section class="lms-hero">
+        <div>
+          <h1 class="lms-title">Subject content</h1>
+          <p class="lms-subtitle">Browse the approved chapter and topic outline.</p>
+        </div>
+        <div class="ds-toolbar"><a class="lms-btn lms-btn-secondary"
+            :href="'subject-details.html?class_id='+classId">Announcements & grades</a><a
+            class="lms-btn lms-btn-secondary" href="dashboard.html">My subjects</a></div>
+      </section>
+      <p class="ds-error" x-show="error" x-text="error" role="alert"></p>
+      <p class="ds-help" x-show="loading">Loading subject content…</p>
+      <section class="ds-card" x-show="outline.status==='pending'">
+        <h2>Syllabus pending faculty approval</h2>
+        <p class="ds-help">Your faculty member is preparing this offering.</p>
+      </section>
+      <div class="subject-layout" x-show="outline.status==='approved'">
+        <nav class="ds-card subject-tree" aria-label="Course content tree" role="tree">
+          <h2>Course outline</h2>
+          <button role="treeitem" @click="select('course',null,'Course overview')"
+            :aria-current="selected.level==='course'">Course overview</button>
+          <template x-for="chapter in outline.content.chapters||[]" :key="chapter.key">
+            <div role="group">
+              <button role="treeitem" @click="select('chapter',chapter.key,chapter.title)"
+                :aria-current="selected.key===chapter.key" x-text="chapter.title"></button>
+              <template x-for="topic in chapter.topics||[]" :key="topic.key"><button role="treeitem"
+                  class="subject-topic" @click="select('topic',topic.key,topic.title)"
+                  :aria-current="selected.key===topic.key" x-text="topic.title"></button></template>
+              <template x-for="subsection in chapter.subsections||[]" :key="subsection.key">
+                <div role="group"><button role="treeitem" class="subject-topic"
+                    @click="select('subsection',subsection.key,subsection.title)"
+                    :aria-current="selected.key===subsection.key" x-text="subsection.title"></button>
+                  <template x-for="topic in subsection.topics||[]" :key="topic.key"><button role="treeitem"
+                      class="subject-subtopic" @click="select('topic',topic.key,topic.title)"
+                      :aria-current="selected.key===topic.key" x-text="topic.title"></button></template>
+                </div>
+              </template>
             </div>
           </template>
-        </div>
-      </template>
-    </nav>
-    <article class="ds-card ds-stack">
-      <div><span class="ds-chip" x-text="selected.level"></span><h2 x-text="selected.title"></h2></div>
-      <div x-show="selected.level==='course'"><p x-text="outline.content.description||'Choose a chapter or topic to read its content.'"></p><p class="ds-help" x-text="(outline.content.chapters||[]).length+' chapters in this subject'"></p></div>
-      <template x-for="item in selectedLessons" :key="item.resource_id"><section class="subject-item"><span class="ds-chip">Lesson</span><h3 x-text="item.title"></h3><div class="subject-content" x-html="item.body_html"></div><a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Open lesson file</a></section></template>
-      <template x-for="item in selectedContents" :key="item.content_id"><section class="subject-item"><h3 x-text="item.title"></h3><div class="subject-content" x-html="item.edited_html"></div><a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Open source PDF</a></section></template>
-      <p class="ds-help" x-show="selected.level!=='course'&&!selectedLessons.length&&!selectedContents.length">Content coming soon.</p>
-    </article>
-    <aside class="ds-card subject-related ds-stack" aria-label="Related work and sources">
-      <h2>Related to this <span x-text="selected.level"></span></h2>
-      <section><h3>Quizzes</h3><template x-for="quiz in selectedQuizzes" :key="quiz.quiz_id"><div class="subject-item"><strong x-text="quiz.title"></strong><p class="ds-help" x-text="quiz.delivery_type==='offline'?'Face-to-face · score released by faculty':'Online quiz'"></p><a x-show="quiz.delivery_type!=='offline'" :href="'quiz-take.html?quiz='+quiz.quiz_id">Open quiz</a></div></template><p class="ds-help" x-show="!selectedQuizzes.length">No quizzes yet.</p></section>
-      <section><h3>Activities</h3><template x-for="activity in selectedActivities" :key="activity.activity_id"><div class="subject-item"><strong x-text="activity.title"></strong><p class="ds-help" x-text="activity.delivery_type==='offline'?'Offline activity':'Online submission'"></p><a x-show="activity.delivery_type!=='offline'" :href="'activity-submission.html?class_id='+classId+'&activity_id='+activity.activity_id">Open activity</a></div></template><p class="ds-help" x-show="!selectedActivities.length">No activities yet.</p></section>
-      <section><h3>References</h3><template x-for="item in selectedReferences" :key="item.resource_id"><div class="subject-item"><strong x-text="item.title"></strong><div class="subject-content" x-html="item.body_html"></div><a x-show="item.url" :href="item.url" target="_blank" rel="noopener noreferrer">Open reference</a></div></template><p class="ds-help" x-show="!selectedReferences.length">No references yet.</p></section>
-      <section><h3>Learning Materials</h3><template x-for="item in selectedMaterials" :key="item.resource_id"><div class="subject-item"><strong x-text="item.title"></strong><div class="subject-content" x-html="item.body_html"></div><a x-show="item.file_path" :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a></div></template><p class="ds-help" x-show="!selectedMaterials.length">No materials yet.</p></section>
-    </aside>
-  </div>
-</div></main>
-<script src="../js/student-outline.js"></script>
-</body></html>
+        </nav>
+        <article class="ds-card ds-stack">
+          <div><span class="ds-chip" x-text="selected.level"></span>
+            <h2 x-text="selected.title"></h2>
+          </div>
+          <div x-show="selected.level==='course'">
+            <p x-text="outline.content.description||'Choose a chapter or topic to read its content.'"></p>
+            <p class="ds-help" x-text="(outline.content.chapters||[]).length+' chapters in this subject'"></p>
+          </div>
+          <template x-for="item in selectedLessons" :key="item.resource_id">
+            <section class="subject-item"><span class="ds-chip">Lesson</span>
+              <h3 x-text="item.title"></h3>
+              <div class="subject-content" x-html="item.body_html"></div><a x-show="item.file_path"
+                :href="'/'+item.file_path" target="_blank" rel="noopener">Open lesson file</a>
+            </section>
+          </template>
+          <template x-for="item in selectedContents" :key="item.content_id">
+            <section class="subject-item">
+              <h3 x-text="item.title"></h3>
+              <div class="subject-content" x-html="item.edited_html"></div><a x-show="item.file_path"
+                :href="'/'+item.file_path" target="_blank" rel="noopener">Open source PDF</a>
+            </section>
+          </template>
+          <p class="ds-help" x-show="selected.level!=='course'&&!selectedLessons.length&&!selectedContents.length">
+            Content coming soon.</p>
+        </article>
+        <aside class="ds-card subject-related ds-stack" aria-label="Related work and sources">
+          <h2>Related to this <span x-text="selected.level"></span></h2>
+          <section>
+            <h3>Quizzes</h3><template x-for="quiz in selectedQuizzes" :key="quiz.quiz_id">
+              <div class="subject-item"><strong x-text="quiz.title"></strong>
+                <p class="ds-help"
+                  x-text="quiz.delivery_type==='offline'?'Face-to-face · score released by faculty':'Online quiz'"></p>
+                <a x-show="quiz.delivery_type!=='offline'" :href="'quiz-take.html?quiz='+quiz.quiz_id">Open quiz</a>
+              </div>
+            </template>
+            <p class="ds-help" x-show="!selectedQuizzes.length">No quizzes yet.</p>
+          </section>
+          <section>
+            <h3>Activities</h3><template x-for="activity in selectedActivities" :key="activity.activity_id">
+              <div class="subject-item"><strong x-text="activity.title"></strong>
+                <p class="ds-help" x-text="activity.delivery_type==='offline'?'Offline activity':'Online submission'">
+                </p><a x-show="activity.delivery_type!=='offline'"
+                  :href="'activity-submission.html?class_id='+classId+'&activity_id='+activity.activity_id">Open
+                  activity</a>
+              </div>
+            </template>
+            <p class="ds-help" x-show="!selectedActivities.length">No activities yet.</p>
+          </section>
+          <section>
+            <h3>References</h3><template x-for="item in selectedReferences" :key="item.resource_id">
+              <div class="subject-item"><strong x-text="item.title"></strong>
+                <div class="subject-content" x-html="item.body_html"></div><a x-show="item.url" :href="item.url"
+                  target="_blank" rel="noopener noreferrer">Open reference</a>
+              </div>
+            </template>
+            <p class="ds-help" x-show="!selectedReferences.length">No references yet.</p>
+          </section>
+          <section>
+            <h3>Learning Materials</h3><template x-for="item in selectedMaterials" :key="item.resource_id">
+              <div class="subject-item"><strong x-text="item.title"></strong>
+                <div class="subject-content" x-html="item.body_html"></div><a x-show="item.file_path"
+                  :href="'/'+item.file_path" target="_blank" rel="noopener">Download file</a>
+              </div>
+            </template>
+            <p class="ds-help" x-show="!selectedMaterials.length">No materials yet.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <script src="../js/student-outline.js"></script>
+</body>
+
+</html>

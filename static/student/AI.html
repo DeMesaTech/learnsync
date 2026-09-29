@@ -14,55 +14,184 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
     <style>
-        [x-cloak] { display: none !important; }
-        .message-content > :first-child { margin-top: 0; }
-        .message-content > :last-child { margin-bottom: 0; }
-        .message-content p { margin: 0.65rem 0; }
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .message-content> :first-child {
+            margin-top: 0;
+        }
+
+        .message-content> :last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content p {
+            margin: 0.65rem 0;
+        }
+
         .message-content h1,
         .message-content h2,
-        .message-content h3 { margin: 0.9rem 0 0.4rem; font-weight: 700; line-height: 1.35; }
-        .message-content h1 { font-size: 1.15rem; }
-        .message-content h2 { font-size: 1.05rem; }
-        .message-content h3 { font-size: 1rem; }
+        .message-content h3 {
+            margin: 0.9rem 0 0.4rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .message-content h1 {
+            font-size: 1.15rem;
+        }
+
+        .message-content h2 {
+            font-size: 1.05rem;
+        }
+
+        .message-content h3 {
+            font-size: 1rem;
+        }
+
         .message-content ul,
-        .message-content ol { margin: 0.65rem 0; padding-left: 1.35rem; }
-        .message-content ul { list-style: disc; }
-        .message-content ol { list-style: decimal; }
-        .message-content li { margin: 0.25rem 0; }
-        .message-content a { text-decoration: underline; }
-        .message-content code { border-radius: 0.35rem; background: rgb(15 23 42 / 0.08); padding: 0.12rem 0.3rem; font-size: 0.9em; }
-        .message-content pre { margin: 0.75rem 0; overflow-x: auto; border-radius: 0.65rem; background: #0f172a; padding: 0.8rem; color: #e2e8f0; }
-        .message-content pre code { background: transparent; padding: 0; color: inherit; }
-        .bg-cyan-700 .message-content a { color: inherit; }
-        body.ai-shell { min-height: 100vh; height: 100vh; background: var(--ds-canvas); color: var(--ds-ink); }
-        .ai-shell main { height: 100vh; min-height: 0; }
-        .ai-shell main > aside { background: var(--ds-navy); border-color: var(--ds-navy); color: white; }
-        .ai-shell main > aside :is(h1, p, a, button, span) { color: inherit; }
-        .ai-shell main > aside .border-b, .ai-shell main > aside .border-r { border-color: #31576b; }
-        .ai-shell main > aside a:hover { background: #28627c; }
-        .ai-shell main > aside nav div.bg-cyan-50 { background: #28627c; color: white; box-shadow: inset 3px 0 0 #8ed6e8; }
-        .ai-shell .ai-delete-chat:hover, .ai-shell .ai-delete-chat:focus-visible { background: #9f3345; color: white; }
-        .ai-shell .bg-cyan-700 { background: var(--ds-blue); }
-        .ai-shell button.bg-cyan-700:hover { background: var(--ds-blue-strong); }
-        .ai-shell .bg-cyan-50 { background: var(--ds-sky); }
-        .ai-shell section > header, .ai-shell footer { border-color: var(--ds-border); }
-        .ai-shell section > div.flex-1 { min-height: 0; }
-        .ai-subject-menu { bottom: 100%; left: 0; margin-bottom: 0.75rem; width: 22rem; max-width: calc(100vw - 2rem); }
+        .message-content ol {
+            margin: 0.65rem 0;
+            padding-left: 1.35rem;
+        }
+
+        .message-content ul {
+            list-style: disc;
+        }
+
+        .message-content ol {
+            list-style: decimal;
+        }
+
+        .message-content li {
+            margin: 0.25rem 0;
+        }
+
+        .message-content a {
+            text-decoration: underline;
+        }
+
+        .message-content code {
+            border-radius: 0.35rem;
+            background: rgb(15 23 42 / 0.08);
+            padding: 0.12rem 0.3rem;
+            font-size: 0.9em;
+        }
+
+        .message-content pre {
+            margin: 0.75rem 0;
+            overflow-x: auto;
+            border-radius: 0.65rem;
+            background: #0f172a;
+            padding: 0.8rem;
+            color: #e2e8f0;
+        }
+
+        .message-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .bg-cyan-700 .message-content a {
+            color: inherit;
+        }
+
+        body.ai-shell {
+            min-height: 100vh;
+            height: 100vh;
+            background: var(--ds-canvas);
+            color: var(--ds-ink);
+        }
+
+        .ai-shell main {
+            height: 100vh;
+            min-height: 0;
+        }
+
+        .ai-shell main>aside {
+            background: var(--ds-navy);
+            border-color: var(--ds-navy);
+            color: white;
+        }
+
+        .ai-shell main>aside :is(h1, p, a, button, span) {
+            color: inherit;
+        }
+
+        .ai-shell main>aside .border-b,
+        .ai-shell main>aside .border-r {
+            border-color: #31576b;
+        }
+
+        .ai-shell main>aside a:hover {
+            background: #28627c;
+        }
+
+        .ai-shell main>aside nav div.bg-cyan-50 {
+            background: #28627c;
+            color: white;
+            box-shadow: inset 3px 0 0 #8ed6e8;
+        }
+
+        .ai-shell .ai-delete-chat:hover,
+        .ai-shell .ai-delete-chat:focus-visible {
+            background: #9f3345;
+            color: white;
+        }
+
+        .ai-shell .bg-cyan-700 {
+            background: var(--ds-blue);
+        }
+
+        .ai-shell button.bg-cyan-700:hover {
+            background: var(--ds-blue-strong);
+        }
+
+        .ai-shell .bg-cyan-50 {
+            background: var(--ds-sky);
+        }
+
+        .ai-shell section>header,
+        .ai-shell footer {
+            border-color: var(--ds-border);
+        }
+
+        .ai-shell section>div.flex-1 {
+            min-height: 0;
+        }
+
+        .ai-subject-menu {
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 0.75rem;
+            width: 22rem;
+            max-width: calc(100vw - 2rem);
+        }
+
         @media (max-width: 520px) {
-            .ai-composer-controls { flex-wrap: wrap; }
-            .ai-composer-input { flex-basis: calc(100% - 3.75rem); }
+            .ai-composer-controls {
+                flex-wrap: wrap;
+            }
+
+            .ai-composer-input {
+                flex-basis: calc(100% - 3.75rem);
+            }
         }
     </style>
-<link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/design-system.css">
 </head>
 
 <body class="ai-shell h-screen overflow-hidden text-slate-900 font-sans text-sm">
     <main class="flex h-screen" x-data="aiApp()">
-        <aside class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 md:static md:translate-x-0 md:shadow-none"
+        <aside
+            class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 md:static md:translate-x-0 md:shadow-none"
             :class="historyOpen ? 'translate-x-0' : '-translate-x-full'">
             <div class="flex h-full flex-col">
                 <div class="flex h-16 items-center gap-3 border-b border-slate-200 px-4">
-                    <a href="dashboard.html" class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                    <a href="dashboard.html"
+                        class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                         aria-label="Back to dashboard">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19 8 12l7-7" />
@@ -75,9 +204,11 @@
                 </div>
 
                 <div class="border-b border-slate-200 p-4">
-                    <button @click="newChat" type="button" class="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 py-3 font-semibold text-white transition hover:bg-cyan-800">
+                    <button @click="newChat" type="button"
+                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 py-3 font-semibold text-white transition hover:bg-cyan-800">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 5v14m-7-7h14" />
                         </svg>
                         New Chat
                     </button>
@@ -92,15 +223,17 @@
                             <a href="#" @click.prevent="selectConversation(conversation.id)"
                                 class="min-w-0 flex-1 rounded-lg px-2 py-3 transition hover:bg-slate-100">
                                 <span class="block truncate font-semibold" x-text="conversation.title"></span>
-                                <span class="mt-1 block truncate text-xs text-slate-500" x-text="conversation.messages.length + (conversation.messages.length === 1 ? ' message' : ' messages')"></span>
+                                <span class="mt-1 block truncate text-xs text-slate-500"
+                                    x-text="conversation.messages.length + (conversation.messages.length === 1 ? ' message' : ' messages')"></span>
                             </a>
                             <button type="button" @click="deleteConversation(conversation.id)"
                                 :disabled="loading && activeConversationId === conversation.id"
-                                :aria-label="`Delete conversation: ${conversation.title}`"
-                                title="Delete conversation"
+                                :aria-label="`Delete conversation: ${conversation.title}`" title="Delete conversation"
                                 class="ai-delete-chat grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-40">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18m-2 0-.9 14H5.9L5 6m3 0V4h8v2m-6 4v7m4-7v7" />
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 6h18m-2 0-.9 14H5.9L5 6m3 0V4h8v2m-6 4v7m4-7v7" />
                                 </svg>
                             </button>
                         </div>
@@ -115,13 +248,16 @@
 
         <section class="flex min-w-0 flex-1 flex-col">
             <header class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4">
-                <button @click="historyOpen = true" class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 md:hidden"
+                <button @click="historyOpen = true"
+                    class="grid h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 md:hidden"
                     aria-label="Open chat history">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7h16M4 12h16M4 17h16" />
                     </svg>
                 </button>
-                <a href="dashboard.html" class="hidden h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:grid"
+                <a href="dashboard.html"
+                    class="hidden h-10 w-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:grid"
                     aria-label="Back to dashboard">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19 8 12l7-7" />
@@ -137,23 +273,32 @@
                 <div class="mx-auto flex max-w-4xl flex-col gap-5">
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                         <div class="flex items-start gap-4">
-                            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 font-bold text-white">AI</div>
+                            <div
+                                class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 font-bold text-white">
+                                AI</div>
                             <div>
                                 <h3 class="text-lg font-bold text-slate-900">How can I help you study today?</h3>
-                                <p class="mt-1 leading-6 text-slate-600">Choose an enrolled subject, then ask about its chapters, topics, materials, quizzes, or activities.</p>
+                                <p class="mt-1 leading-6 text-slate-600">Choose an enrolled subject, then ask about its
+                                    chapters, topics, materials, quizzes, or activities.</p>
                             </div>
                         </div>
                         <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                            <button @click="usePrompt('List the chapters and topics in this subject')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                            <button @click="usePrompt('List the chapters and topics in this subject')" type="button"
+                                class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
                                 List chapters and topics
                             </button>
-                            <button @click="usePrompt('What core concepts should I learn first in this subject?')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                            <button @click="usePrompt('What core concepts should I learn first in this subject?')"
+                                type="button"
+                                class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
                                 What should I learn first?
                             </button>
-                            <button @click="usePrompt('Explain a core concept in this subject with an example')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                            <button @click="usePrompt('Explain a core concept in this subject with an example')"
+                                type="button"
+                                class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
                                 Explain a core concept with an example
                             </button>
-                            <button @click="usePrompt('Show my activities in this subject')" type="button" class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
+                            <button @click="usePrompt('Show my activities in this subject')" type="button"
+                                class="rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50">
                                 Show my activities
                             </button>
                         </div>
@@ -161,21 +306,33 @@
                     </section>
 
                     <template x-for="(message, index) in messages" :key="index">
-                        <div :id="`message-${index}`" class="flex items-end gap-3" :class="message.role === 'user' ? 'justify-end' : ''">
+                        <div :id="`message-${index}`" class="flex items-end gap-3"
+                            :class="message.role === 'user' ? 'justify-end' : ''">
                             <template x-if="message.role === 'assistant'">
-                                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">AI</div>
+                                <div
+                                    class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">
+                                    AI</div>
                             </template>
-                            <div x-html="formatMessage(message.content)" class="message-content max-w-[82%] rounded-2xl p-4 leading-7 shadow-sm sm:max-w-[75%]" :class="message.role === 'user' ? 'rounded-br bg-cyan-700 text-white' : 'rounded-bl bg-white text-slate-700 ring-1 ring-slate-200'"></div>
+                            <div x-html="formatMessage(message.content)"
+                                class="message-content max-w-[82%] rounded-2xl p-4 leading-7 shadow-sm sm:max-w-[75%]"
+                                :class="message.role === 'user' ? 'rounded-br bg-cyan-700 text-white' : 'rounded-bl bg-white text-slate-700 ring-1 ring-slate-200'">
+                            </div>
                             <template x-if="message.role === 'user'">
-                                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-700 text-xs font-bold text-white">You</div>
+                                <div
+                                    class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-700 text-xs font-bold text-white">
+                                    You</div>
                             </template>
                         </div>
                     </template>
                     <div x-show="loading" class="flex items-end gap-3">
-                        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">AI</div>
-                        <div class="rounded-2xl rounded-bl bg-white p-4 text-slate-500 shadow-sm ring-1 ring-slate-200">Thinking...</div>
+                        <div
+                            class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-bold text-white">
+                            AI</div>
+                        <div class="rounded-2xl rounded-bl bg-white p-4 text-slate-500 shadow-sm ring-1 ring-slate-200">
+                            Thinking...</div>
                     </div>
-                    <p x-show="error" x-text="error" class="rounded-xl bg-red-50 p-3 text-red-700 ring-1 ring-red-100"></p>
+                    <p x-show="error" x-text="error" class="rounded-xl bg-red-50 p-3 text-red-700 ring-1 ring-red-100">
+                    </p>
                 </div>
             </div>
 
@@ -187,8 +344,10 @@
                         <div x-cloak x-show="subjectMenuOpen" @click.outside="subjectMenuOpen = false" x-transition
                             class="ai-subject-menu absolute z-20 overflow-hidden rounded-2xl border border-cyan-100 bg-white p-2 shadow-[0_8px_24px_rgb(15_23_42/0.12)]">
                             <p class="px-3 py-2 text-sm font-semibold text-slate-600">Choose a subject</p>
-                            <p x-show="subjectsLoading" class="px-3 py-2 text-xs text-slate-500">Loading enrolled subjects...</p>
-                            <p x-show="!subjectsLoading && !subjects.length" class="px-3 py-2 text-xs text-slate-500">No enrolled subjects available</p>
+                            <p x-show="subjectsLoading" class="px-3 py-2 text-xs text-slate-500">Loading enrolled
+                                subjects...</p>
+                            <p x-show="!subjectsLoading && !subjects.length" class="px-3 py-2 text-xs text-slate-500">No
+                                enrolled subjects available</p>
                             <template x-for="subject in subjects" :key="subject.id">
                                 <button @click="selectSubject(subject.id)" type="button"
                                     class="block w-full rounded-lg px-3 py-2.5 text-left text-sm leading-5 text-slate-800 transition hover:bg-cyan-50"
@@ -198,34 +357,44 @@
                             <p x-show="subjectsError" x-text="subjectsError" class="px-3 py-2 text-xs text-red-700"></p>
                         </div>
 
-                    <!-- Button, chatbox, and send row -->
-                    <div class="ai-composer-controls flex w-full items-end gap-3">
-                        <!-- Subject-selection button -->
-                        <button @click="subjectMenuOpen = !subjectMenuOpen" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
-                            type="button" aria-label="Show subject selector" title="Choose a subject" :aria-expanded="subjectMenuOpen">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.82l8.48-8.49" />
-                            </svg>
-                        </button>
-                        <!-- Selected subject indicator -->
-                        <div x-show="selectedSubject" class="flex h-11 min-w-0 max-w-xs items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800">
-                            <span class="mr-1 shrink-0 text-cyan-600">Subject:</span>
-                            <span class="min-w-0 flex-1 truncate" x-text="selectedSubject ? selectedSubject.label : ''"></span>
-                            <button @click="clearSubject" type="button" class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-cyan-700 transition hover:bg-cyan-100" aria-label="Remove selected subject" title="Remove selected subject">
-                                <span aria-hidden="true">&times;</span>
+                        <!-- Button, chatbox, and send row -->
+                        <div class="ai-composer-controls flex w-full items-end gap-3">
+                            <!-- Subject-selection button -->
+                            <button @click="subjectMenuOpen = !subjectMenuOpen"
+                                class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+                                type="button" aria-label="Show subject selector" title="Choose a subject"
+                                :aria-expanded="subjectMenuOpen">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.82l8.48-8.49" />
+                                </svg>
+                            </button>
+                            <!-- Selected subject indicator -->
+                            <div x-show="selectedSubject"
+                                class="flex h-11 min-w-0 max-w-xs items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-800">
+                                <span class="mr-1 shrink-0 text-cyan-600">Subject:</span>
+                                <span class="min-w-0 flex-1 truncate"
+                                    x-text="selectedSubject ? selectedSubject.label : ''"></span>
+                                <button @click="clearSubject" type="button"
+                                    class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-cyan-700 transition hover:bg-cyan-100"
+                                    aria-label="Remove selected subject" title="Remove selected subject">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <!-- Chat message input -->
+                            <textarea x-model="draft" @keydown.enter="handleComposerKeydown($event)"
+                                class="ai-composer-input min-w-0 flex-1 max-h-36 min-h-11 resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15"
+                                rows="1" placeholder="Message LearnSync AI..." aria-label="Message"></textarea>
+                            <!-- Send message button -->
+                            <button :disabled="loading || !draft.trim()"
+                                class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                                type="submit" aria-label="Send message">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 19l9 2-9-18-9 18 9-2Zm0 0v-8" />
+                                </svg>
                             </button>
                         </div>
-                        <!-- Chat message input -->
-                        <textarea x-model="draft" @keydown.enter="handleComposerKeydown($event)" class="ai-composer-input min-w-0 flex-1 max-h-36 min-h-11 resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-600/15"
-                            rows="1" placeholder="Message LearnSync AI..." aria-label="Message"></textarea>
-                        <!-- Send message button -->
-                        <button :disabled="loading || !draft.trim()" class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-700 text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                            type="submit" aria-label="Send message">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2Zm0 0v-8" />
-                            </svg>
-                        </button>
-                    </div>
                     </div>
                 </form>
             </footer>

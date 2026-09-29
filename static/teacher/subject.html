@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=syllabus-topic-hover-20260928">
     <script src="../js/file-transfer.js" defer></script>
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell teacher-accent font-sans text-sm">
@@ -60,8 +60,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 4h14v16H5V4Zm4 4h6M9 12h6M9 16h3" />
                         </svg><span>Classes</span></a></li>
-                <li><a class="sidebar-btn" href="grading.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg class="sidebar-icon" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+                <li><a class="sidebar-btn" href="grading.html" @click="sessionStorage.setItem('gradingFresh', '1')"><svg
+                            class="sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 19h16M7 16V8m5 8V5m5 11v-6" />
                         </svg><span>Grading</span></a></li>
@@ -107,13 +107,20 @@
                     </p>
                 </div>
                 <div class="lms-actions">
-                    <a class="lms-btn lms-btn-secondary" :href="'syllabus.html?class_id=' + encodeURIComponent(currentClassId)">Course Syllabus</a>
-                    <a class="lms-btn lms-btn-secondary" :href="'chapters.html?class_id=' + encodeURIComponent(currentClassId)">Chapters & content</a>
-                    <a class="lms-btn lms-btn-secondary" :href="'assessments.html?class_id=' + encodeURIComponent(currentClassId)">Activities & quizzes</a>
-                    <a class="lms-btn lms-btn-secondary" :href="'attendance.html?class_id=' + encodeURIComponent(currentClassId)">Attendance</a>
-                    <a class="lms-btn lms-btn-secondary" :href="'grade-review.html?class_id=' + encodeURIComponent(currentClassId)">Grade Review</a>
+                    <a class="lms-btn lms-btn-secondary"
+                        :href="'syllabus.html?class_id=' + encodeURIComponent(currentClassId)">Course Syllabus</a>
+                    <a class="lms-btn lms-btn-secondary"
+                        :href="'chapters.html?class_id=' + encodeURIComponent(currentClassId)">Chapters & content</a>
+                    <a class="lms-btn lms-btn-secondary"
+                        :href="'assessments.html?class_id=' + encodeURIComponent(currentClassId)">Activities &
+                        quizzes</a>
+                    <a class="lms-btn lms-btn-secondary"
+                        :href="'attendance.html?class_id=' + encodeURIComponent(currentClassId)">Attendance</a>
+                    <a class="lms-btn lms-btn-secondary"
+                        :href="'grade-review.html?class_id=' + encodeURIComponent(currentClassId)">Grade Review</a>
                     <a class="lms-btn"
-                        :href="currentClassId ? 'gradebook.html?class_id=' + encodeURIComponent(currentClassId) : 'gradebook.html'">Open Gradebook</a>
+                        :href="currentClassId ? 'gradebook.html?class_id=' + encodeURIComponent(currentClassId) : 'gradebook.html'">Open
+                        Gradebook</a>
                 </div>
             </section>
 
@@ -124,10 +131,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20a5 5 0 0 0-10 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-1a3 3 0 1 0 0-6m3 15a4 4 0 0 0-3-3.87" />
                         </svg></span>
-                        <div class="flex items-center justify-between gap-2">
-                            <strong x-text="nums.students || '0'"></strong>
-                        </div>
-                        <span>Students</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <strong x-text="nums.students || '0'"></strong>
+                    </div>
+                    <span>Students</span>
                 </div>
                 <!-- MODULES -->
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
@@ -135,10 +142,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3v11a3 3 0 0 1 3-3h6V5Z" />
                         </svg></span>
-                        <div class="flex items-center justify-between gap-2">
-                            <strong x-text="nums.modules || '0'"></strong>
-                        </div>
-                        <span>Modules</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <strong x-text="nums.modules || '0'"></strong>
+                    </div>
+                    <span>Modules</span>
                 </div>
                 <!-- ACTIVITIES -->
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
@@ -146,21 +153,21 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
                         </svg></span>
-                        <div class="flex items-center justify-between gap-2">
-                            <strong x-text="nums.activities || '0'"></strong>
-                        </div>
-                        <span>Activities</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <strong x-text="nums.activities || '0'"></strong>
+                    </div>
+                    <span>Activities</span>
                 </div>
-                    <!-- QUIZZES -->
+                <!-- QUIZZES -->
                 <div class="lms-kpi"><span class="lms-kpi-icon"><svg fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
                         </svg></span>
-                        <div class="flex items-center justify-between gap-2">
-                            <strong x-text="nums.quizzes || '0'"></strong>
-                        </div>
-                        <span>Quizzes</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <strong x-text="nums.quizzes || '0'"></strong>
+                    </div>
+                    <span>Quizzes</span>
                 </div>
             </section><!-- Section Filter -->
             <section class="lms-toolbar"><!-- Section Selector -->
@@ -202,11 +209,14 @@
                     <!-- TAB -->
                     <section class="lms-tabs mt-0" aria-label="Class workspace tabs">
                         <button class="lms-tab" :class="activeTab === 'modules' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'modules'; load_modules()" x-text="'Modules (' + modules.length + ')'">Modules</button>
+                            @click="activeTab = 'modules'; load_modules()"
+                            x-text="'Modules (' + modules.length + ')'">Modules</button>
                         <button class="lms-tab" :class="activeTab === 'activities' ? 'lms-tab-active' : ''"
-                            type="button" @click="activeTab = 'activities'; load_act()" x-text="'Activities (' + activities.length + ')'">Activities</button>
+                            type="button" @click="activeTab = 'activities'; load_act()"
+                            x-text="'Activities (' + activities.length + ')'">Activities</button>
                         <button class="lms-tab" :class="activeTab === 'quizzes' ? 'lms-tab-active' : ''" type="button"
-                            @click="activeTab = 'quizzes'; load_quizzes()" x-text="'Quizzes (' + quizzes.length + ')'">Quizzes</button>
+                            @click="activeTab = 'quizzes'; load_quizzes()"
+                            x-text="'Quizzes (' + quizzes.length + ')'">Quizzes</button>
                     </section>
                     <!-- MODULES -->
                     <section class="lms-panel mt-4" x-show="activeTab === 'modules'">
@@ -296,8 +306,7 @@
                             <template x-for="quiz in quizzes" :key="quiz.quiz_id">
                                 <li>
                                     <article class="lms-clickable" role="button" tabindex="0"
-                                        @click="openQuizPreview(quiz)"
-                                        @keydown.enter="openQuizPreview(quiz)">
+                                        @click="openQuizPreview(quiz)" @keydown.enter="openQuizPreview(quiz)">
                                         <span class="lms-badge" x-text="quiz.status || 'Published'"></span>
                                         <strong class="block mt-2" x-text="quiz.title"></strong>
                                         <p class="m-0"
@@ -310,8 +319,8 @@
                                                 x-show="quiz.status !== 'Published'"
                                                 @click.prevent.stop="deleteQuiz(quiz)">Delete</button></span>
                                     </article>
-                                
-                                    </li>
+
+                                </li>
                             </template>
                         </ul>
                     </section>
@@ -1076,13 +1085,15 @@
                         const data = await response.json();
                         if (!response.ok) throw new Error(data.detail || 'Unable to generate quiz draft.');
                         this.quizDraft = data;
-                        const saved = await fetch('/api/quizzes', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-                            class_id:Number(this.getTargetClassId()), module_id:Number(this.quizModuleId), title,
-                            description:data.description || '', status:'Draft', origin:'ai', grading_period:this.quizPeriod,
-                            sections:this.quizSections, questions:data.questions.map((question,index)=>({...question,display_order:index+1}))
-                        })});
+                        const saved = await fetch('/api/quizzes', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                                class_id: Number(this.getTargetClassId()), module_id: Number(this.quizModuleId), title,
+                                description: data.description || '', status: 'Draft', origin: 'ai', grading_period: this.quizPeriod,
+                                sections: this.quizSections, questions: data.questions.map((question, index) => ({ ...question, display_order: index + 1 }))
+                            })
+                        });
                         const stored = await saved.json();
-                        if(!saved.ok) throw new Error(stored.detail || 'Could not save generated draft.');
+                        if (!saved.ok) throw new Error(stored.detail || 'Could not save generated draft.');
                         this.editingQuizId = stored.quiz_id;
                         await this.load_quizzes();
                         this.quizError = 'AI draft saved in this subject. Review and publish it when ready.';

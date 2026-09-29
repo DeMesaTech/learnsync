@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/lms.css?v=modal-stable-20260915">
     <script src="../js/file-transfer.js" defer></script>
-<link rel="stylesheet" href="../css/design-system.css">
-<script src="../js/design-system.js" defer></script>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <script src="../js/design-system.js" defer></script>
 </head>
 
 <body class="lms-shell student-shell font-sans text-sm">
@@ -150,7 +150,8 @@
                 </div>
 
                 <!-- Submission Form -->
-                <form class="lms-panel" x-show="!loading && !submitted && !activity?.submission_file_path" @submit.prevent="submit()">
+                <form class="lms-panel" x-show="!loading && !submitted && !activity?.submission_file_path"
+                    @submit.prevent="submit()">
                     <div class="lms-task-top">
                         <h3>Submit Activity</h3>
                         <span class="lms-badge" :class="submitted ? 'good' : 'warn'"
