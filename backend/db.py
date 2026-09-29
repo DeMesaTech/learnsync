@@ -10,10 +10,10 @@ from local_env import load_local_env
 # ============= DATABASE CONFIGURATION =============
 load_local_env()
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "database": os.getenv("DB_NAME", "lms"),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", "logiclab"),
+    "host": os.getenv("DB_HOST", "dpg-datgqc093c1s73ai0gog-a"),
+    "database": os.getenv("DB_NAME", "lms_nivi"),
+    "user": os.getenv("DB_USER", "logiclab"),
+    "password": os.getenv("DB_PASSWORD", "9Ea2XuAeV6YyPdUxHIkVDOA04F926xBX"),
     "port": os.getenv("DB_PORT", "5432"),
 }
 DATABASE_URL = os.getenv("DATABASE_URL")

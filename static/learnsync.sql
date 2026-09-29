@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.account
     password character varying(255) COLLATE pg_catalog."default" NOT NULL,
     role character varying(50) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    activation_token_hash text COLLATE pg_catalog."default",
+    activation_expires_at timestamp without time zone,
+    is_activated boolean NOT NULL DEFAULT false,
     CONSTRAINT user_pkey PRIMARY KEY (user_id),
     CONSTRAINT user_email_key UNIQUE (email)
 );
@@ -117,6 +120,22 @@ CREATE TABLE IF NOT EXISTS public.attendance
     CONSTRAINT attendance_pkey PRIMARY KEY (attendance_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.bug_report
+(
+    report_id bigserial NOT NULL,
+    reporter_user_id integer,
+    reporter_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    reporter_email character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    reporter_role character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    issue_type character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    subject character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default" NOT NULL,
+    status character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'open'::character varying,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT bug_report_pkey PRIMARY KEY (report_id)
+);
+
 CREATE TABLE IF NOT EXISTS public.class
 (
     class_id bigserial NOT NULL,
@@ -124,6 +143,15 @@ CREATE TABLE IF NOT EXISTS public.class
     employee_id integer,
     subject character varying(100) COLLATE pg_catalog."default",
     CONSTRAINT class_pkey PRIMARY KEY (class_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.class_syllabus
+(
+    class_id bigint NOT NULL,
+    file_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    file_path character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT class_syllabus_pkey PRIMARY KEY (class_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.enrollment
@@ -157,6 +185,22 @@ CREATE TABLE IF NOT EXISTS public.grade_visibility
     CONSTRAINT grade_visibility_pkey PRIMARY KEY (class_id, section, grading_period)
 );
 
+CREATE TABLE IF NOT EXISTS public.grading_column
+(
+    column_id bigserial NOT NULL,
+    class_id bigint NOT NULL,
+    section character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    category character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    label character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    total_items numeric(8, 2) NOT NULL,
+    record_date date,
+    teacher_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT grading_column_pkey PRIMARY KEY (column_id),
+    CONSTRAINT grading_column_class_id_section_grading_period_category_lab_key UNIQUE (class_id, section, grading_period, category, label)
+);
+
 CREATE TABLE IF NOT EXISTS public.grading_policy
 (
     policy_id serial NOT NULL,
@@ -169,6 +213,16 @@ CREATE TABLE IF NOT EXISTS public.grading_policy
     CONSTRAINT grading_policy_class_id_key UNIQUE (class_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.grading_score
+(
+    score_id bigserial NOT NULL,
+    column_id bigint NOT NULL,
+    student_id integer NOT NULL,
+    score numeric(8, 2),
+    CONSTRAINT grading_score_pkey PRIMARY KEY (score_id),
+    CONSTRAINT grading_score_column_id_student_id_key UNIQUE (column_id, student_id)
+);
+
 CREATE TABLE IF NOT EXISTS public.module
 (
     module_id serial NOT NULL,
@@ -179,6 +233,7 @@ CREATE TABLE IF NOT EXISTS public.module
     summary character varying(255) COLLATE pg_catalog."default",
     class_id integer,
     grading_period character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Midterm'::character varying,
+    topic_id bigint,
     CONSTRAINT module_pkey PRIMARY KEY (module_id)
 );
 
@@ -234,8 +289,8 @@ CREATE TABLE IF NOT EXISTS public.quiz
     deadline timestamp without time zone,
     time_limit_minutes integer,
     total_points numeric(8, 2),
-    max_attempts integer,
     status character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'Published'::character varying,
+    max_attempts integer,
     CONSTRAINT quiz_pkey PRIMARY KEY (quiz_id)
 );
 
@@ -279,50 +334,6 @@ CREATE TABLE IF NOT EXISTS public.student
     CONSTRAINT student_user_id_key UNIQUE (user_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.syllabus_topic
-(
-    topic_id bigserial NOT NULL,
-    class_id bigint NOT NULL,
-    title character varying(255) NOT NULL,
-    display_order integer NOT NULL DEFAULT 0,
-    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT syllabus_topic_pkey PRIMARY KEY (topic_id),
-    CONSTRAINT syllabus_topic_class_id_fkey FOREIGN KEY (class_id)
-        REFERENCES public.class (class_id) ON DELETE CASCADE
-);
-
-ALTER TABLE IF EXISTS public.module
-    ADD COLUMN IF NOT EXISTS topic_id bigint
-    REFERENCES public.syllabus_topic (topic_id) ON DELETE SET NULL;
-
-CREATE TABLE IF NOT EXISTS public.student_topic_progress
-(
-    topic_id bigint NOT NULL,
-    student_id integer NOT NULL,
-    completed boolean NOT NULL DEFAULT false,
-    completed_at timestamp without time zone,
-    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT student_topic_progress_pkey PRIMARY KEY (topic_id, student_id),
-    CONSTRAINT student_topic_progress_topic_id_fkey FOREIGN KEY (topic_id)
-        REFERENCES public.syllabus_topic (topic_id) ON DELETE CASCADE,
-    CONSTRAINT student_topic_progress_student_id_fkey FOREIGN KEY (student_id)
-        REFERENCES public.student (student_id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS syllabus_topic_class_order_idx
-    ON public.syllabus_topic (class_id, display_order, topic_id);
-
-CREATE TABLE IF NOT EXISTS public.class_syllabus
-(
-    class_id bigint NOT NULL,
-    file_name character varying(255) NOT NULL,
-    file_path character varying(255) NOT NULL,
-    uploaded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT class_syllabus_pkey PRIMARY KEY (class_id),
-    CONSTRAINT class_syllabus_class_id_fkey FOREIGN KEY (class_id)
-        REFERENCES public.class (class_id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS public.student_answer
 (
     answer_id serial NOT NULL,
@@ -335,6 +346,42 @@ CREATE TABLE IF NOT EXISTS public.student_answer
     answer_json jsonb,
     answered_at timestamp without time zone DEFAULT now(),
     CONSTRAINT student_answer_pkey PRIMARY KEY (answer_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.student_topic_progress
+(
+    topic_id bigint NOT NULL,
+    student_id integer NOT NULL,
+    completed boolean NOT NULL DEFAULT false,
+    completed_at timestamp without time zone,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT student_topic_progress_pkey PRIMARY KEY (topic_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.syllabus_topic
+(
+    topic_id serial NOT NULL,
+    class_id bigint NOT NULL,
+    title character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    module_id integer,
+    activity_id integer,
+    quiz_id integer,
+    sort_order integer NOT NULL DEFAULT 1,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    display_order integer NOT NULL DEFAULT 0,
+    CONSTRAINT syllabus_topic_pkey PRIMARY KEY (topic_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.syllabus_topic_progress
+(
+    student_id integer NOT NULL,
+    topic_id integer NOT NULL,
+    status character varying(20) COLLATE pg_catalog."default" NOT NULL DEFAULT 'not_started'::character varying,
+    progress_pct numeric(5, 2) NOT NULL DEFAULT 0,
+    completed_at timestamp without time zone,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT syllabus_topic_progress_pkey PRIMARY KEY (student_id, topic_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.teacher
@@ -450,11 +497,27 @@ ALTER TABLE IF EXISTS public.attendance
     ON DELETE NO ACTION;
 
 
+ALTER TABLE IF EXISTS public.bug_report
+    ADD CONSTRAINT bug_report_reporter_user_id_fkey FOREIGN KEY (reporter_user_id)
+    REFERENCES public.account (user_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
 ALTER TABLE IF EXISTS public.class
     ADD CONSTRAINT class_employee_id_fkey FOREIGN KEY (employee_id)
     REFERENCES public.teacher (employee_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.class_syllabus
+    ADD CONSTRAINT class_syllabus_class_id_fkey FOREIGN KEY (class_id)
+    REFERENCES public.class (class_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS class_syllabus_pkey
+    ON public.class_syllabus(class_id);
 
 
 ALTER TABLE IF EXISTS public.enrollment
@@ -501,6 +564,13 @@ CREATE INDEX IF NOT EXISTS grading_policy_class_id_key
     ON public.grading_policy(class_id);
 
 
+ALTER TABLE IF EXISTS public.grading_score
+    ADD CONSTRAINT grading_score_column_id_fkey FOREIGN KEY (column_id)
+    REFERENCES public.grading_column (column_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
 ALTER TABLE IF EXISTS public.module
     ADD CONSTRAINT module_class_id_fkey FOREIGN KEY (class_id)
     REFERENCES public.class (class_id) MATCH SIMPLE
@@ -513,6 +583,13 @@ ALTER TABLE IF EXISTS public.module
     REFERENCES public.teacher (employee_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.module
+    ADD CONSTRAINT module_topic_id_fkey FOREIGN KEY (topic_id)
+    REFERENCES public.syllabus_topic (topic_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
 
 
 ALTER TABLE IF EXISTS public.module_content
@@ -652,6 +729,55 @@ ALTER TABLE IF EXISTS public.student_answer
     ON DELETE NO ACTION;
 
 
+ALTER TABLE IF EXISTS public.student_topic_progress
+    ADD CONSTRAINT student_topic_progress_student_id_fkey FOREIGN KEY (student_id)
+    REFERENCES public.student (student_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.student_topic_progress
+    ADD CONSTRAINT student_topic_progress_topic_id_fkey FOREIGN KEY (topic_id)
+    REFERENCES public.syllabus_topic (topic_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.syllabus_topic
+    ADD CONSTRAINT syllabus_topic_activity_id_fkey FOREIGN KEY (activity_id)
+    REFERENCES public.activity (activity_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.syllabus_topic
+    ADD CONSTRAINT syllabus_topic_class_id_fkey FOREIGN KEY (class_id)
+    REFERENCES public.class (class_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.syllabus_topic
+    ADD CONSTRAINT syllabus_topic_module_id_fkey FOREIGN KEY (module_id)
+    REFERENCES public.module (module_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.syllabus_topic
+    ADD CONSTRAINT syllabus_topic_quiz_id_fkey FOREIGN KEY (quiz_id)
+    REFERENCES public.quiz (quiz_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.syllabus_topic_progress
+    ADD CONSTRAINT syllabus_topic_progress_topic_id_fkey FOREIGN KEY (topic_id)
+    REFERENCES public.syllabus_topic (topic_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
 ALTER TABLE IF EXISTS public.teacher
     ADD CONSTRAINT teacher_user_id_fkey FOREIGN KEY (user_id)
     REFERENCES public.account (user_id) MATCH SIMPLE
@@ -659,35 +785,5 @@ ALTER TABLE IF EXISTS public.teacher
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS teacher_user_id_key
     ON public.teacher(user_id);
-
-
-TRUNCATE TABLE
-    public.act_recitation,
-    public.act_submission,
-    public.activity,
-    public.activity_sections,
-    public.ai_query,
-    public.announcement,
-    public.announcement_section,
-    public.attendance,
-    public.class,
-    public.enrollment,
-    public.grade,
-    public.grade_visibility,
-    public.grading_policy,
-    public.module,
-    public.module_content,
-    public.module_sections,
-    public.query_context,
-    public.question,
-    public.quiz,
-    public.quiz_score,
-    public.quiz_sections,
-    public.section,
-    public.student_answer,
-    public.student,
-    public.teacher,
-    public.account
-RESTART IDENTITY;
 
 END;
