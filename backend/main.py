@@ -3,6 +3,8 @@ LearnSync Backend - FastAPI Application
 Organized modular structure with routers, models, and database helpers
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -43,6 +45,14 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+
+# Needed only if a separate frontend is hosted on another origin.  The bundled
+# frontend is served by this same app and uses relative /api URLs.
+origins.extend(
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+)
 
 app.add_middleware(
     CORSMiddleware,
