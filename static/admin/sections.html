@@ -50,11 +50,11 @@
         <form class="lms-grid mt-3" @submit.prevent="saveSection()">
           <select class="lms-select" x-model.number="section.term_id" required><option value="">Choose term</option>
             <template x-for="item in data.terms" :key="item.term_id"><option :value="item.term_id" x-text="item.school_year + ' · ' + item.semester"></option></template></select>
-          <input class="lms-input" x-model="section.name" placeholder="Section, e.g. 1A" required>
+          <input class="lms-input" x-model="section.name" placeholder="Section, e.g. 1A" maxlength="10" required>
           <input class="lms-input" x-model.number="section.year_level" type="number" min="1" max="8" placeholder="Year level" required>
           <select class="lms-select" x-model.number="section.adviser_id"><option value="">No adviser</option>
             <template x-for="person in data.faculty" :key="person.employee_id"><option :value="person.employee_id" x-text="person.name"></option></template></select>
-          <input class="lms-input" x-model="section.join_code" placeholder="Student join code" required>
+          <input class="lms-input" x-model="section.join_code" placeholder="Student join code (4–24 characters)" minlength="4" maxlength="24" required>
           <button class="lms-btn" type="submit" x-text="editSectionId ? 'Update section' : 'Create section'"></button>
         </form>
         <div class="mt-4"><label class="lms-meta">Add students to roster</label>
@@ -124,46 +124,96 @@
   <style>.batch-student-list{max-height:18rem;overflow-y:auto;border:1px solid #dbe7ef;border-radius:.75rem;padding:.5rem}.batch-student{display:flex;align-items:center;gap:.75rem;padding:.55rem;border-radius:.4rem;cursor:pointer}.batch-student:hover{background:#f1f5f9}.batch-student input{flex:none}</style>
   <script>
     function academicSetup() { return {
-      data: {terms:[],subjects:[],sections:[],faculty:[],students:[],student_memberships:[],offerings:[],requests:[],legacy:[]},
-      error:'', message:'', term:{school_year:'',semester:'First',is_active:false},
-      subject:{code:'',title:'',description:'',units:null,active:true},
-      section:{term_id:'',name:'',year_level:1,adviser_id:'',join_code:''},
-      roster:{section_id:'',student_ids:''}, members:[], batchOpen:false,batchSearch:'',batchIds:[],batchError:'',batchBusy:false, offering:{term_id:'',subject_id:'',teacher_id:'',section_ids:[]},
-      get availableStudents() { const termId=this.data.sections.find(s=>s.section_id===Number(this.roster.section_id))?.term_id;return this.data.students.filter(s=>!this.members.some(m=>m.student_id===s.student_id)&&!this.data.student_memberships.some(m=>m.student_id===s.student_id&&m.term_id===termId)); },
-      get filteredStudents() { const query=this.batchSearch.trim().toLowerCase();return this.availableStudents.filter(s=>!query||s.name.toLowerCase().includes(query)||String(s.student_id).includes(query)); },
-      editTermId:null,editSubjectId:null,editSectionId:null,editOfferingId:null,
-      get adminId() { return Number(localStorage.getItem('user_id')); },
-      async request(path, method='GET', body) {
-        const response = await fetch(path, {method, headers: body ? {'Content-Type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined});
-        const data = await response.json().catch(()=>({}));
-        if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
-        return data;
-      },
-      async run(action) { this.error=''; this.message=''; try { await action(); this.message='Saved.'; await this.load(); } catch(e) { this.error=e.message; } },
-      async load() { try { this.data=await this.request(`/api/academic/setup?admin_user_id=${this.adminId}`);
-        this.data.legacy.forEach(item=>{item.section_map={}; item.term_id=''; item.subject_id='';});
-      } catch(e) { this.error=e.message; } },
-      async saveTerm() { await this.run(async()=>{await this.request(`/api/academic/terms${this.editTermId ? '/' + this.editTermId : ''}?admin_user_id=${this.adminId}`,
-        this.editTermId ? 'PUT' : 'POST',this.term);this.editTermId=null;}); },
-      async saveSubject() { await this.run(async()=>{await this.request(`/api/academic/subjects${this.editSubjectId ? '/' + this.editSubjectId : ''}?admin_user_id=${this.adminId}`,
-        this.editSubjectId ? 'PUT' : 'POST',this.subject);this.editSubjectId=null;}); },
-      async saveSection() { await this.run(async()=>{await this.request(`/api/academic/sections${this.editSectionId ? '/' + this.editSectionId : ''}?admin_user_id=${this.adminId}`,
-        this.editSectionId ? 'PUT' : 'POST',{...this.section, adviser_id:this.section.adviser_id || null, join_code:this.section.join_code.trim().toUpperCase()});this.editSectionId=null;}); },
-      async loadRoster() {if(!this.roster.section_id){this.members=[];return;}try{this.members=(await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`)).students;}catch(e){this.error=e.message;}},
-      async addRoster() {if(!this.roster.section_id||!this.roster.student_ids){this.error='Choose a section and student.';return;}await this.run(async()=>{await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`,'PUT',{
-        student_ids:[Number(this.roster.student_ids)]});this.roster.student_ids='';await this.loadRoster();}); },
-      openBatch() {if(!this.roster.section_id)return;this.batchSearch='';this.batchIds=[];this.batchError='';this.batchOpen=true;},
-      closeBatch() {if(this.batchBusy)return;this.batchOpen=false;this.batchError='';},
-      selectFiltered() {this.batchIds=[...new Set([...this.batchIds.map(Number),...this.filteredStudents.map(s=>s.student_id)])].map(String);},
-      async addBatch() {const ids=[...new Set(this.batchIds.map(Number))];if(!this.roster.section_id||!ids.length)return;this.batchBusy=true;this.batchError='';this.error='';this.message='';try{await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`,'PUT',{student_ids:ids});await this.loadRoster();await this.load();this.batchOpen=false;this.batchIds=[];this.message=`Added ${ids.length} students to the roster.`;}catch(e){this.batchError=e.message;}finally{this.batchBusy=false;}},
-      async removeMember(studentId) {if(!confirm('Remove this student from the home section?'))return;await this.run(async()=>{await this.request(`/api/academic/sections/${this.roster.section_id}/roster/${studentId}?admin_user_id=${this.adminId}`,'DELETE');await this.loadRoster();});},
-      async saveOffering() { await this.run(async()=>{await this.request(`/api/academic/offerings${this.editOfferingId ? '/' + this.editOfferingId : ''}?admin_user_id=${this.adminId}`,
-        this.editOfferingId ? 'PUT' : 'POST',{...this.offering, section_ids:this.offering.section_ids.map(Number)});this.editOfferingId=null;}); },
-      async remove(kind,id) {if(!confirm('Confirm this change?'))return;await this.run(async()=>{await this.request(`/api/academic/${kind}/${id}?admin_user_id=${this.adminId}`,'DELETE');});},
-      async decide(id,decision) { await this.run(async()=>{await this.request(`/api/academic/join-requests/${id}/decision`,'POST',{
-        admin_user_id:this.adminId,decision});}); },
-      async activate(item) { await this.run(async()=>{await this.request(`/api/academic/legacy/${item.class_id}/activate?admin_user_id=${this.adminId}`,'POST',{
-        term_id:Number(item.term_id),subject_id:Number(item.subject_id),section_map:item.section_map});}); }
-    }; }
-  </script>
-</body></html>
+      data: { terms: [], subjects: [], sections: [], faculty: [], students: [], student_memberships: [], offerings: [], requests: [], legacy: [] },
+          error: '', message: '', term: { school_year: '', semester: 'First', is_active: false },
+          subject: { code: '', title: '', description: '', units: null, active: true },
+          section: { term_id: '', name: '', year_level: 1, adviser_id: '', join_code: '' },
+          roster: { section_id: '', student_ids: '' }, members: [], batchOpen: false, batchSearch: '', batchIds: [], batchError: '', batchBusy: false, offering: { term_id: '', subject_id: '', teacher_id: '', section_ids: [] },
+          get availableStudents() { const termId = this.data.sections.find(s => s.section_id === Number(this.roster.section_id))?.term_id; return this.data.students.filter(s => !this.members.some(m => m.student_id === s.student_id) && !this.data.student_memberships.some(m => m.student_id === s.student_id && m.term_id === termId)); },
+          get filteredStudents() { const query = this.batchSearch.trim().toLowerCase(); return this.availableStudents.filter(s => !query || s.name.toLowerCase().includes(query) || String(s.student_id).includes(query)); },
+          editTermId: null, editSubjectId: null, editSectionId: null, editOfferingId: null,
+          get adminId() { return Number(localStorage.getItem('user_id')); },
+          async request(path, method = 'GET', body) {
+            const response = await fetch(path, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(window.LearnSyncUI?.formatError?.(data.detail) || data.detail || `Request failed (${response.status})`);
+            return data;
+          },
+          async run(action) { this.error = ''; this.message = ''; try { await action(); this.message = 'Saved.'; await this.load(); } catch (e) { this.error = e.message; } },
+          async load() {
+            try {
+              this.data = await this.request(`/api/academic/setup?admin_user_id=${this.adminId}`);
+              this.data.legacy.forEach(item => { item.section_map = {}; item.term_id = ''; item.subject_id = ''; });
+            } catch (e) { this.error = e.message; }
+          },
+          async saveTerm() {
+            await this.run(async () => {
+              await this.request(`/api/academic/terms${this.editTermId ? '/' + this.editTermId : ''}?admin_user_id=${this.adminId}`,
+                this.editTermId ? 'PUT' : 'POST', this.term); this.editTermId = null;
+            });
+          },
+          async saveSubject() {
+            await this.run(async () => {
+              await this.request(`/api/academic/subjects${this.editSubjectId ? '/' + this.editSubjectId : ''}?admin_user_id=${this.adminId}`,
+                this.editSubjectId ? 'PUT' : 'POST', this.subject); this.editSubjectId = null;
+            });
+          },
+          async saveSection() {
+            await this.run(async () => {
+              const payload = {
+                ...this.section,
+                term_id: Number(this.section.term_id),
+                year_level: Number(this.section.year_level),
+                name: this.section.name.trim(),
+                adviser_id: this.section.adviser_id ? Number(this.section.adviser_id) : null,
+                join_code: this.section.join_code.trim().toUpperCase()
+              };
+              if (!Number.isInteger(payload.term_id) || payload.term_id < 1) throw new Error('Choose an academic term.');
+              if (!Number.isInteger(payload.year_level) || payload.year_level < 1 || payload.year_level > 8) throw new Error('Year level must be between 1 and 8.');
+              if (!payload.name) throw new Error('Enter a section name.');
+              if (payload.name.length > 10) throw new Error('Section name must be 10 characters or fewer.');
+              if (payload.join_code.length < 4 || payload.join_code.length > 24) throw new Error('Student join code must be 4–24 characters.');
+              await this.request(`/api/academic/sections${this.editSectionId ? '/' + this.editSectionId : ''}?admin_user_id=${this.adminId}`,
+                this.editSectionId ? 'PUT' : 'POST', payload); this.editSectionId = null;
+            });
+          },
+          async loadRoster() { if (!this.roster.section_id) { this.members = []; return; } try { this.members = (await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`)).students; } catch (e) { this.error = e.message; } },
+          async addRoster() {
+            if (!this.roster.section_id || !this.roster.student_ids) { this.error = 'Choose a section and student.'; return; } await this.run(async () => {
+              await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`, 'PUT', {
+                student_ids: [Number(this.roster.student_ids)]
+              }); this.roster.student_ids = ''; await this.loadRoster();
+            });
+          },
+          openBatch() { if (!this.roster.section_id) return; this.batchSearch = ''; this.batchIds = []; this.batchError = ''; this.batchOpen = true; },
+          closeBatch() { if (this.batchBusy) return; this.batchOpen = false; this.batchError = ''; },
+          selectFiltered() { this.batchIds = [...new Set([...this.batchIds.map(Number), ...this.filteredStudents.map(s => s.student_id)])].map(String); },
+          async addBatch() { const ids = [...new Set(this.batchIds.map(Number))]; if (!this.roster.section_id || !ids.length) return; this.batchBusy = true; this.batchError = ''; this.error = ''; this.message = ''; try { await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`, 'PUT', { student_ids: ids }); await this.loadRoster(); await this.load(); this.batchOpen = false; this.batchIds = []; this.message = `Added ${ids.length} students to the roster.`; } catch (e) { this.batchError = e.message; } finally { this.batchBusy = false; } },
+          async removeMember(studentId) { if (!confirm('Remove this student from the home section?')) return; await this.run(async () => { await this.request(`/api/academic/sections/${this.roster.section_id}/roster/${studentId}?admin_user_id=${this.adminId}`, 'DELETE'); await this.loadRoster(); }); },
+          async saveOffering() {
+            await this.run(async () => {
+              await this.request(`/api/academic/offerings${this.editOfferingId ? '/' + this.editOfferingId : ''}?admin_user_id=${this.adminId}`,
+                this.editOfferingId ? 'PUT' : 'POST', { ...this.offering, section_ids: this.offering.section_ids.map(Number) }); this.editOfferingId = null;
+            });
+          },
+          async remove(kind, id) { if (!confirm('Confirm this change?')) return; await this.run(async () => { await this.request(`/api/academic/${kind}/${id}?admin_user_id=${this.adminId}`, 'DELETE'); }); },
+          async decide(id, decision) {
+            await this.run(async () => {
+              await this.request(`/api/academic/join-requests/${id}/decision`, 'POST', {
+                admin_user_id: this.adminId, decision
+              });
+            });
+          },
+          async activate(item) {
+            await this.run(async () => {
+              await this.request(`/api/academic/legacy/${item.class_id}/activate?admin_user_id=${this.adminId}`, 'POST', {
+                term_id: Number(item.term_id), subject_id: Number(item.subject_id), section_map: item.section_map
+              });
+            });
+          }
+        };
+        }
+      </script>
+  </body>
+  
+  </html>

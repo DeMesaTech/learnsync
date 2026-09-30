@@ -63,6 +63,17 @@
   loadingBar.setAttribute('role', 'progressbar');
   loadingBar.setAttribute('aria-label', 'Loading');
   document.body.append(loadingBar);
+  const errorMessage = detail => {
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      const messages = detail.map(error => {
+        const field = Array.isArray(error?.loc) ? error.loc.filter(part => part !== 'body').join(' ') : '';
+        return field ? `${field}: ${error?.msg || 'Invalid value'}` : error?.msg;
+      }).filter(Boolean);
+      if (messages.length) return messages.join('; ');
+    }
+    return 'The action could not be completed.';
+  };
   window.LearnSyncUI = {
     toast(message, type = 'success') {
       const item = document.createElement('div');
@@ -78,7 +89,8 @@
       item.append(label, closeButton);
       toastHost.append(item);
       if (type !== 'error') setTimeout(() => item.remove(), 5000);
-    }
+    },
+    formatError: errorMessage
   };
   const originalFetch = window.fetch.bind(window);
   let activeRequests = 0;
@@ -97,7 +109,7 @@
         if (response.ok) window.LearnSyncUI.toast(method === 'DELETE' ? 'Deleted successfully.' : url.includes('/generate-draft') ? 'Questions generated for review.' : 'Saved successfully.');
         else {
           const data = await response.clone().json().catch(() => ({}));
-          window.LearnSyncUI.toast(typeof data.detail === 'string' ? data.detail : 'The action could not be completed.', 'error');
+          window.LearnSyncUI.toast(errorMessage(data.detail), 'error');
         }
       }
       return response;

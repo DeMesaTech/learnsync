@@ -225,7 +225,8 @@ __marimo__/
 API key.txt
 run.bat
 run_wireless_server.bat
-uploads/
+outputs/
+.backend/uploads/
 
 # Copilot skill downloads
 .agents/
