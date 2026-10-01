@@ -13,7 +13,7 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "database": os.getenv("DB_NAME", "lms"),
     "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
+    "password": os.getenv("DB_PASSWORD", "DB_PASSWORD"),
     "port": os.getenv("DB_PORT", "5432"),
 }
 # Render provides this as an environment variable.  Keep credentials out of

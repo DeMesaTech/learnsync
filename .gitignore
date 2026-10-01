@@ -223,8 +223,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 API key.txt
-run.bat
-run_wireless_server.bat
 outputs/
 .backend/uploads/
 
