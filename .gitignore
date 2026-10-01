@@ -229,3 +229,8 @@ outputs/
 # Copilot skill downloads
 .agents/
 skills-lock.json
+.artifact_node_modules/
+external_db.bat
+.artifact_tool_env/
+studentList_by_year_sections.xlsx
+studentList.xlsx
