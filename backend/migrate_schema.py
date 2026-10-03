@@ -17,6 +17,7 @@ SCHEMA_FILES = (
     "syllabus_progress_schema.sql",
     "grading_schema.sql",
     "academic_schema.sql",
+    "program_enrollment_schema.sql",
 )
 SCHEMA_DIR = Path(__file__).resolve().parent
 BASE_SCHEMA = SCHEMA_DIR.parent / "learnsync.sql"

@@ -1,9 +1,15 @@
-"""Admin-owned academic setup and section membership."""
+"""Program-owned academic setup, curriculum import, and masterlist enrollment."""
+import csv
+import io
+import re
+import uuid
+from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from docx import Document
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import Json, RealDictCursor
 
 from db import get_db_connection
 
@@ -30,6 +36,8 @@ class SectionInput(BaseModel):
     name: str = Field(min_length=1, max_length=10)
     adviser_id: int | None = None
     join_code: str = Field(min_length=4, max_length=24)
+    program_id: int | None = None
+    curriculum_version_id: int | None = None
 
 
 class RosterInput(BaseModel):
@@ -40,7 +48,8 @@ class OfferingInput(BaseModel):
     term_id: int
     subject_id: int
     teacher_id: int
-    section_ids: list[int] = Field(min_length=1)
+    # An offering is exactly one subject + one section + one assigned teacher.
+    section_ids: list[int] = Field(min_length=1, max_length=1)
 
 
 class RequestDecision(BaseModel):
@@ -61,6 +70,79 @@ class SubjectEnrollmentDecision(BaseModel):
     reason: str = ""
 
 
+class ProspectusCommit(BaseModel):
+    program_code: str = Field(min_length=2, max_length=30)
+    program_name: str = Field(min_length=2, max_length=150)
+    version_label: str = Field(min_length=2, max_length=100)
+    effective_school_year: str | None = Field(default=None, pattern=r"^[0-9]{4}-[0-9]{4}$")
+    rows: list[dict] = Field(min_length=1)
+
+
+def _normalize_header(value: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", value.casefold())
+
+
+def _prospectus_rows(file_bytes: bytes) -> list[dict]:
+    """Extract course rows from the editable prospectus table layout."""
+    document = Document(io.BytesIO(file_bytes))
+    rows = []
+    for table in document.tables:
+        headers = [_normalize_header(cell.text.strip()) for cell in table.rows[0].cells] if table.rows else []
+        code_index = next((i for i, value in enumerate(headers) if value in {"subjectcode", "coursecode"}), None)
+        title_index = next((i for i, value in enumerate(headers) if value in {"descriptivetitle", "coursetitle", "title"}), None)
+        units_index = next((i for i, value in enumerate(headers) if value == "units"), None)
+        prereq_index = next((i for i, value in enumerate(headers) if value in {"prerequisite", "prerequisites"}), None)
+        if code_index is None or title_index is None:
+            continue
+        semester_text = " ".join(cell.text for cell in table.rows[0].cells).casefold()
+        semester = "Second" if "second" in semester_text else "First"
+        for raw in table.rows[1:]:
+            cells = [cell.text.strip() for cell in raw.cells]
+            if len(cells) <= max(code_index, title_index):
+                continue
+            code, title = cells[code_index].upper(), cells[title_index]
+            if not code or not title or code.casefold().startswith(("total", "grand total")):
+                continue
+            units = None
+            if units_index is not None and units_index < len(cells):
+                try:
+                    units = float(cells[units_index])
+                except ValueError:
+                    pass
+            rows.append({"code": code, "title": title, "units": units,
+                         "prerequisites": cells[prereq_index] if prereq_index is not None and prereq_index < len(cells) else "",
+                         "semester": semester, "year_level": 1})
+    return rows
+
+
+def _masterlist_student_ids(file_bytes: bytes) -> list[int]:
+    try:
+        decoded = file_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=422, detail="Masterlist must be a UTF-8 CSV file.") from exc
+    reader = csv.DictReader(io.StringIO(decoded))
+    if not reader.fieldnames:
+        raise HTTPException(status_code=422, detail="Masterlist needs a Student ID column.")
+    columns = {_normalize_header(name): name for name in reader.fieldnames}
+    column = next((columns[name] for name in ("studentid", "studentnumber", "idnumber") if name in columns), None)
+    if not column:
+        raise HTTPException(status_code=422, detail="Masterlist needs a Student ID, Student Number, or ID Number column.")
+    ids, invalid = [], []
+    for number, row in enumerate(reader, start=2):
+        value = (row.get(column) or "").strip()
+        try:
+            ids.append(int(value))
+        except ValueError:
+            invalid.append(number)
+    if invalid:
+        raise HTTPException(status_code=422, detail=f"Invalid student ID on CSV row(s): {', '.join(map(str, invalid[:10]))}.")
+    if not ids:
+        raise HTTPException(status_code=422, detail="Masterlist has no student IDs.")
+    if len(ids) != len(set(ids)):
+        raise HTTPException(status_code=422, detail="Masterlist contains duplicate student IDs.")
+    return ids
+
+
 def _transaction_result(conn, cur, sql, params):
     cur.execute(sql, params)
     row = cur.fetchone()
@@ -72,6 +154,13 @@ def _admin(cur, user_id: int):
     cur.execute("SELECT 1 FROM account WHERE user_id = %s AND role = 'admin'", (user_id,))
     if not cur.fetchone():
         raise HTTPException(status_code=403, detail="Admin account required.")
+
+
+def _program_account(cur, user_id: int, program_id: int):
+    """A shared Program Head/Secretary account may manage only its program."""
+    cur.execute("SELECT 1 FROM program_account WHERE program_id=%s AND account_id=%s", (program_id, user_id))
+    if not cur.fetchone():
+        raise HTTPException(status_code=403, detail="Program Head/Secretary account for this program required.")
 
 
 def _teacher(cur, employee_id: int):
@@ -123,7 +212,8 @@ def _add_member(cur, section_id: int, student_id: int):
         "INSERT INTO section_member(section_id, student_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
         (section_id, student_id),
     )
-    _sync_enrollment(cur, section_id, student_id)
+    # Home-section membership is not subject enrollment. A reviewed masterlist
+    # controls the roster for each subject offering.
 
 
 @academic_router.get("/setup")
@@ -134,17 +224,18 @@ def setup(admin_user_id: int = Query(...)):
         _admin(cur, admin_user_id)
         queries = {
             "terms": "SELECT * FROM academic_term ORDER BY school_year DESC, semester",
+            "programs": "SELECT p.*,cv.curriculum_version_id,cv.version_label,cv.effective_school_year FROM program p LEFT JOIN curriculum_version cv ON cv.program_id=p.program_id AND cv.status='active' ORDER BY p.name,cv.created_at DESC",
             "subjects": "SELECT * FROM subject_catalog ORDER BY code",
             "faculty": "SELECT t.employee_id, a.name FROM teacher t JOIN account a ON a.user_id=t.user_id ORDER BY a.name",
             "students": "SELECT s.student_id, a.name FROM student s JOIN account a ON a.user_id=s.user_id ORDER BY a.name",
             "student_memberships": """SELECT sm.student_id, s.term_id FROM section_member sm
                                       JOIN section s ON s.section_id=sm.section_id""",
-            "sections": """SELECT s.section_id, s.section, s.term_id, s.year_level, s.adviser_id, s.join_code,
+            "sections": """SELECT s.section_id, s.section, s.term_id, s.year_level, s.adviser_id, s.join_code, s.program_id, s.curriculum_version_id,
                                   COUNT(sm.student_id) AS student_count
                            FROM section s LEFT JOIN section_member sm ON sm.section_id=s.section_id
                            WHERE s.workflow_status='active'
                            GROUP BY s.section_id ORDER BY s.section""",
-            "offerings": """SELECT c.class_id, c.subject, c.subject_id, c.term_id, c.employee_id AS teacher_id,
+            "offerings": """SELECT c.class_id, c.subject, c.subject_id, c.term_id, c.employee_id AS teacher_id, c.teaching_section_id,
                                    ARRAY_REMOVE(ARRAY_AGG(cs.section_id), NULL) AS section_ids
                             FROM class c LEFT JOIN class_section cs ON cs.class_id=c.class_id
                             WHERE c.workflow_status='active' GROUP BY c.class_id ORDER BY c.subject""",
@@ -204,6 +295,81 @@ def save_subject(payload: SubjectInput, admin_user_id: int = Query(...)):
         row = cur.fetchone()
         conn.commit()
         return row
+    finally:
+        conn.close()
+
+
+@academic_router.post("/prospectus/preview")
+async def preview_prospectus(admin_user_id: int = Form(...), file: UploadFile = File(...)):
+    """Parse an editable DOCX prospectus; the caller must review before committing it."""
+    if Path(file.filename or "").suffix.lower() != ".docx":
+        raise HTTPException(status_code=415, detail="Prospectus must be an editable DOCX file.")
+    data = await file.read(20 * 1024 * 1024 + 1)
+    if len(data) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Prospectus must be 20 MB or smaller.")
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _admin(cur, admin_user_id)
+        rows = _prospectus_rows(data)
+        if not rows:
+            raise HTTPException(status_code=422, detail="No subject rows were found in the prospectus tables.")
+        seen, warnings = {}, []
+        for row in rows:
+            key = row["code"].casefold()
+            if key in seen and seen[key] != row["title"]:
+                warnings.append(f"{row['code']} appears with multiple titles; correct it before approval.")
+            seen[key] = row["title"]
+        directory = Path(__file__).resolve().parents[1] / "uploads" / "prospectus"
+        directory.mkdir(parents=True, exist_ok=True)
+        stored = directory / f"{uuid.uuid4().hex}.docx"
+        stored.write_bytes(data)
+        return {"source_name": Path(file.filename).name[:255], "source_path": f"uploads/prospectus/{stored.name}",
+                "rows": rows, "warnings": sorted(set(warnings))}
+    finally:
+        conn.close()
+
+
+@academic_router.post("/prospectus/commit", status_code=201)
+def commit_prospectus(payload: ProspectusCommit, admin_user_id: int = Query(...)):
+    """Approve reviewed rows into a versioned curriculum; never overwrite a prior version."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _admin(cur, admin_user_id)
+        cur.execute("SELECT program_id FROM program WHERE code=%s", (payload.program_code.strip().upper(),))
+        program = cur.fetchone()
+        if program:
+            _program_account(cur, admin_user_id, program["program_id"])
+            program_id = program["program_id"]
+        else:
+            cur.execute("INSERT INTO program(code,name) VALUES (%s,%s) RETURNING program_id",
+                        (payload.program_code.strip().upper(), payload.program_name.strip()))
+            program_id = cur.fetchone()["program_id"]
+            cur.execute("INSERT INTO program_account(program_id,account_id) VALUES (%s,%s)", (program_id, admin_user_id))
+        cur.execute("""INSERT INTO curriculum_version(program_id,version_label,effective_school_year,status)
+                       VALUES (%s,%s,%s,'active') RETURNING curriculum_version_id""",
+                    (program_id, payload.version_label.strip(), payload.effective_school_year))
+        version_id = cur.fetchone()["curriculum_version_id"]
+        for row in payload.rows:
+            code, title = str(row.get("code", "")).strip().upper(), str(row.get("title", "")).strip()
+            if not code or not title:
+                raise HTTPException(status_code=422, detail="Every approved prospectus row needs a code and title.")
+            # Codes are deliberately not unique; the numeric subject ID is the LMS identity.
+            cur.execute("INSERT INTO subject_catalog(code,title,description,units,active) VALUES (%s,%s,'',%s,true) RETURNING subject_id",
+                        (code, title, row.get("units")))
+            subject_id = cur.fetchone()["subject_id"]
+            cur.execute("""INSERT INTO curriculum_subject(curriculum_version_id,subject_id,year_level,semester,prerequisites)
+                           VALUES (%s,%s,%s,%s,%s)""",
+                        (version_id, subject_id, int(row.get("year_level", 1)), row.get("semester", "First"),
+                         str(row.get("prerequisites", ""))))
+        cur.execute("UPDATE curriculum_version SET status='archived' WHERE program_id=%s AND curriculum_version_id<>%s AND status='active'",
+                    (program_id, version_id))
+        cur.execute("""INSERT INTO prospectus_import(program_id,curriculum_version_id,source_name,source_path,parsed_rows,status,submitted_by,approved_by,approved_at)
+                       VALUES (%s,%s,%s,%s,%s,'approved',%s,%s,CURRENT_TIMESTAMP)""",
+                    (program_id, version_id, "Reviewed prospectus", "", Json(payload.rows), admin_user_id, admin_user_id))
+        conn.commit()
+        return {"program_id": program_id, "curriculum_version_id": version_id, "subjects_created": len(payload.rows)}
     finally:
         conn.close()
 
@@ -284,13 +450,21 @@ def create_section(payload: SectionInput, admin_user_id: int = Query(...)):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         _admin(cur, admin_user_id)
         _term(cur, payload.term_id)
+        if payload.program_id is not None:
+            _program_account(cur, admin_user_id, payload.program_id)
+            cur.execute("SELECT 1 FROM curriculum_version WHERE curriculum_version_id=%s AND program_id=%s AND status='active'",
+                        (payload.curriculum_version_id, payload.program_id))
+            if not cur.fetchone():
+                raise HTTPException(status_code=400, detail="Choose an active curriculum version for this program.")
+        elif payload.curriculum_version_id is not None:
+            raise HTTPException(status_code=400, detail="Choose the program for this curriculum version.")
         if payload.adviser_id is not None:
             _teacher(cur, payload.adviser_id)
         cur.execute(
-            """INSERT INTO section(section,term_id,year_level,adviser_id,join_code,workflow_status)
-               VALUES (%s,%s,%s,%s,%s,'active') RETURNING section_id,section,term_id,year_level,join_code""",
+            """INSERT INTO section(section,term_id,year_level,adviser_id,join_code,program_id,curriculum_version_id,workflow_status)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,'active') RETURNING section_id,section,term_id,year_level,join_code,program_id,curriculum_version_id""",
             (payload.name.strip().upper(), payload.term_id, payload.year_level,
-             payload.adviser_id, payload.join_code.strip().upper()),
+             payload.adviser_id, payload.join_code.strip().upper(), payload.program_id, payload.curriculum_version_id),
         )
         row = cur.fetchone()
         conn.commit()
