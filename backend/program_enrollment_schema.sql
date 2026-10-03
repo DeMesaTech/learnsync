@@ -8,6 +8,20 @@ CREATE TABLE IF NOT EXISTS program (
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Course codes are display values. Numeric subject IDs are the LMS identity,
+-- so imported curricula may contain duplicate codes.
+DO $$ DECLARE constraint_name text;
+BEGIN
+    SELECT conname INTO constraint_name
+    FROM pg_constraint
+    WHERE conrelid = 'subject_catalog'::regclass AND contype = 'u'
+      AND conkey = ARRAY[(SELECT attnum FROM pg_attribute
+                           WHERE attrelid='subject_catalog'::regclass AND attname='code')];
+    IF constraint_name IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE subject_catalog DROP CONSTRAINT %I', constraint_name);
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS curriculum_version (
     curriculum_version_id bigserial PRIMARY KEY,
     program_id bigint NOT NULL REFERENCES program(program_id),

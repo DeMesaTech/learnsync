@@ -17,6 +17,19 @@
     <p class="lms-empty text-red-600" x-show="error" x-text="error" role="alert"></p>
     <p class="lms-meta" x-show="message" x-text="message" role="status"></p>
 
+    <section class="lms-panel mt-4"><h2 class="text-lg font-semibold">Program curriculum from prospectus</h2>
+      <p class="lms-meta">Upload an editable DOCX, review the extracted subjects, then save it as a new curriculum version.</p>
+      <div class="lms-grid lms-grid-2 mt-3"><input class="lms-input" x-model="prospectus.program_code" placeholder="Program code, e.g. BSE">
+        <input class="lms-input" x-model="prospectus.program_name" placeholder="Program name">
+        <input class="lms-input" x-model="prospectus.version_label" placeholder="Curriculum version, e.g. CMO 18 s. 2017">
+        <input class="lms-input" x-model="prospectus.effective_school_year" placeholder="Effective school year, e.g. 2018-2019">
+        <input class="lms-input" type="file" accept=".docx" @change="prospectus.file=$event.target.files[0]">
+        <button class="lms-btn" type="button" @click="previewProspectus()">Extract and review</button></div>
+      <p class="lms-meta mt-2" x-show="prospectus.rows.length" x-text="prospectus.rows.length + ' subject rows ready for review.'"></p>
+      <ul class="lms-list mt-2" x-show="prospectus.warnings.length"><template x-for="warning in prospectus.warnings"><li class="text-amber-700" x-text="warning"></li></template></ul>
+      <button class="lms-btn mt-2" type="button" x-show="prospectus.rows.length" @click="commitProspectus()">Approve curriculum version</button>
+    </section>
+
     <section class="lms-grid lms-grid-2 mt-4">
       <div class="lms-panel"><h2 class="text-lg font-semibold">School year and semester</h2>
         <form class="lms-grid mt-3" @submit.prevent="saveTerm()">
@@ -52,6 +65,10 @@
             <template x-for="item in data.terms" :key="item.term_id"><option :value="item.term_id" x-text="item.school_year + ' · ' + item.semester"></option></template></select>
           <input class="lms-input" x-model="section.name" placeholder="Section, e.g. 1A" required>
           <input class="lms-input" x-model.number="section.year_level" type="number" min="1" max="8" placeholder="Year level" required>
+          <select class="lms-select" x-model.number="section.program_id"><option value="">Choose program</option>
+            <template x-for="item in data.programs" :key="item.curriculum_version_id"><option :value="item.program_id" x-text="item.name + ' · ' + item.version_label"></option></template></select>
+          <select class="lms-select" x-model.number="section.curriculum_version_id"><option value="">Choose curriculum version</option>
+            <template x-for="item in data.programs.filter(p => p.program_id === Number(section.program_id))" :key="item.curriculum_version_id"><option :value="item.curriculum_version_id" x-text="item.version_label"></option></template></select>
           <select class="lms-select" x-model.number="section.adviser_id"><option value="">No adviser</option>
             <template x-for="person in data.faculty" :key="person.employee_id"><option :value="person.employee_id" x-text="person.name"></option></template></select>
           <input class="lms-input" x-model="section.join_code" placeholder="Student join code" required>
@@ -65,7 +82,7 @@
         </div>
         <ul class="lms-list mt-3"><template x-for="item in data.sections" :key="item.section_id">
           <li><strong x-text="item.section"></strong> <span x-text="item.student_count + ' students · code ' + item.join_code"></span>
-            <button class="lms-btn lms-btn-small" @click="editSectionId=item.section_id;section={term_id:item.term_id,name:item.section,year_level:item.year_level,adviser_id:item.adviser_id || '',join_code:item.join_code}">Edit</button>
+            <button class="lms-btn lms-btn-small" @click="editSectionId=item.section_id;section={term_id:item.term_id,name:item.section,year_level:item.year_level,adviser_id:item.adviser_id || '',join_code:item.join_code,program_id:item.program_id || '',curriculum_version_id:item.curriculum_version_id || ''}">Edit</button>
             <button class="lms-btn lms-btn-small lms-btn-danger" @click="remove('sections',item.section_id)">Archive</button></li>
         </template></ul>
       </div>
@@ -77,14 +94,15 @@
             <template x-for="item in data.subjects.filter(s => s.active)" :key="item.subject_id"><option :value="item.subject_id" x-text="item.code + ' · ' + item.title"></option></template></select>
           <select class="lms-select" x-model.number="offering.teacher_id" required><option value="">Choose faculty</option>
             <template x-for="person in data.faculty" :key="person.employee_id"><option :value="person.employee_id" x-text="person.name"></option></template></select>
-          <fieldset><legend class="lms-meta">Assigned sections</legend>
+          <fieldset><legend class="lms-meta">Teaching section</legend>
             <template x-for="item in data.sections.filter(s => s.term_id === Number(offering.term_id))" :key="item.section_id">
-              <label class="block"><input type="checkbox" :value="item.section_id" x-model="offering.section_ids"> <span x-text="item.section"></span></label>
+              <label class="block"><input type="radio" :value="item.section_id" x-model="offering.section_id"> <span x-text="item.section"></span></label>
             </template></fieldset>
           <button class="lms-btn" type="submit" x-text="editOfferingId ? 'Update assignment' : 'Assign subject'"></button>
         </form><ul class="lms-list mt-3"><template x-for="item in data.offerings" :key="item.class_id">
-          <li><strong x-text="item.subject"></strong> <span x-text="'Faculty #' + item.teacher_id + ' · ' + (item.section_ids || []).length + ' sections'"></span>
-            <button class="lms-btn lms-btn-small" @click="editOfferingId=item.class_id;offering={term_id:item.term_id,subject_id:item.subject_id,teacher_id:item.teacher_id,section_ids:item.section_ids || []}">Edit</button>
+          <li><strong x-text="item.subject"></strong> <span x-text="'Faculty #' + item.teacher_id + ' · one section'"></span>
+            <button class="lms-btn lms-btn-small" @click="editOfferingId=item.class_id;offering={term_id:item.term_id,subject_id:item.subject_id,teacher_id:item.teacher_id,section_id:item.teaching_section_id}">Edit</button>
+            <label class="lms-btn lms-btn-small">Import masterlist <input class="hidden" type="file" accept=".csv" @change="masterlist(item.class_id,$event.target.files[0])"></label>
             <button class="lms-btn lms-btn-small lms-btn-danger" @click="remove('offerings',item.class_id)">Archive</button></li>
         </template></ul>
       </div>
@@ -120,11 +138,12 @@
   </main>
   <script>
     function academicSetup() { return {
-      data: {terms:[],subjects:[],sections:[],faculty:[],students:[],offerings:[],requests:[],legacy:[]},
+      data: {terms:[],programs:[],subjects:[],sections:[],faculty:[],students:[],offerings:[],requests:[],legacy:[]},
       error:'', message:'', term:{school_year:'',semester:'First',is_active:false},
       subject:{code:'',title:'',description:'',units:null,active:true},
-      section:{term_id:'',name:'',year_level:1,adviser_id:'',join_code:''},
-      roster:{section_id:'',student_ids:''}, offering:{term_id:'',subject_id:'',teacher_id:'',section_ids:[]},
+      section:{term_id:'',name:'',year_level:1,adviser_id:'',join_code:'',program_id:'',curriculum_version_id:''},
+      roster:{section_id:'',student_ids:''}, offering:{term_id:'',subject_id:'',teacher_id:'',section_id:''},
+      prospectus:{program_code:'',program_name:'',version_label:'',effective_school_year:'',file:null,rows:[],warnings:[]},
       editTermId:null,editSubjectId:null,editSectionId:null,editOfferingId:null,
       get adminId() { return Number(localStorage.getItem('user_id')); },
       async request(path, method='GET', body) {
@@ -142,11 +161,14 @@
       async saveSubject() { await this.run(async()=>{await this.request(`/api/academic/subjects${this.editSubjectId ? '/' + this.editSubjectId : ''}?admin_user_id=${this.adminId}`,
         this.editSubjectId ? 'PUT' : 'POST',this.subject);this.editSubjectId=null;}); },
       async saveSection() { await this.run(async()=>{await this.request(`/api/academic/sections${this.editSectionId ? '/' + this.editSectionId : ''}?admin_user_id=${this.adminId}`,
-        this.editSectionId ? 'PUT' : 'POST',{...this.section, adviser_id:this.section.adviser_id || null, join_code:this.section.join_code.trim().toUpperCase()});this.editSectionId=null;}); },
+        this.editSectionId ? 'PUT' : 'POST',{...this.section, adviser_id:this.section.adviser_id || null, program_id:this.section.program_id || null, curriculum_version_id:this.section.curriculum_version_id || null, join_code:this.section.join_code.trim().toUpperCase()});this.editSectionId=null;}); },
       async addRoster() { await this.run(async()=>{await this.request(`/api/academic/sections/${this.roster.section_id}/roster?admin_user_id=${this.adminId}`,'PUT',{
         student_ids:this.roster.student_ids.split(',').map(x=>Number(x.trim())).filter(Number.isInteger)});}); },
       async saveOffering() { await this.run(async()=>{await this.request(`/api/academic/offerings${this.editOfferingId ? '/' + this.editOfferingId : ''}?admin_user_id=${this.adminId}`,
-        this.editOfferingId ? 'PUT' : 'POST',{...this.offering, section_ids:this.offering.section_ids.map(Number)});this.editOfferingId=null;}); },
+        this.editOfferingId ? 'PUT' : 'POST',{...this.offering, section_ids:[Number(this.offering.section_id)]});this.editOfferingId=null;}); },
+      async previewProspectus() { await this.run(async()=>{ if(!this.prospectus.file) throw new Error('Choose a DOCX prospectus.'); const form=new FormData();form.append('admin_user_id',this.adminId);form.append('file',this.prospectus.file);const r=await fetch('/api/academic/prospectus/preview',{method:'POST',body:form});const d=await r.json();if(!r.ok)throw new Error(d.detail||'Prospectus import failed.');this.prospectus.rows=d.rows;this.prospectus.warnings=d.warnings;}); },
+      async commitProspectus() { await this.run(async()=>{await this.request(`/api/academic/prospectus/commit?admin_user_id=${this.adminId}`,'POST',{...this.prospectus, file:undefined});this.prospectus.rows=[];}); },
+      async masterlist(classId,file) { await this.run(async()=>{if(!file) return;const submit=async(confirm=false,reason='')=>{const form=new FormData();form.append('admin_user_id',this.adminId);form.append('confirm',confirm);form.append('override_reason',reason);form.append('file',file);const r=await fetch(`/api/academic/offerings/${classId}/masterlist`,{method:'POST',body:form});const d=await r.json();if(!r.ok)throw new Error(d.detail||'Masterlist import failed.');return d;};const preview=await submit(false);if(!confirm(`Add: ${preview.preview.added.length}; remove: ${preview.preview.removed.length}. Apply this replacement?`))return;let reason='';if(preview.preview.blocked_removals.length){reason=prompt('Removal has grades/submissions. Enter override reason:')||'';}await submit(true,reason);}); },
       async remove(kind,id) {if(!confirm('Confirm this change?'))return;await this.run(async()=>{await this.request(`/api/academic/${kind}/${id}?admin_user_id=${this.adminId}`,'DELETE');});},
       async decide(id,decision) { await this.run(async()=>{await this.request(`/api/academic/join-requests/${id}/decision`,'POST',{
         admin_user_id:this.adminId,decision});}); },
