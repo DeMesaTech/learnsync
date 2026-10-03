@@ -288,8 +288,7 @@ def save_subject(payload: SubjectInput, admin_user_id: int = Query(...)):
         _admin(cur, admin_user_id)
         cur.execute(
             """INSERT INTO subject_catalog(code,title,description,units,active) VALUES (%s,%s,%s,%s,%s)
-               ON CONFLICT (code) DO UPDATE SET title=EXCLUDED.title, description=EXCLUDED.description,
-                   units=EXCLUDED.units, active=EXCLUDED.active RETURNING *""",
+               RETURNING *""",
             (payload.code.strip().upper(), payload.title.strip(), payload.description, payload.units, payload.active),
         )
         row = cur.fetchone()
@@ -370,6 +369,58 @@ def commit_prospectus(payload: ProspectusCommit, admin_user_id: int = Query(...)
                     (program_id, version_id, "Reviewed prospectus", "", Json(payload.rows), admin_user_id, admin_user_id))
         conn.commit()
         return {"program_id": program_id, "curriculum_version_id": version_id, "subjects_created": len(payload.rows)}
+    finally:
+        conn.close()
+
+
+@academic_router.post("/curricula/{curriculum_version_id}/subjects/{subject_id}/official-syllabus", status_code=201)
+async def upload_official_syllabus(curriculum_version_id: int, subject_id: int, admin_user_id: int = Form(...),
+                                  file: UploadFile = File(...)):
+    """One official source file per curriculum subject; teachers cannot replace it."""
+    extension = Path(file.filename or "").suffix.lower()
+    if extension not in {".docx", ".pdf"}:
+        raise HTTPException(status_code=415, detail="Official syllabus must be a DOCX or PDF file.")
+    data = await file.read(20 * 1024 * 1024 + 1)
+    if len(data) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Official syllabus must be 20 MB or smaller.")
+    conn = get_db_connection()
+    path = None
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _admin(cur, admin_user_id)
+        cur.execute("SELECT program_id FROM curriculum_version WHERE curriculum_version_id=%s", (curriculum_version_id,))
+        version = cur.fetchone()
+        if not version:
+            raise HTTPException(status_code=404, detail="Curriculum version not found.")
+        _program_account(cur, admin_user_id, version["program_id"])
+        cur.execute("SELECT 1 FROM curriculum_subject WHERE curriculum_version_id=%s AND subject_id=%s",
+                    (curriculum_version_id, subject_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Subject is not part of this curriculum version.")
+        cur.execute("SELECT 1 FROM official_syllabus WHERE curriculum_version_id=%s AND subject_id=%s",
+                    (curriculum_version_id, subject_id))
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="An official syllabus already exists for this curriculum subject.")
+        directory = Path(__file__).resolve().parents[1] / "uploads" / "official-syllabus"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"{uuid.uuid4().hex}{extension}"
+        path.write_bytes(data)
+        cur.execute("""INSERT INTO official_syllabus(curriculum_version_id,subject_id,source_name,source_path,uploaded_by)
+                       VALUES (%s,%s,%s,%s,%s) RETURNING official_syllabus_id""",
+                    (curriculum_version_id, subject_id, Path(file.filename).name[:255],
+                     f"uploads/official-syllabus/{path.name}", admin_user_id))
+        official_syllabus_id = cur.fetchone()["official_syllabus_id"]
+        cur.execute("""INSERT INTO official_syllabus_version(official_syllabus_id,version,status,approved_at)
+                       VALUES (%s,1,'approved',CURRENT_TIMESTAMP) RETURNING official_syllabus_version_id""",
+                    (official_syllabus_id,))
+        version_id = cur.fetchone()["official_syllabus_version_id"]
+        conn.commit()
+        return {"official_syllabus_id": official_syllabus_id, "official_syllabus_version_id": version_id}
+    except Exception:
+        conn.rollback()
+        if path:
+            path.unlink(missing_ok=True)
+        raise
     finally:
         conn.close()
 
@@ -498,6 +549,83 @@ def add_roster(section_id: int, payload: RosterInput, admin_user_id: int = Query
             _add_member(cur, section_id, student_id)
         conn.commit()
         return {"added": len(set(payload.student_ids))}
+    finally:
+        conn.close()
+
+
+@academic_router.post("/offerings/{class_id}/masterlist")
+async def import_masterlist(class_id: int, admin_user_id: int = Form(...), confirm: bool = Form(False),
+                            override_reason: str = Form(""), file: UploadFile = File(...)):
+    """Preview or apply the Registrar-provided CSV for one subject-section offering."""
+    if Path(file.filename or "").suffix.lower() != ".csv":
+        raise HTTPException(status_code=415, detail="Masterlist must be a CSV file.")
+    uploaded_ids = _masterlist_student_ids(await file.read(10 * 1024 * 1024 + 1))
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _admin(cur, admin_user_id)
+        cur.execute("""SELECT c.class_id,c.term_id,c.teaching_section_id,s.program_id,s.curriculum_version_id
+                       FROM class c JOIN section s ON s.section_id=c.teaching_section_id
+                       WHERE c.class_id=%s AND c.workflow_status='active' FOR UPDATE""", (class_id,))
+        offering = cur.fetchone()
+        if not offering:
+            raise HTTPException(status_code=404, detail="Active one-section subject offering not found.")
+        _program_account(cur, admin_user_id, offering["program_id"])
+        cur.execute("SELECT student_id FROM student WHERE student_id=ANY(%s)", (uploaded_ids,))
+        known = {row["student_id"] for row in cur.fetchall()}
+        unknown = sorted(set(uploaded_ids) - known)
+        if unknown:
+            raise HTTPException(status_code=422, detail=f"No LearnSync student account for ID(s): {', '.join(map(str, unknown[:10]))}.")
+        section_id = offering["teaching_section_id"]
+        cur.execute("SELECT student_id FROM enrollment WHERE class_id=%s", (class_id,))
+        current = {row["student_id"] for row in cur.fetchall()}
+        additions, removals = sorted(set(uploaded_ids) - current), sorted(current - set(uploaded_ids))
+        blocked = []
+        for student_id in removals:
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM grade WHERE class_id=%s AND student_id=%s)
+                                  OR EXISTS(SELECT 1 FROM act_submission x JOIN activity a ON a.activity_id=x.activity_id
+                                             WHERE a.class_id=%s AND x.student_id=%s) AS has_activity""",
+                        (class_id, student_id, class_id, student_id))
+            if cur.fetchone()["has_activity"]:
+                blocked.append(student_id)
+        preview = {"class_id": class_id, "section_id": section_id, "added": additions,
+                   "unchanged": sorted(current & set(uploaded_ids)), "removed": removals,
+                   "blocked_removals": blocked}
+        if not confirm:
+            return {"preview": preview, "message": "Review this preview, then upload again with confirm=true to apply it."}
+        if blocked and not override_reason.strip():
+            raise HTTPException(status_code=409, detail="Removal would discard active academic access. Provide an override reason.")
+        for student_id in additions:
+            cur.execute("SELECT program_id,curriculum_version_id FROM student_program WHERE student_id=%s AND ended_at IS NULL",
+                        (student_id,))
+            current_program = cur.fetchone()
+            if current_program and (current_program["program_id"] != offering["program_id"] or
+                                    current_program["curriculum_version_id"] != offering["curriculum_version_id"]):
+                raise HTTPException(status_code=409, detail=f"Student {student_id} belongs to a different active program/curriculum.")
+            if not current_program:
+                cur.execute("""INSERT INTO student_program(student_id,program_id,curriculum_version_id)
+                               VALUES (%s,%s,%s)""",
+                            (student_id, offering["program_id"], offering["curriculum_version_id"]))
+            _add_member(cur, section_id, student_id)
+            cur.execute("INSERT INTO enrollment(student_id,class_id,section_id) VALUES (%s,%s,%s)",
+                        (student_id, class_id, section_id))
+        for student_id in removals:
+            cur.execute("DELETE FROM enrollment WHERE student_id=%s AND class_id=%s", (student_id, class_id))
+        cur.execute("""INSERT INTO masterlist_import(class_id,section_id,source_name,imported_by,enrolled_count,removed_count,override_reason,status)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,'applied') RETURNING import_id""",
+                    (class_id, section_id, Path(file.filename).name[:255], admin_user_id, len(additions), len(removals),
+                     override_reason.strip() or None))
+        import_id = cur.fetchone()["import_id"]
+        for number, student_id in enumerate(uploaded_ids, start=2):
+            status = "added" if student_id in additions else "unchanged"
+            cur.execute("INSERT INTO masterlist_import_row(import_id,row_number,student_id,status) VALUES (%s,%s,%s,%s)",
+                        (import_id, number, student_id, status))
+        for number, student_id in enumerate(removals, start=len(uploaded_ids) + 2):
+            status = "blocked" if student_id in blocked else "removed"
+            cur.execute("INSERT INTO masterlist_import_row(import_id,row_number,student_id,status,message) VALUES (%s,%s,%s,%s,%s)",
+                        (import_id, number, student_id, status, "Removed by reviewed replacement import"))
+        conn.commit()
+        return {"import_id": import_id, "applied": True, "preview": preview}
     finally:
         conn.close()
 
@@ -691,24 +819,35 @@ def create_offering(payload: OfferingInput, admin_user_id: int = Query(...)):
         if not subject:
             raise HTTPException(status_code=404, detail="Active subject not found.")
         section_ids = set(payload.section_ids)
+        section_id = next(iter(section_ids))
         cur.execute(
             "SELECT section_id FROM section WHERE section_id=ANY(%s) AND term_id=%s AND workflow_status='active'",
             (list(section_ids), payload.term_id),
         )
         if {row["section_id"] for row in cur.fetchall()} != section_ids:
             raise HTTPException(status_code=400, detail="All sections must belong to the selected term.")
-        cur.execute(
-            """INSERT INTO class(employee_id,subject,subject_id,term_id,workflow_status)
-               VALUES (%s,%s,%s,%s,'active') RETURNING class_id""",
-            (payload.teacher_id, subject["title"], payload.subject_id, payload.term_id),
-        )
+        cur.execute("SELECT curriculum_version_id FROM section WHERE section_id=%s", (section_id,))
+        section = cur.fetchone()
+        if not section or not section["curriculum_version_id"]:
+            raise HTTPException(status_code=400, detail="Assign a program curriculum to the home section first.")
+        cur.execute("SELECT 1 FROM curriculum_subject WHERE curriculum_version_id=%s AND subject_id=%s",
+                    (section["curriculum_version_id"], payload.subject_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=400, detail="Subject is not in this section's curriculum version.")
+        cur.execute("""INSERT INTO class(employee_id,subject,subject_id,term_id,teaching_section_id,workflow_status)
+                       VALUES (%s,%s,%s,%s,%s,'active') RETURNING class_id""",
+                    (payload.teacher_id, subject["title"], payload.subject_id, payload.term_id, section_id))
         class_id = cur.fetchone()["class_id"]
         cur.execute("UPDATE class SET class_code=%s WHERE class_id=%s", (f"LS{class_id}", class_id))
-        for section_id in section_ids:
-            cur.execute("INSERT INTO class_section(class_id,section_id) VALUES (%s,%s)", (class_id, section_id))
-            cur.execute("SELECT student_id FROM section_member WHERE section_id=%s", (section_id,))
-            for row in cur.fetchall():
-                _sync_enrollment(cur, section_id, row["student_id"], class_id)
+        cur.execute("INSERT INTO class_section(class_id,section_id) VALUES (%s,%s)", (class_id, section_id))
+        cur.execute("""SELECT osv.official_syllabus_version_id FROM official_syllabus os
+                       JOIN official_syllabus_version osv ON osv.official_syllabus_id=os.official_syllabus_id
+                       WHERE os.curriculum_version_id=%s AND os.subject_id=%s AND osv.status='approved'
+                       ORDER BY osv.version DESC LIMIT 1""", (section["curriculum_version_id"], payload.subject_id))
+        syllabus = cur.fetchone()
+        if syllabus:
+            cur.execute("""INSERT INTO offering_official_syllabus(class_id,official_syllabus_version_id,published_by)
+                           VALUES (%s,%s,%s)""", (class_id, syllabus["official_syllabus_version_id"], admin_user_id))
         conn.commit()
         return {"class_id": class_id, "subject": subject["title"], "section_ids": sorted(section_ids)}
     finally:
@@ -754,21 +893,18 @@ def update_offering(class_id: int, payload: OfferingInput, admin_user_id: int = 
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Active offering not found.")
         new_sections = set(payload.section_ids)
+        new_section_id = next(iter(new_sections))
         cur.execute("SELECT section_id FROM section WHERE section_id=ANY(%s) AND term_id=%s AND workflow_status='active'",
                     (list(new_sections), payload.term_id))
         if {row["section_id"] for row in cur.fetchall()} != new_sections:
             raise HTTPException(status_code=400, detail="Sections must belong to the selected term.")
-        cur.execute("SELECT section_id FROM class_section WHERE class_id=%s", (class_id,))
-        old_sections = {row["section_id"] for row in cur.fetchall()}
-        if old_sections - new_sections:
-            raise HTTPException(status_code=409, detail="Section removal requires archival review to preserve student records.")
-        cur.execute("UPDATE class SET employee_id=%s,subject_id=%s,subject=%s,term_id=%s WHERE class_id=%s",
-                    (payload.teacher_id, payload.subject_id, subject["title"], payload.term_id, class_id))
-        for section_id in new_sections - old_sections:
-            cur.execute("INSERT INTO class_section(class_id,section_id) VALUES (%s,%s)", (class_id, section_id))
-            cur.execute("SELECT student_id FROM section_member WHERE section_id=%s", (section_id,))
-            for row in cur.fetchall():
-                _sync_enrollment(cur, section_id, row["student_id"], class_id)
+        cur.execute("SELECT COUNT(*) AS total FROM enrollment WHERE class_id=%s", (class_id,))
+        if cur.fetchone()["total"]:
+            raise HTTPException(status_code=409, detail="Archive and recreate an offering after masterlist enrollment has started.")
+        cur.execute("UPDATE class SET employee_id=%s,subject_id=%s,subject=%s,term_id=%s,teaching_section_id=%s WHERE class_id=%s",
+                    (payload.teacher_id, payload.subject_id, subject["title"], payload.term_id, new_section_id, class_id))
+        cur.execute("DELETE FROM class_section WHERE class_id=%s", (class_id,))
+        cur.execute("INSERT INTO class_section(class_id,section_id) VALUES (%s,%s)", (class_id, new_section_id))
         cur.execute("UPDATE grading_column SET teacher_id=%s WHERE class_id=%s", (payload.teacher_id, class_id))
         conn.commit()
         return {"updated": True, "class_id": class_id}
